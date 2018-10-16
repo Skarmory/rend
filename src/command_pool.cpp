@@ -28,6 +28,11 @@ CommandPool::~CommandPool(void)
 {
     std::cout << "Destructing command pool" << std::endl;
 
+    vkFreeCommandBuffers(_vk_device, _vk_command_pool, _vk_command_buffers.size(), &_vk_command_buffers[0]);
+
+    for(auto cmdbuf : _command_buffers)
+        delete cmdbuf;
+
     vkResetCommandPool(_vk_device, _vk_command_pool, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
 
     vkDestroyCommandPool(_vk_device, _vk_command_pool, nullptr);
