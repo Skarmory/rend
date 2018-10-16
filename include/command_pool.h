@@ -23,7 +23,7 @@ private:
     VkDevice _vk_device;
     VkCommandPool _vk_command_pool;
 
-    std::vector<CommandBuffer> _command_buffers;
+    std::vector<CommandBuffer*> _command_buffers;
     std::vector<VkCommandBuffer> _vk_command_buffers;
 };
 

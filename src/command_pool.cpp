@@ -9,7 +9,7 @@
 using namespace rend;
 
 CommandPool::CommandPool(VkDevice vk_device, uint32_t queue_family, VkCommandPoolCreateFlagBits create_flags)
-    : _vk_device(vk_device), _vk_command_pool(VK_NULL_HANDLE)
+    : _vk_device(vk_device)
 {
     std::cout << "Constructing command pool" << std::endl;
 
@@ -58,8 +58,8 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
 
     for(size_t index = current_size; index < _vk_command_buffers.size(); index++)
     {
-        _command_buffers.push_back(CommandBuffer(_vk_command_buffers[index], index));
-        buffers.push_back(&_command_buffers[index]);
+        _command_buffers.push_back(new CommandBuffer(_vk_command_buffers[index], index));
+        buffers.push_back(_command_buffers[index]);
     }
 
     return buffers;
@@ -67,16 +67,22 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
 
 void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& command_buffers)
 {
+    std::cout << "Free command buffers begin" << std::endl;
+    std::cout << "_command_buffers size: " << _command_buffers.size() << std::endl;
+    std::cout << "_vk_command_buffers size: " << _vk_command_buffers.size() << std::endl;
+    for(size_t dbg_idx = 0; dbg_idx < _command_buffers.size(); dbg_idx++)
+        std::cout << "[" << dbg_idx << "]: " << _command_buffers[dbg_idx]->_index << std::endl;
+
     uint32_t swap_count = command_buffers.size();
 
     for(uint32_t count = swap_count; count > 0; count--)
     {
-        uint32_t index = command_buffers[count]->_index;
+        uint32_t index = command_buffers[count - 1]->_index;
         uint32_t swap_index = _command_buffers.size() - count;
 
        if(index != swap_index)
        {
-            _command_buffers[swap_index]._index = index;
+            _command_buffers[swap_index]->_index = index;
 
             std::swap(_command_buffers[index], _command_buffers[swap_index]);
             std::swap(_vk_command_buffers[index], _vk_command_buffers[swap_index]);
@@ -85,5 +91,15 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
 
     vkFreeCommandBuffers(_vk_device, _vk_command_pool, swap_count, &_vk_command_buffers[_vk_command_buffers.size() - swap_count]);
     _vk_command_buffers.erase(_vk_command_buffers.end() - swap_count, _vk_command_buffers.end());
+
+    for(size_t del_idx = _command_buffers.size() - swap_count; del_idx < _command_buffers.size(); del_idx++)
+        delete _command_buffers[del_idx];
+
     _command_buffers.erase(_command_buffers.end() - swap_count, _command_buffers.end());
+
+    std::cout << "Free command buffers end" << std::endl;
+    std::cout << "_command_buffers size: " << _command_buffers.size() << std::endl;
+    std::cout << "_vk_command_buffers size: " << _vk_command_buffers.size() << std::endl;
+    for(size_t dbg_idx = 0; dbg_idx < _command_buffers.size(); dbg_idx++)
+        std::cout << "[" << dbg_idx << "]: " << _command_buffers[dbg_idx]->_index << std::endl;
 }

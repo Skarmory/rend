@@ -58,6 +58,9 @@ LogicalDevice::LogicalDevice(VkPhysicalDevice vk_physical_device, const QueueFam
     {
         vkGetDeviceQueue(_vk_device, graphics_family->get_index(), 0, &_graphics_queue);
         vkGetDeviceQueue(_vk_device, present_family->get_index(), 0, &_present_queue);
+
+        _graphics_queue_index = graphics_family->get_index();
+        _present_queue_index = present_family->get_index();
     }
 
     // Step 4: Create command pools
@@ -79,4 +82,12 @@ LogicalDevice::~LogicalDevice(void)
     }
 
     vkDestroyDevice(_vk_device, nullptr);
+}
+
+CommandPool& LogicalDevice::get_graphics_queue_command_pool(void) const
+{
+    if(_graphics_queue == VK_NULL_HANDLE)
+        throw std::runtime_error("Attempted to get graphics queue command pool when device does not have a graphics queue");
+
+    return *_command_pools[_graphics_queue_index];
 }

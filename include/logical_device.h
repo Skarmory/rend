@@ -10,6 +10,7 @@ namespace rend
 {
 
 class CommandPool;
+class CommandBuffer;
 
 class LogicalDevice
 {
@@ -23,9 +24,13 @@ public:
     LogicalDevice& operator=(const LogicalDevice&) = delete;
     LogicalDevice& operator=(LogicalDevice&&) = delete;
 
+    CommandPool& get_graphics_queue_command_pool(void) const;
+
 private:
     VkDevice _vk_device;
+    uint8_t _graphics_queue_index;
     VkQueue _graphics_queue;
+    uint8_t _present_queue_index;
     VkQueue _present_queue;
 
     std::vector<CommandPool*> _command_pools;
