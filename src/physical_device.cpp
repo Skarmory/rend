@@ -1,27 +1,44 @@
 #include "physical_device.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 
 #include <iostream>
 
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device, VkSurfaceKHR surface) : _physical_device_index(physical_device_index), _vk_physical_device(physical_device), _logical_device(nullptr)
+PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device) : _physical_device_index(physical_device_index), _vk_physical_device(physical_device), _context(context), _logical_device(nullptr)
 {
     std::cout << "Constructing physical device" << std::endl;
 
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
 
-    uint32_t queue_family_count;
+    VkSurfaceKHR surface = _context->get_surface({});
+    _find_queue_families(surface);
+    _find_surface_formats(surface);
+    _find_surface_present_modes(surface);
+}
+
+PhysicalDevice::~PhysicalDevice(void)
+{
+    std::cout << "Destructing physical device" << std::endl;
+
+    if(_logical_device)
+        delete _logical_device;
+}
+
+void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
+{
+    uint32_t count;
     std::vector<VkQueueFamilyProperties> queue_family_properties;
-    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &queue_family_count, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, nullptr);
 
-    std::cout << "Found " << queue_family_count << " queue families" << std::endl;
+    std::cout << "Found " << count << " queue families" << std::endl;
 
-    _queue_families.reserve(queue_family_count);
-    queue_family_properties.resize(queue_family_count);
-    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &queue_family_count, queue_family_properties.data());
+    _queue_families.reserve(count);
+    queue_family_properties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, queue_family_properties.data());
 
     for(size_t queue_family_index = 0; queue_family_index < queue_family_properties.size(); queue_family_index++)
     {
@@ -39,12 +56,28 @@ PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice 
     }
 }
 
-PhysicalDevice::~PhysicalDevice(void)
+void PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
 {
-    std::cout << "Destructing physical device" << std::endl;
+    uint32_t count;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, nullptr);
 
-    if(_logical_device)
-        delete _logical_device;
+    if(count == 0)
+        return;
+
+   _vk_surface_formats.resize(count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, _vk_surface_formats.data());
+}
+
+void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
+{
+    uint32_t count;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, nullptr);
+
+    if(count == 0)
+        return;
+
+    _vk_present_modes.resize(count);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
 }
 
 LogicalDevice* PhysicalDevice::create_logical_device(VkQueueFlags queue_flags)
@@ -68,7 +101,7 @@ LogicalDevice* PhysicalDevice::create_logical_device(VkQueueFlags queue_flags)
         present_family = _present_queue_families[0];
     }
 
-    _logical_device = new LogicalDevice(_vk_physical_device, graphics_family, present_family);
+    _logical_device = new LogicalDevice(_context, this, graphics_family, present_family);
 
     return _logical_device;
 }
@@ -76,6 +109,30 @@ LogicalDevice* PhysicalDevice::create_logical_device(VkQueueFlags queue_flags)
 uint32_t PhysicalDevice::get_index(void) const
 {
     return _physical_device_index;
+}
+
+VkPhysicalDevice PhysicalDevice::get_handle(PhysicalDevice::Key key) const
+{
+    return _vk_physical_device;
+}
+
+const std::vector<VkSurfaceFormatKHR>& PhysicalDevice::get_surface_formats(void) const
+{
+    return _vk_surface_formats;
+}
+
+const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(void) const
+{
+    return _vk_present_modes;
+}
+
+VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
+{
+    VkSurfaceCapabilitiesKHR caps;
+    if(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context->get_surface({}), &caps) != VK_SUCCESS)
+        throw std::runtime_error("Failed to get surface capabilities");
+
+    return caps;
 }
 
 bool PhysicalDevice::has_queues(VkQueueFlags queue_flags) const

@@ -53,7 +53,7 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
     vkEnumeratePhysicalDevices(_vk_instance, &physical_device_count, physical_devices.data());
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
-        _physical_devices.push_back(new PhysicalDevice(physical_device_index, physical_devices[physical_device_index], _vk_surface));
+        _physical_devices.push_back(new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]));
 
     _logical_devices.resize(physical_device_count);
 }

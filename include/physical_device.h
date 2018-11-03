@@ -9,31 +9,60 @@
 namespace rend
 {
 
+class DeviceContext;
 class LogicalDevice;
 
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device, VkSurfaceKHR surface);
+    class Key;
+
+    PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device);
     ~PhysicalDevice(void);
 
     LogicalDevice* create_logical_device(VkQueueFlags queue_flags);
 
-    uint32_t get_index(void) const;
+    uint32_t                               get_index(void) const;
+    VkPhysicalDevice                       get_handle(PhysicalDevice::Key key) const;
+    const std::vector<VkSurfaceFormatKHR>& get_surface_formats(void) const;
+    const std::vector<VkPresentModeKHR>&   get_surface_present_modes(void) const;
+    VkSurfaceCapabilitiesKHR               get_surface_capabilities(void) const;
+
     bool has_features(const VkPhysicalDeviceFeatures& features) const;
     bool has_queues(VkQueueFlags queue_flags) const;
 
 private:
-    uint32_t _physical_device_index;
-    VkPhysicalDevice _vk_physical_device;
-    VkPhysicalDeviceProperties _vk_physical_device_properties;
-    VkPhysicalDeviceFeatures _vk_physical_device_features;
+    void _find_queue_families(VkSurfaceKHR surface);
+    void _find_surface_formats(VkSurfaceKHR surface);
+    void _find_surface_present_modes(VkSurfaceKHR surface);
 
-    std::vector<QueueFamily> _queue_families;
+private:
+    uint32_t                   _physical_device_index;
+    VkPhysicalDevice           _vk_physical_device;
+    VkPhysicalDeviceProperties _vk_physical_device_properties;
+    VkPhysicalDeviceFeatures   _vk_physical_device_features;
+
+    std::vector<VkSurfaceFormatKHR> _vk_surface_formats;
+    std::vector<VkPresentModeKHR>   _vk_present_modes;
+
+    std::vector<QueueFamily>  _queue_families;
     std::vector<QueueFamily*> _graphics_queue_families;
     std::vector<QueueFamily*> _present_queue_families;
 
-    LogicalDevice* _logical_device;
+    const DeviceContext* _context;
+    LogicalDevice*       _logical_device;
+};
+
+class PhysicalDevice::Key
+{
+    friend class LogicalDevice;
+
+    Key(void) = default;
+    ~Key(void) = default;
+    Key(const Key&) = delete;
+    Key(Key&&) = delete;
+    Key& operator=(const Key&) = delete;
+    Key& operator=(Key&&) = delete;
 };
 
 }

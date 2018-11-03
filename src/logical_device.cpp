@@ -1,14 +1,18 @@
 #include "logical_device.h"
 
+#include "physical_device.h"
 #include "command_pool.h"
+#include "swapchain.h"
 
+#include <array>
 #include <iostream>
+#include <stdexcept>
 #include <set>
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(VkPhysicalDevice vk_physical_device, const QueueFamily* const graphics_family, const QueueFamily* const present_family)
-    : _vk_device(VK_NULL_HANDLE), _graphics_queue(VK_NULL_HANDLE), _present_queue(VK_NULL_HANDLE)
+LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const present_family)
+    : _vk_device(VK_NULL_HANDLE), _graphics_queue(VK_NULL_HANDLE), _present_queue(VK_NULL_HANDLE), _context(context),  _physical_device(physical_device), _graphics_family(graphics_family), _present_family(present_family)
 {
     std::cout << "Constructing logical device" << std::endl;
 
@@ -30,11 +34,15 @@ LogicalDevice::LogicalDevice(VkPhysicalDevice vk_physical_device, const QueueFam
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .queueFamilyIndex = queue_family, 
+            .queueFamilyIndex = queue_family,
             .queueCount = 1,
-            .pQueuePriorities = &priority 
+            .pQueuePriorities = &priority
         });
     }
+
+    std::array<const char*, 1> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
 
     // Step 2: Create device 
     VkDeviceCreateInfo device_create_info = {
@@ -45,12 +53,12 @@ LogicalDevice::LogicalDevice(VkPhysicalDevice vk_physical_device, const QueueFam
         .pQueueCreateInfos = device_queue_create_infos.data(),
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = nullptr,
-        .enabledExtensionCount = 0,
-        .ppEnabledExtensionNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+        .ppEnabledExtensionNames = extensions.data(),
         .pEnabledFeatures = nullptr
     };
 
-    if(vkCreateDevice(vk_physical_device, &device_create_info, nullptr, &_vk_device) != VK_SUCCESS)
+    if(vkCreateDevice(_physical_device->get_handle({}), &device_create_info, nullptr, &_vk_device) != VK_SUCCESS)
         throw std::runtime_error("Failed to create logical device");
 
     // Step 3: Get queue handles
@@ -58,9 +66,6 @@ LogicalDevice::LogicalDevice(VkPhysicalDevice vk_physical_device, const QueueFam
     {
         vkGetDeviceQueue(_vk_device, graphics_family->get_index(), 0, &_graphics_queue);
         vkGetDeviceQueue(_vk_device, present_family->get_index(), 0, &_present_queue);
-
-        _graphics_queue_index = graphics_family->get_index();
-        _present_queue_index = present_family->get_index();
     }
 
     // Step 4: Create command pools
@@ -84,10 +89,25 @@ LogicalDevice::~LogicalDevice(void)
     vkDestroyDevice(_vk_device, nullptr);
 }
 
+VkDevice LogicalDevice::get_handle(LogicalDevice::Key key) const
+{
+    return _vk_device;
+}
+
+const DeviceContext& LogicalDevice::get_device_context(void) const
+{
+    return *_context;
+}
+
+const PhysicalDevice& LogicalDevice::get_physical_device(void) const
+{
+    return *_physical_device;
+}
+
 CommandPool& LogicalDevice::get_graphics_queue_command_pool(void) const
 {
     if(_graphics_queue == VK_NULL_HANDLE)
         throw std::runtime_error("Attempted to get graphics queue command pool when device does not have a graphics queue");
 
-    return *_command_pools[_graphics_queue_index];
+    return *_command_pools[_graphics_family->get_index()];
 }
