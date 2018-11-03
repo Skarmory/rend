@@ -1,14 +1,15 @@
 #include "device_context.h"
 
 #include "physical_device.h"
+#include "window.h"
 
 #include <GLFW/glfw3.h>
-#include <exception>
+#include <stdexcept>
 #include <iostream>
 
 using namespace rend;
 
-DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, GLFWwindow* window)
+DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window) : _window(window)
 {
     std::cout << "Constructing device context" << std::endl;
 
@@ -38,8 +39,7 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
         throw std::runtime_error("Failed to create Vulkan instance");
 
     // Step 2: Create surface
-    if( glfwCreateWindowSurface(_vk_instance, window, nullptr, &_vk_surface) != VK_SUCCESS )
-        throw std::runtime_error("Failed to create window surface");
+    _window->_create_surface_private(_vk_instance);
 
     // Step 3: Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
@@ -65,7 +65,7 @@ DeviceContext::~DeviceContext(void)
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
         delete _physical_devices[physical_device_index];
 
-    vkDestroySurfaceKHR(_vk_instance, _vk_surface, nullptr); 
+    delete _window;
 
     vkDestroyInstance(_vk_instance, nullptr);
 }
@@ -79,4 +79,14 @@ PhysicalDevice* DeviceContext::find_physical_device(const VkPhysicalDeviceFeatur
     }
 
     return nullptr;
+}
+
+VkInstance DeviceContext::get_instance(DeviceContext::Key key) const
+{
+    return _vk_instance;
+}
+
+VkSurfaceKHR DeviceContext::get_surface(DeviceContext::Key key) const
+{
+    return _window->_vk_surface;
 }
