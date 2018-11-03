@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-fPIC -shared -Wall -Iinclude -isystem /usr/include/vulkan
-LDFLAGS=-lvulkan -lglfw
+CFLAGS=-fPIC -shared -Wall -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
+LDFLAGS=-lvulkan -lglfw -DGLFW_WINDOW
 NAME=librend.so
 
 INCL=$(wildcard include/*.h)
