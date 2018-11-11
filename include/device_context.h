@@ -22,21 +22,24 @@ public:
     ~DeviceContext(void);
 
     DeviceContext(const DeviceContext&) = delete;
-    DeviceContext(DeviceContext&&) = delete;
+    DeviceContext(DeviceContext&&)      = delete;
 
     DeviceContext& operator=(const DeviceContext&) = delete;
-    DeviceContext& operator=(DeviceContext&&) = delete;
+    DeviceContext& operator=(DeviceContext&&)      = delete;
 
-    PhysicalDevice* find_physical_device(const VkPhysicalDeviceFeatures& features);
-
-    VkInstance get_instance(DeviceContext::Key key) const;
+    VkInstance   get_instance(DeviceContext::Key key) const;
     VkSurfaceKHR get_surface(DeviceContext::Key key) const;
+
+    LogicalDevice* create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
+
+private:
+    PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
 
 private:
     VkInstance _vk_instance;
 
     std::vector<PhysicalDevice*> _physical_devices;
-    std::vector<LogicalDevice*> _logical_devices;
+    LogicalDevice*               _logical_device;
 
     Window* _window;
 };

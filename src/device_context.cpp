@@ -54,8 +54,6 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
         _physical_devices.push_back(new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]));
-
-    _logical_devices.resize(physical_device_count);
 }
 
 DeviceContext::~DeviceContext(void)
@@ -70,7 +68,25 @@ DeviceContext::~DeviceContext(void)
     vkDestroyInstance(_vk_instance, nullptr);
 }
 
-PhysicalDevice* DeviceContext::find_physical_device(const VkPhysicalDeviceFeatures& features)
+VkInstance DeviceContext::get_instance(DeviceContext::Key key) const
+{
+    return _vk_instance;
+}
+
+VkSurfaceKHR DeviceContext::get_surface(DeviceContext::Key key) const
+{
+    return _window->_vk_surface;
+}
+
+LogicalDevice* DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
+{
+    PhysicalDevice* chosen_physical_device = _find_physical_device(desired_features);
+    _logical_device  = chosen_physical_device->create_logical_device({}, desired_queues);
+
+    return _logical_device;
+}
+
+PhysicalDevice* DeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
 {
     for(PhysicalDevice* device : _physical_devices)
     {
@@ -81,12 +97,3 @@ PhysicalDevice* DeviceContext::find_physical_device(const VkPhysicalDeviceFeatur
     return nullptr;
 }
 
-VkInstance DeviceContext::get_instance(DeviceContext::Key key) const
-{
-    return _vk_instance;
-}
-
-VkSurfaceKHR DeviceContext::get_surface(DeviceContext::Key key) const
-{
-    return _window->_vk_surface;
-}

@@ -20,7 +20,7 @@ public:
     PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device);
     ~PhysicalDevice(void);
 
-    LogicalDevice* create_logical_device(VkQueueFlags queue_flags);
+    LogicalDevice* create_logical_device(PhysicalDevice::Key key, const VkQueueFlags queue_flags);
 
     uint32_t                               get_index(void) const;
     VkPhysicalDevice                       get_handle(PhysicalDevice::Key key) const;
@@ -55,6 +55,7 @@ private:
 
 class PhysicalDevice::Key
 {
+    friend class DeviceContext;
     friend class LogicalDevice;
 
     Key(void) = default;

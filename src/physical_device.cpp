@@ -80,7 +80,7 @@ void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
 }
 
-LogicalDevice* PhysicalDevice::create_logical_device(VkQueueFlags queue_flags)
+LogicalDevice* PhysicalDevice::create_logical_device(PhysicalDevice::Key key, const VkQueueFlags queue_flags)
 {
     if(_logical_device)
         throw std::runtime_error("Attempted to create logical device when one already exists");
