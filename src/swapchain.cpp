@@ -61,9 +61,6 @@ void Swapchain::_create(uint32_t desired_images)
         .oldSwapchain = _vk_swapchain 
     };
 
-    std::cout << "Pretransform: " << create_info.preTransform << std::endl;
-    std::cout << "Composite alpha: " << create_info.compositeAlpha << std::endl;
-
     if(vkCreateSwapchainKHR(_logical_device->get_handle({}), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
         throw std::runtime_error("Failed to create swapchain");
 }
