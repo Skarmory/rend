@@ -70,6 +70,11 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
     return buffers;
 }
 
+CommandBuffer* CommandPool::allocate_command_buffer(bool primary)
+{
+    return allocate_command_buffers(1, primary)[0];
+}
+
 void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& command_buffers)
 {
     std::cout << "Free command buffers begin" << std::endl;
@@ -107,4 +112,9 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
     std::cout << "_vk_command_buffers size: " << _vk_command_buffers.size() << std::endl;
     for(size_t dbg_idx = 0; dbg_idx < _command_buffers.size(); dbg_idx++)
         std::cout << "[" << dbg_idx << "]: " << _command_buffers[dbg_idx]->_index << std::endl;
+}
+
+void CommandPool::free_command_buffer(CommandBuffer* command_buffer)
+{
+    free_command_buffers({ command_buffer });
 }

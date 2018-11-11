@@ -17,7 +17,9 @@ public:
     ~CommandPool(void);
 
     std::vector<CommandBuffer*> allocate_command_buffers(uint32_t count, bool primary=true); 
-    void free_command_buffers(const std::vector<CommandBuffer*>& command_buffers);
+    CommandBuffer*              allocate_command_buffer(bool primary=true);
+    void                        free_command_buffers(const std::vector<CommandBuffer*>& command_buffers);
+    void                        free_command_buffer(CommandBuffer* command_buffer);
 
 private:
     VkDevice _vk_device;
