@@ -1,5 +1,7 @@
 #include "command_buffer.h"
 
+#include "utils.h"
+
 #include <iostream>
 
 using namespace rend;
@@ -17,6 +19,5 @@ CommandBuffer::~CommandBuffer(void)
 
 void CommandBuffer::reset(void)
 {
-    if(vkResetCommandBuffer(_vk_command_buffer, 0) != VK_SUCCESS)
-        throw std::runtime_error("Failed to reset command buffer");
+    VULKAN_DEATH_CHECK(vkResetCommandBuffer(_vk_command_buffer, 0), "Failed to reset command buffer");
 }
