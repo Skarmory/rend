@@ -15,15 +15,14 @@ class LogicalDevice;
 class PhysicalDevice
 {
 public:
-    class Key;
 
     PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device);
     ~PhysicalDevice(void);
 
-    LogicalDevice* create_logical_device(PhysicalDevice::Key key, const VkQueueFlags queue_flags);
+    LogicalDevice* create_logical_device(const VkQueueFlags queue_flags);
 
     uint32_t                               get_index(void) const;
-    VkPhysicalDevice                       get_handle(PhysicalDevice::Key key) const;
+    VkPhysicalDevice                       get_handle(void) const;
     const std::vector<VkSurfaceFormatKHR>& get_surface_formats(void) const;
     const std::vector<VkPresentModeKHR>&   get_surface_present_modes(void) const;
     VkSurfaceCapabilitiesKHR               get_surface_capabilities(void) const;
@@ -51,19 +50,6 @@ private:
 
     const DeviceContext* _context;
     LogicalDevice*       _logical_device;
-};
-
-class PhysicalDevice::Key
-{
-    friend class DeviceContext;
-    friend class LogicalDevice;
-
-    Key(void) = default;
-    ~Key(void) = default;
-    Key(const Key&) = delete;
-    Key(Key&&) = delete;
-    Key& operator=(const Key&) = delete;
-    Key& operator=(Key&&) = delete;
 };
 
 }
