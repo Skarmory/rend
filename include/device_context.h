@@ -16,8 +16,6 @@ class Window;
 class DeviceContext
 {
 public:
-    class Key;
-
     DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window);
     ~DeviceContext(void);
 
@@ -27,8 +25,8 @@ public:
     DeviceContext& operator=(const DeviceContext&) = delete;
     DeviceContext& operator=(DeviceContext&&)      = delete;
 
-    VkInstance   get_instance(DeviceContext::Key key) const;
-    VkSurfaceKHR get_surface(DeviceContext::Key key) const;
+    VkInstance   get_instance(void) const;
+    VkSurfaceKHR get_surface(void) const;
 
     LogicalDevice* create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
 
@@ -42,21 +40,6 @@ private:
     LogicalDevice*               _logical_device;
 
     Window* _window;
-};
-
-class DeviceContext::Key final
-{
-    friend class PhysicalDevice;
-    friend class Swapchain;
-
-    Key(void)  = default;
-    ~Key(void) = default;
-
-    Key(const Key&) = delete;
-    Key(Key&&)      = delete;
-
-    Key& operator=(const Key& key) = delete;
-    Key& operator=(Key&& key)      = delete;
 };
 
 }

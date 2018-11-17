@@ -2,9 +2,9 @@
 
 #include "physical_device.h"
 #include "window.h"
+#include "utils.h"
 
 #include <GLFW/glfw3.h>
-#include <stdexcept>
 #include <iostream>
 
 using namespace rend;
@@ -35,8 +35,12 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
         .ppEnabledExtensionNames = extensions 
     };
 
+    /*
     if( vkCreateInstance(&instance_create_info, nullptr, &_vk_instance) != VK_SUCCESS )
         throw std::runtime_error("Failed to create Vulkan instance");
+    */
+
+    VULKAN_DEATH_CHECK(vkCreateInstance(&instance_create_info, nullptr, &_vk_instance), "Failed to create Vulkan instance");
 
     // Step 2: Create surface
     _window->_create_surface_private(_vk_instance);
@@ -68,12 +72,12 @@ DeviceContext::~DeviceContext(void)
     vkDestroyInstance(_vk_instance, nullptr);
 }
 
-VkInstance DeviceContext::get_instance(DeviceContext::Key key) const
+VkInstance DeviceContext::get_instance(void) const
 {
     return _vk_instance;
 }
 
-VkSurfaceKHR DeviceContext::get_surface(DeviceContext::Key key) const
+VkSurfaceKHR DeviceContext::get_surface(void) const
 {
     return _window->_vk_surface;
 }
@@ -81,7 +85,7 @@ VkSurfaceKHR DeviceContext::get_surface(DeviceContext::Key key) const
 LogicalDevice* DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
 {
     PhysicalDevice* chosen_physical_device = _find_physical_device(desired_features);
-    _logical_device  = chosen_physical_device->create_logical_device({}, desired_queues);
+    _logical_device  = chosen_physical_device->create_logical_device(desired_queues);
 
     return _logical_device;
 }
