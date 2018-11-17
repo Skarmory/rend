@@ -6,6 +6,12 @@
 namespace rend
 {
 
+enum class QueueType
+{
+    GRAPHICS,
+    TRANSFER
+};
+
 class QueueFamily
 {
 public:
