@@ -2,18 +2,18 @@
 
 #include "device_context.h"
 #include "physical_device.h"
+#include "logical_device.h"
+#include "utils.h"
 
 #include <iostream>
-#include <stdexcept>
 
 using namespace rend;
 
-Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0)
+Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0), _vk_swapchain(VK_NULL_HANDLE)
 {
     std::cout << "Constructing swap chain" << std::endl;
 
-    if(desired_images == 0)
-        throw std::runtime_error("Failed to create swapchain: desired images cannot be 0");
+    DEATH_CHECK(desired_images == 0, "Failed to create swapchain: desired images cannot be 0");
 
     _create(desired_images);
 }
@@ -22,7 +22,7 @@ Swapchain::~Swapchain(void)
 {
     std::cout << "Destructing swap chain" << std::endl;
 
-    vkDestroySwapchainKHR(_logical_device->get_handle({}), _vk_swapchain, nullptr);
+    vkDestroySwapchainKHR(_logical_device->get_handle(), _vk_swapchain, nullptr);
 }
 
 void Swapchain::_create(uint32_t desired_images)
@@ -44,7 +44,7 @@ void Swapchain::_create(uint32_t desired_images)
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
-        .surface = _logical_device->get_device_context().get_surface({}),
+        .surface = _logical_device->get_device_context().get_surface(),
         .minImageCount = _image_count,
         .imageFormat = _surface_format.format,
         .imageColorSpace = _surface_format.colorSpace,
@@ -61,14 +61,12 @@ void Swapchain::_create(uint32_t desired_images)
         .oldSwapchain = _vk_swapchain 
     };
 
-    if(vkCreateSwapchainKHR(_logical_device->get_handle({}), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create swapchain");
+    VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_logical_device->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
 }
 
 VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats)
 {
-    if(surface_formats.size() == 0)
-        throw std::runtime_error("No surface formats found");
+    DEATH_CHECK(surface_formats.size() == 0, "No surface formats found");
 
     if(surface_formats.size() == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED)
         return VkSurfaceFormatKHR{ .format=VK_FORMAT_B8G8R8A8_UNORM, .colorSpace=VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -85,8 +83,7 @@ VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFo
 
 VkPresentModeKHR Swapchain::_find_present_mode(const std::vector<VkPresentModeKHR>& present_modes)
 {
-    if(present_modes.size() == 0)
-        throw std::runtime_error("No present modes found");
+    DEATH_CHECK(present_modes.size() == 0, "No present modes found");
 
     VkPresentModeKHR chosen = VK_PRESENT_MODE_FIFO_KHR;
     for(VkPresentModeKHR present_mode : present_modes)
