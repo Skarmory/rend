@@ -21,7 +21,7 @@ class LogicalDevice
 public:
     class Key;
 
-    LogicalDevice(const DeviceContext* device_context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const present_family);
+    LogicalDevice(const DeviceContext* device_context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
     ~LogicalDevice(void);
 
     LogicalDevice(const LogicalDevice&) = delete;
@@ -30,43 +30,35 @@ public:
     LogicalDevice& operator=(const LogicalDevice&) = delete;
     LogicalDevice& operator=(LogicalDevice&&) = delete;
 
+    // Retrieval
     const DeviceContext&     get_device_context(void) const;
     const PhysicalDevice&    get_physical_device(void) const;
     const QueueFamily* const get_graphics_queue_family(void) const;
-    const QueueFamily* const get_present_queue_family(void) const;
-    CommandPool&             get_graphics_queue_command_pool(void) const;
-    VkDevice                 get_handle(LogicalDevice::Key key) const;
+    const QueueFamily* const get_transfer_queue_family(void) const;
+    VkDevice                 get_handle(void) const;
+
+    // Creational
+    CommandPool*             create_command_pool(const QueueType type, bool can_reset);
+    void                     destroy_command_pool(CommandPool** command_pool);
+
+    Swapchain*               create_swapchain(uint32_t desired_images);
+    void                     destroy_swapchain(Swapchain** swapchain);
 
 private:
     VkDevice _vk_device;
     VkQueue _graphics_queue;
-    VkQueue _present_queue;
+    VkQueue _transfer_queue;
 
     const DeviceContext* _context;
     const PhysicalDevice* _physical_device;
 
     const QueueFamily* const _graphics_family;
-    const QueueFamily* const _present_family;
+    const QueueFamily* const _transfer_family;
 
     std::vector<CommandPool*> _command_pools;
 };
 
-class LogicalDevice::Key
-{
-    friend class Swapchain;
-
-private:
-
-    Key(void) = default;
-    ~Key(void) = default;
-    Key(const Key&) = delete;
-    Key(Key&&) = delete;
-    Key& operator=(const Key&) = delete;
-    Key& operator=(Key&&) = delete;
-};
-
 }
-
 
 #endif
 
