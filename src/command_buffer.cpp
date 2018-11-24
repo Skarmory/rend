@@ -22,6 +22,24 @@ VkCommandBuffer CommandBuffer::get_handle(void) const
     return _vk_command_buffer;
 }
 
+void CommandBuffer::begin(void)
+{
+    VkCommandBufferBeginInfo info =
+    {
+        .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext            = nullptr,
+        .flags            = 0,
+        .pInheritanceInfo = nullptr
+    };
+
+    VULKAN_DEATH_CHECK(vkBeginCommandBuffer(_vk_command_buffer, &info), "Failed to begin command buffer");
+}
+
+void CommandBuffer::end(void)
+{
+    vkEndCommandBuffer(_vk_command_buffer);
+}
+
 void CommandBuffer::reset(void)
 {
     VULKAN_DEATH_CHECK(vkResetCommandBuffer(_vk_command_buffer, 0), "Failed to reset command buffer");

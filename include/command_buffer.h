@@ -21,6 +21,8 @@ public:
 
     VkCommandBuffer get_handle(void) const;
 
+    void begin(void);
+    void end(void);
     void reset(void);
 
 private:
