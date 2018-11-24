@@ -11,6 +11,8 @@ class LogicalDevice;
 
 class RenderPass
 {
+    friend class LogicalDevice;
+
 public:
     RenderPass(const RenderPass&)            = delete;
     RenderPass(RenderPass&&)                 = delete;
