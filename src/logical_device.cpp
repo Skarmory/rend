@@ -3,6 +3,7 @@
 #include "physical_device.h"
 #include "command_pool.h"
 #include "command_buffer.h"
+#include "render_pass.h"
 #include "swapchain.h"
 #include "utils.h"
 
@@ -185,9 +186,25 @@ Swapchain* LogicalDevice::create_swapchain(uint32_t desired_images)
 
 void LogicalDevice::destroy_swapchain(Swapchain** swapchain)
 {
-    if(!swapchain || !*swapchain)
-       return;
+    if(swapchain || *swapchain)
+    {
+        delete (*swapchain);
+        *swapchain = nullptr;
+    }
+}
 
-    delete (*swapchain);
-    *swapchain = nullptr;
+RenderPass* LogicalDevice::create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps)
+{
+    RenderPass* render_pass = new RenderPass(this, attachment_descs, subpass_descs, subpass_deps);
+
+    return render_pass;
+}
+
+void LogicalDevice::destroy_render_pass(RenderPass** render_pass)
+{
+    if(render_pass && *render_pass)
+    {
+        delete (*render_pass);
+        *render_pass = nullptr;
+    }
 }
