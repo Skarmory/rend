@@ -6,23 +6,77 @@
 #include "utils.h"
 
 #include <iostream>
+#include <limits>
 
 using namespace rend;
 
-Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0), _vk_swapchain(VK_NULL_HANDLE)
+Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0), _current_image_idx(0), _vk_swapchain(VK_NULL_HANDLE)
 {
     std::cout << "Constructing swap chain" << std::endl;
 
     DEATH_CHECK(desired_images == 0, "Failed to create swapchain: desired images cannot be 0");
 
     _create(desired_images);
+
+    _get_images();
 }
 
 Swapchain::~Swapchain(void)
 {
     std::cout << "Destructing swap chain" << std::endl;
 
+    for(size_t idx = 0; idx < _image_count; idx++)
+        vkDestroyImageView(_logical_device->get_handle(), _vk_image_views[idx], nullptr);
     vkDestroySwapchainKHR(_logical_device->get_handle(), _vk_swapchain, nullptr);
+}
+
+VkFormat Swapchain::get_format(void) const
+{
+    return _surface_format.format;
+}
+
+const std::vector<VkImage>& Swapchain::get_images(void) const
+{
+    return _vk_images;
+}
+
+const std::vector<VkImageView>& Swapchain::get_image_views(void) const
+{
+    return _vk_image_views;
+}
+
+VkExtent2D Swapchain::get_extent(void) const
+{
+    return _vk_extent;
+}
+
+VkSwapchainKHR Swapchain::get_handle(void) const
+{
+    return _vk_swapchain;
+}
+
+uint32_t Swapchain::acquire(VkSemaphore acquire_semaphore, VkFence acquire_fence)
+{
+    VULKAN_DEATH_CHECK(vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), acquire_semaphore, acquire_fence, &_current_image_idx), "Failed to acquire next swapchain image");
+
+    return _current_image_idx;
+}
+
+void Swapchain::present(QueueType type, const std::vector<VkSemaphore>& wait_sems)
+{
+    VkPresentInfoKHR present_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
+        .pWaitSemaphores = wait_sems.data(),
+        .swapchainCount = 1,
+        .pSwapchains = &_vk_swapchain,
+        .pImageIndices = &_current_image_idx,
+        .pResults = nullptr
+    };
+
+    VULKAN_DEATH_CHECK(vkQueuePresentKHR(_logical_device->get_queue(type), &present_info), "Failed to present queue");
 }
 
 void Swapchain::_create(uint32_t desired_images)
@@ -40,28 +94,59 @@ void Swapchain::_create(uint32_t desired_images)
     _image_count = _find_image_count(desired_images, surface_caps);
     std::cout << "Chosen image count: " << _image_count << std::endl;
 
+    _vk_extent = surface_caps.currentExtent;
+
     VkSwapchainCreateInfoKHR create_info = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .surface = _logical_device->get_device_context().get_surface(),
-        .minImageCount = _image_count,
-        .imageFormat = _surface_format.format,
-        .imageColorSpace = _surface_format.colorSpace,
-        .imageExtent = surface_caps.maxImageExtent,
-        .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext                 = nullptr,
+        .flags                 = 0,
+        .surface               = _logical_device->get_device_context().get_surface(),
+        .minImageCount         = _image_count,
+        .imageFormat           = _surface_format.format,
+        .imageColorSpace       = _surface_format.colorSpace,
+        .imageExtent           = surface_caps.currentExtent,
+        .imageArrayLayers      = 1,
+        .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-        .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = _present_mode,
-        .clipped = VK_TRUE,
-        .oldSwapchain = _vk_swapchain 
+        .pQueueFamilyIndices   = nullptr,
+        .preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+        .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode           = _present_mode,
+        .clipped               = VK_TRUE,
+        .oldSwapchain          = _vk_swapchain
     };
 
     VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_logical_device->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
+}
+
+void Swapchain::_get_images(void)
+{
+    vkGetSwapchainImagesKHR(_logical_device->get_handle(), _vk_swapchain, &_image_count, nullptr);
+
+    _vk_images.resize(_image_count);
+
+    vkGetSwapchainImagesKHR(_logical_device->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
+
+    _vk_image_views.resize(_image_count);
+
+    std::cout << "Image count: " << _image_count << std::endl;
+
+    VkImageViewCreateInfo image_view_create_info = {};
+    image_view_create_info.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    image_view_create_info.format                          = _surface_format.format;
+    image_view_create_info.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+    image_view_create_info.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    image_view_create_info.subresourceRange.baseMipLevel   = 0;
+    image_view_create_info.subresourceRange.levelCount     = 1;
+    image_view_create_info.subresourceRange.baseArrayLayer = 0;
+    image_view_create_info.subresourceRange.layerCount     = 1;
+
+    for(size_t idx = 0; idx < _vk_images.size(); idx++)
+    {
+        image_view_create_info.image = _vk_images[idx];
+        VULKAN_DEATH_CHECK(vkCreateImageView(_logical_device->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]), "Failed to create swapchain image image view");
+    }
 }
 
 VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats)
