@@ -2,6 +2,7 @@
 
 #include "physical_device.h"
 #include "command_pool.h"
+#include "command_buffer.h"
 #include "swapchain.h"
 #include "utils.h"
 
@@ -14,7 +15,7 @@
 using namespace rend;
 
 LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
-    : _vk_device(VK_NULL_HANDLE), _graphics_queue(VK_NULL_HANDLE), _transfer_queue(VK_NULL_HANDLE), _context(context),  _physical_device(physical_device), _graphics_family(graphics_family), _transfer_family(transfer_family)
+    : _vk_device(VK_NULL_HANDLE), _vk_graphics_queue(VK_NULL_HANDLE), _vk_transfer_queue(VK_NULL_HANDLE), _context(context),  _physical_device(physical_device), _graphics_family(graphics_family), _transfer_family(transfer_family)
 {
     std::cout << "Constructing logical device" << std::endl;
 
@@ -64,8 +65,8 @@ LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice*
     // Step 3: Get queue handles
     if(graphics_family)
     {
-        vkGetDeviceQueue(_vk_device, _graphics_family->get_index(), 0, &_graphics_queue);
-        vkGetDeviceQueue(_vk_device, _transfer_family->get_index(), 0, &_transfer_queue);
+        vkGetDeviceQueue(_vk_device, _graphics_family->get_index(), 0, &_vk_graphics_queue);
+        vkGetDeviceQueue(_vk_device, _transfer_family->get_index(), 0, &_vk_transfer_queue);
     }
 }
 
@@ -87,6 +88,20 @@ VkDevice LogicalDevice::get_handle(void) const
     return _vk_device;
 }
 
+VkQueue LogicalDevice::get_queue(QueueType type) const
+{
+    switch(type)
+    {
+        case QueueType::GRAPHICS: return _vk_graphics_queue;
+        case QueueType::TRANSFER: return _vk_transfer_queue;
+        default:
+            std::cerr << "Invalid queue type given in LogicalDevice::get_queue" << std::endl;
+            std::abort();
+    }
+
+    return VK_NULL_HANDLE;
+}
+
 const DeviceContext& LogicalDevice::get_device_context(void) const
 {
     return *_context;
@@ -97,7 +112,35 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-CommandPool* LogicalDevice::create_command_pool( const QueueType type, bool can_reset )
+bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<VkSemaphore>& wait_sems, const std::vector<VkSemaphore>& signal_sems, VkFence fence)
+{
+    std::vector<VkCommandBuffer> vk_command_buffers;
+    vk_command_buffers.reserve(command_buffers.size());
+
+    std::for_each(command_buffers.begin(), command_buffers.end(), [&vk_command_buffers](CommandBuffer* buf){ vk_command_buffers.push_back(buf->get_handle());  });
+
+    VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSubmitInfo submit_info = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
+        .pWaitSemaphores = wait_sems.data(),
+        .pWaitDstStageMask = &wait_stages,
+        .commandBufferCount = static_cast<uint32_t>(command_buffers.size()),
+        .pCommandBuffers = vk_command_buffers.data(),
+        .signalSemaphoreCount = static_cast<uint32_t>(signal_sems.size()),
+        .pSignalSemaphores = signal_sems.data()
+    };
+
+    VkQueue queue = get_queue(type);
+
+    VULKAN_DEATH_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence), "Failed to submit queue");
+
+    return true;
+}
+
+CommandPool* LogicalDevice::create_command_pool(const QueueType type, bool can_reset)
 {
     switch(type)
     {

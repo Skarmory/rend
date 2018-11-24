@@ -36,6 +36,9 @@ public:
     const QueueFamily* const get_graphics_queue_family(void) const;
     const QueueFamily* const get_transfer_queue_family(void) const;
     VkDevice                 get_handle(void) const;
+    VkQueue                  get_queue(QueueType type) const;
+
+    bool                     queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<VkSemaphore>& wait_sems, const std::vector<VkSemaphore>& signal_sems, VkFence fence);
 
     // Creational
     CommandPool*             create_command_pool(const QueueType type, bool can_reset);
@@ -46,8 +49,8 @@ public:
 
 private:
     VkDevice _vk_device;
-    VkQueue _graphics_queue;
-    VkQueue _transfer_queue;
+    VkQueue _vk_graphics_queue;
+    VkQueue _vk_transfer_queue;
 
     const DeviceContext* _context;
     const PhysicalDevice* _physical_device;
