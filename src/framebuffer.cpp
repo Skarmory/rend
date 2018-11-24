@@ -1,5 +1,11 @@
 #include "framebuffer.h"
 
+#include "logical_device.h"
+#include "render_pass.h"
+#include "utils.h"
+
+using namespace rend;
+
 Framebuffer::Framebuffer(LogicalDevice* device, const RenderPass& render_pass, const std::vector<VkImageView>& attachments, VkExtent3D dimensions) : _device(device)
 {
     VkFramebufferCreateInfo create_info =
@@ -8,14 +14,14 @@ Framebuffer::Framebuffer(LogicalDevice* device, const RenderPass& render_pass, c
         .pNext = nullptr,
         .flags = 0,
         .renderPass = render_pass.get_handle(),
-        .attachmentCount = attachments.size(),
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = dimensions.width,
         .height = dimensions.height,
         .layers = dimensions.depth
     };
 
-    VULKAN_DEATH_CHECK(vkCreateFramebuffer(_device->get_handle(), &create_info, nullptr, _vk_framebuffer), "Failed to create framebuffer");
+    VULKAN_DEATH_CHECK(vkCreateFramebuffer(_device->get_handle(), &create_info, nullptr, &_vk_framebuffer), "Failed to create framebuffer");
 }
 
 Framebuffer::~Framebuffer(void)

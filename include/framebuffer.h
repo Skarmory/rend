@@ -2,14 +2,18 @@
 #define FRAME_BUFFER_H
 
 #include <vulkan/vulkan.h>
+#include <vector>
 
 namespace rend
 {
 
 class LogicalDevice;
+class RenderPass;
 
 class Framebuffer
 {
+    friend class LogicalDevice;
+
 public:
 
     Framebuffer(const Framebuffer&)            = delete;
