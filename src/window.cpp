@@ -1,6 +1,6 @@
 #include "window.h"
 
-#include <stdexcept>
+#include "utils.h"
 
 using namespace rend;
 
@@ -56,8 +56,7 @@ GLFWwindow* GLFWWindow::get_window_handle(void) const
 
 void GLFWWindow::_create_surface(VkInstance instance, VkSurfaceKHR* surface)
 {
-    if( glfwCreateWindowSurface(instance, _window, nullptr, surface) != VK_SUCCESS )
-        throw std::runtime_error("Failed to create window surface");
+    VULKAN_DEATH_CHECK(glfwCreateWindowSurface(instance, _window, nullptr, surface), "Failed to create window surface");
 }
 
 #endif
