@@ -6,10 +6,14 @@
 
 #define VULKAN_DEATH_CHECK(expr, msg)\
 {\
-    if(expr != VK_SUCCESS)\
     {\
-        std::cerr << msg << std::endl;\
-        std::abort();\
+        VkResult res = expr;\
+        if(res != VK_SUCCESS)\
+        {\
+            std::cerr << "Vulkan error code: " << res << std::endl;\
+            std::cerr << msg << std::endl;\
+            std::abort();\
+        }\
     }\
 }
 
