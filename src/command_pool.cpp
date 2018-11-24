@@ -82,15 +82,16 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
         size_t index_from = command_buffers[count - 1]->_index;
         size_t index_to = _command_buffers.size() - count;
 
-       if(index_from != index_to)
-       {
+        vk_buffers.push_back(_command_buffers[index_from]->_vk_command_buffer);
+
+        if(index_from != index_to)
+        {
            // Set index of element being swapped with
             _command_buffers[index_to]->_index = index_from;
 
-            vk_buffers.push_back(_command_buffers[index_from]->_vk_command_buffer);
-
             std::swap(_command_buffers[index_from], _command_buffers[index_to]);
-       }
+        }
+
     }
 
     vkFreeCommandBuffers(_logical_device->get_handle(), _vk_command_pool, swap_count, vk_buffers.data());
