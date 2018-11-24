@@ -19,6 +19,8 @@ public:
     CommandBuffer& operator=(const CommandBuffer&) = delete;
     CommandBuffer& operator=(CommandBuffer&&)      = delete;
 
+    VkCommandBuffer get_handle(void) const;
+
     void reset(void);
 
 private:

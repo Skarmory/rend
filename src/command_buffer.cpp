@@ -17,6 +17,11 @@ CommandBuffer::~CommandBuffer(void)
     std::cout << "Destructing command buffer" << std::endl;
 }
 
+VkCommandBuffer CommandBuffer::get_handle(void) const
+{
+    return _vk_command_buffer;
+}
+
 void CommandBuffer::reset(void)
 {
     VULKAN_DEATH_CHECK(vkResetCommandBuffer(_vk_command_buffer, 0), "Failed to reset command buffer");
