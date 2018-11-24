@@ -13,8 +13,9 @@ class DeviceContext;
 class PhysicalDevice;
 class CommandPool;
 class CommandBuffer;
-class Swapchain;
+class Framebuffer;
 class RenderPass;
+class Swapchain;
 
 class LogicalDevice
 {
@@ -50,6 +51,9 @@ public:
 
     RenderPass*              create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps);
     void                     destroy_render_pass(RenderPass** render_pass);
+
+    Framebuffer*             create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions);
+    void                     destroy_framebuffer(Framebuffer** framebuffer);
 
 private:
     VkDevice _vk_device;

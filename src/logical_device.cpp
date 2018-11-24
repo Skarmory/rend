@@ -3,6 +3,7 @@
 #include "physical_device.h"
 #include "command_pool.h"
 #include "command_buffer.h"
+#include "framebuffer.h"
 #include "render_pass.h"
 #include "swapchain.h"
 #include "utils.h"
@@ -206,5 +207,21 @@ void LogicalDevice::destroy_render_pass(RenderPass** render_pass)
     {
         delete (*render_pass);
         *render_pass = nullptr;
+    }
+}
+
+Framebuffer* LogicalDevice::create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions)
+{
+    Framebuffer* framebuffer = new Framebuffer(this, render_pass, image_views, dimensions);
+
+    return framebuffer;
+}
+
+void LogicalDevice::destroy_framebuffer(Framebuffer** framebuffer)
+{
+    if(framebuffer && *framebuffer)
+    {
+        delete (*framebuffer);
+        *framebuffer = nullptr;
     }
 }
