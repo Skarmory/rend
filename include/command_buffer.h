@@ -8,6 +8,7 @@ namespace rend
 {
 
 class CommandPool;
+class Framebuffer;
 class RenderPass;
 
 class CommandBuffer
@@ -27,7 +28,7 @@ public:
     void end(void);
     void reset(void);
 
-    void begin_render_pass(const RenderPass& render_pass, VkFramebuffer framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
+    void begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
     void end_render_pass(void);
 
 private:

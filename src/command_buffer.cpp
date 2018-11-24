@@ -1,5 +1,6 @@
 #include "command_buffer.h"
 
+#include "framebuffer.h"
 #include "render_pass.h"
 #include "utils.h"
 
@@ -46,14 +47,14 @@ void CommandBuffer::reset(void)
     VULKAN_DEATH_CHECK(vkResetCommandBuffer(_vk_command_buffer, 0), "Failed to reset command buffer");
 }
 
-void CommandBuffer::begin_render_pass(const RenderPass& render_pass, VkFramebuffer framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values)
+void CommandBuffer::begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values)
 {
     VkRenderPassBeginInfo info =
     {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
         .renderPass = render_pass.get_handle(),
-        .framebuffer = framebuffer,
+        .framebuffer = framebuffer->get_handle(),
         .renderArea = render_area,
         .clearValueCount = static_cast<uint32_t>(clear_values.size()),
         .pClearValues = clear_values.data()
