@@ -2,11 +2,13 @@
 #define COMMAND_BUFFER_H
 
 #include <vulkan.h>
+#include <vector>
 
 namespace rend
 {
 
 class CommandPool;
+class RenderPass;
 
 class CommandBuffer
 {
@@ -24,6 +26,9 @@ public:
     void begin(void);
     void end(void);
     void reset(void);
+
+    void begin_render_pass(const RenderPass& render_pass, VkFramebuffer framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
+    void end_render_pass(void);
 
 private:
 
