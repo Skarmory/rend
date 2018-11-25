@@ -3,6 +3,7 @@
 #include "physical_device.h"
 #include "command_pool.h"
 #include "command_buffer.h"
+#include "descriptor_pool.h"
 #include "framebuffer.h"
 #include "render_pass.h"
 #include "swapchain.h"
@@ -223,5 +224,21 @@ void LogicalDevice::destroy_framebuffer(Framebuffer** framebuffer)
     {
         delete (*framebuffer);
         *framebuffer = nullptr;
+    }
+}
+
+DescriptorPool* LogicalDevice::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
+{
+    DescriptorPool* pool = new DescriptorPool(this, max_sets, pool_sizes);
+
+    return pool;
+}
+
+void LogicalDevice::destroy_descriptor_pool(DescriptorPool** pool)
+{
+    if(pool && *pool)
+    {
+        delete (*pool);
+        *pool = nullptr;
     }
 }
