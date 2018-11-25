@@ -22,15 +22,23 @@ public:
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
     VkFramebuffer get_handle(void) const;
+    const RenderPass*   get_render_pass(void) const;
+
+    void recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
 
 private:
     Framebuffer(LogicalDevice* device, const RenderPass& render_pass, const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
     ~Framebuffer(void);
 
-private:
-    VkFramebuffer _vk_framebuffer;
+    void _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
+    void _destroy(void);
 
-    LogicalDevice* _device;
+private:
+    VkFramebufferCreateInfo _vk_create_info;
+    VkFramebuffer           _vk_framebuffer;
+
+    LogicalDevice*    _device;
+    const RenderPass* _render_pass;
 };
 
 }
