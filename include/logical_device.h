@@ -14,6 +14,7 @@ class PhysicalDevice;
 class CommandPool;
 class CommandBuffer;
 class DescriptorPool;
+class DescriptorSetLayout;
 class Framebuffer;
 class RenderPass;
 class Swapchain;
@@ -58,6 +59,9 @@ public:
 
     DescriptorPool*          create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
     void                     destroy_descriptor_pool(DescriptorPool** pool);
+
+    DescriptorSetLayout*     create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
+    void                     destroy_descriptor_set_layout(DescriptorSetLayout** layout);
 
 private:
     VkDevice _vk_device;

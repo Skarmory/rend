@@ -4,6 +4,7 @@
 #include "command_pool.h"
 #include "command_buffer.h"
 #include "descriptor_pool.h"
+#include "descriptor_set_layout.h"
 #include "framebuffer.h"
 #include "render_pass.h"
 #include "swapchain.h"
@@ -240,5 +241,21 @@ void LogicalDevice::destroy_descriptor_pool(DescriptorPool** pool)
     {
         delete (*pool);
         *pool = nullptr;
+    }
+}
+
+DescriptorSetLayout* LogicalDevice::create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
+{
+    DescriptorSetLayout* layout = new DescriptorSetLayout(this, bindings);
+
+    return layout;
+}
+
+void LogicalDevice::destroy_descriptor_set_layout(DescriptorSetLayout** layout)
+{
+    if(layout && *layout)
+    {
+        delete (*layout);
+        *layout = nullptr;
     }
 }

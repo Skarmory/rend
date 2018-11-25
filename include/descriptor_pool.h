@@ -8,6 +8,7 @@ namespace rend
 {
 
 class LogicalDevice;
+class DescriptorSetLayout;
 
 class DescriptorPool
 {
@@ -20,7 +21,7 @@ public:
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool& operator=(DescriptorPool&&)      = delete;
 
-    VkResult allocate(const std::vector<VkDescriptorSetLayout>& layouts, std::vector<VkDescriptorSet>& out_sets);
+    VkResult allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<VkDescriptorSet>& out_sets);
 
 private:
 
