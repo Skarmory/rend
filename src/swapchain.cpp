@@ -25,8 +25,7 @@ Swapchain::~Swapchain(void)
 {
     std::cout << "Destructing swap chain" << std::endl;
 
-    for(size_t idx = 0; idx < _image_count; idx++)
-        vkDestroyImageView(_logical_device->get_handle(), _vk_image_views[idx], nullptr);
+    _destroy();
     vkDestroySwapchainKHR(_logical_device->get_handle(), _vk_swapchain, nullptr);
 }
 
@@ -55,9 +54,28 @@ VkSwapchainKHR Swapchain::get_handle(void) const
     return _vk_swapchain;
 }
 
+void Swapchain::recreate(void)
+{
+    vkDeviceWaitIdle(_logical_device->get_handle());
+    _destroy();
+    _create(_image_count);
+    _get_images();
+}
+
 uint32_t Swapchain::acquire(VkSemaphore acquire_semaphore, VkFence acquire_fence)
 {
-    VULKAN_DEATH_CHECK(vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), acquire_semaphore, acquire_fence, &_current_image_idx), "Failed to acquire next swapchain image");
+    VkResult result = vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), acquire_semaphore, acquire_fence, &_current_image_idx);
+    if(result != VK_SUCCESS)
+    {
+        if(result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            return std::numeric_limits<uint32_t>::max();
+        }
+        else
+        {
+            DEATH_CHECK(false, "Failed to acquire next swapchain image");
+        }
+    }
 
     return _current_image_idx;
 }
@@ -96,6 +114,8 @@ void Swapchain::_create(uint32_t desired_images)
 
     _vk_extent = surface_caps.currentExtent;
 
+    VkSwapchainKHR old_swapchain = _vk_swapchain;
+
     VkSwapchainCreateInfoKHR create_info = {
         .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext                 = nullptr,
@@ -114,10 +134,19 @@ void Swapchain::_create(uint32_t desired_images)
         .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode           = _present_mode,
         .clipped               = VK_TRUE,
-        .oldSwapchain          = _vk_swapchain
+        .oldSwapchain          = old_swapchain
     };
 
     VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_logical_device->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
+
+    if(old_swapchain != VK_NULL_HANDLE)
+        vkDestroySwapchainKHR(_logical_device->get_handle(), old_swapchain, nullptr);
+}
+
+void Swapchain::_destroy(void)
+{
+    for(size_t idx = 0; idx < _image_count; idx++)
+        vkDestroyImageView(_logical_device->get_handle(), _vk_image_views[idx], nullptr);
 }
 
 void Swapchain::_get_images(void)
