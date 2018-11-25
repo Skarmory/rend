@@ -16,6 +16,7 @@ class CommandBuffer;
 class DescriptorPool;
 class DescriptorSetLayout;
 class Framebuffer;
+class PipelineLayout;
 class RenderPass;
 class Swapchain;
 
@@ -62,6 +63,9 @@ public:
 
     DescriptorSetLayout*     create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
     void                     destroy_descriptor_set_layout(DescriptorSetLayout** layout);
+
+    PipelineLayout*          create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts);
+    void                     destroy_pipeline_layout(PipelineLayout** layout);
 
 private:
     VkDevice _vk_device;

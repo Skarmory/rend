@@ -6,6 +6,7 @@
 #include "descriptor_pool.h"
 #include "descriptor_set_layout.h"
 #include "framebuffer.h"
+#include "pipeline_layout.h"
 #include "render_pass.h"
 #include "swapchain.h"
 #include "utils.h"
@@ -252,6 +253,22 @@ DescriptorSetLayout* LogicalDevice::create_descriptor_set_layout(const std::vect
 }
 
 void LogicalDevice::destroy_descriptor_set_layout(DescriptorSetLayout** layout)
+{
+    if(layout && *layout)
+    {
+        delete (*layout);
+        *layout = nullptr;
+    }
+}
+
+PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts)
+{
+    PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts);
+
+    return layout;
+}
+
+void LogicalDevice::destroy_pipeline_layout(PipelineLayout** layout)
 {
     if(layout && *layout)
     {
