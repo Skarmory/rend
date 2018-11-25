@@ -19,6 +19,8 @@ public:
     uint32_t    get_height(void) const;
     const char* get_title(void) const;
 
+    virtual void resize(uint32_t width, uint32_t height) = 0;
+
 protected:
     virtual void _create_surface(VkInstance instance, VkSurfaceKHR* surface) = 0;
 
@@ -51,10 +53,11 @@ public:
     GLFWWindow(uint32_t width, uint32_t height, const char* title);
     ~GLFWWindow(void);
 
-    uint32_t get_width(void) const;
-    uint32_t get_height(void) const;
-
+    uint32_t    get_width(void) const;
+    uint32_t    get_height(void) const;
     GLFWwindow* get_window_handle(void) const;
+
+    void resize(uint32_t width, uint32_t height);
 
 protected:
     void _create_surface(VkInstance instance, VkSurfaceKHR* surface) override;

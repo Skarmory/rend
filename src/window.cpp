@@ -59,4 +59,10 @@ void GLFWWindow::_create_surface(VkInstance instance, VkSurfaceKHR* surface)
     VULKAN_DEATH_CHECK(glfwCreateWindowSurface(instance, _window, nullptr, surface), "Failed to create window surface");
 }
 
+void GLFWWindow::resize(uint32_t width, uint32_t height)
+{
+    _width  = width;
+    _height = height;
+}
+
 #endif
