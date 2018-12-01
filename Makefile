@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-fno-exceptions -fPIC -shared -Wall -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
+CFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
 LDFLAGS=-lvulkan -lglfw -DGLFW_WINDOW
 NAME=librend.so
 

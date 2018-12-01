@@ -10,10 +10,15 @@ Framebuffer::Framebuffer(LogicalDevice* device, const RenderPass& render_pass, c
 {
     _vk_create_info =
     {
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .renderPass = render_pass.get_handle(),
+        .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .pNext           = nullptr,
+        .flags           = 0,
+        .renderPass      = render_pass.get_handle(),
+        .attachmentCount = 0,
+        .pAttachments    = nullptr,
+        .width           = 0,
+        .height          = 0,
+        .layers          = 0
     };
 
     _create(attachments, dimensions);

@@ -11,6 +11,7 @@ DescriptorSetLayout::DescriptorSetLayout(LogicalDevice* device, const std::vecto
     {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
+        .flags = 0,
         .bindingCount = static_cast<uint32_t>(bindings.size()),
         .pBindings = bindings.data()
     };

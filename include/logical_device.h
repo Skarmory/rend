@@ -42,8 +42,8 @@ public:
     // Retrieval
     const DeviceContext&     get_device_context(void) const;
     const PhysicalDevice&    get_physical_device(void) const;
-    const QueueFamily* const get_graphics_queue_family(void) const;
-    const QueueFamily* const get_transfer_queue_family(void) const;
+    const QueueFamily*       get_graphics_queue_family(void) const;
+    const QueueFamily*       get_transfer_queue_family(void) const;
     VkDevice                 get_handle(void) const;
     VkQueue                  get_queue(QueueType type) const;
 

@@ -21,7 +21,7 @@ public:
     Framebuffer& operator=(const Framebuffer&) = delete;
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
-    VkFramebuffer get_handle(void) const;
+    VkFramebuffer       get_handle(void) const;
     const RenderPass*   get_render_pass(void) const;
 
     void recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);

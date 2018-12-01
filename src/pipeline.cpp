@@ -124,16 +124,17 @@ Pipeline::Pipeline(LogicalDevice* device, PipelineSettings* settings) : _device(
 
     VkPipelineColorBlendStateCreateInfo colour_blend_info =
     {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .logicOpEnable = static_cast<VkBool32>(settings->colour_blend_logic_op_enable),
-        .logicOp       = settings->colour_blend_logic_op,
-        .attachmentCount = static_cast<uint32_t>(settings->colour_blend_attachments.size()),
-        .pAttachments = settings->colour_blend_attachments.data(),
+        colour_blend_info.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        colour_blend_info.pNext             = nullptr,
+        colour_blend_info.flags             = 0,
+        colour_blend_info.logicOpEnable     = static_cast<VkBool32>(settings->colour_blend_logic_op_enable),
+        colour_blend_info.logicOp           = settings->colour_blend_logic_op,
+        colour_blend_info.attachmentCount   = static_cast<uint32_t>(settings->colour_blend_attachments.size()),
+        colour_blend_info.pAttachments      = settings->colour_blend_attachments.data(),
+        colour_blend_info.blendConstants[0] = 0.0f
     };
 
-     memcpy(colour_blend_info.blendConstants, settings->colour_blend_blend_constants, sizeof(settings->colour_blend_blend_constants));
+    memcpy(colour_blend_info.blendConstants, settings->colour_blend_blend_constants, sizeof(settings->colour_blend_blend_constants));
 
     VkPipelineDynamicStateCreateInfo dynamic_info =
     {
