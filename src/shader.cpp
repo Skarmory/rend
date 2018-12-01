@@ -29,3 +29,8 @@ VkShaderModule Shader::get_handle(void) const
 {
     return _vk_module;
 }
+
+ShaderType Shader::get_shader_type(void) const
+{
+    return _type;
+}

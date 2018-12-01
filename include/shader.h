@@ -25,6 +25,7 @@ public:
     Shader& operator=(Shader&&)      = delete;
 
     VkShaderModule get_handle(void) const;
+    ShaderType     get_shader_type(void) const;
 
 private:
     Shader(LogicalDevice* device, const void* code, uint32_t size_bytes, ShaderType type);
