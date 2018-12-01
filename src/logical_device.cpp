@@ -8,6 +8,7 @@
 #include "framebuffer.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
+#include "shader.h"
 #include "swapchain.h"
 #include "utils.h"
 
@@ -274,5 +275,21 @@ void LogicalDevice::destroy_pipeline_layout(PipelineLayout** layout)
     {
         delete (*layout);
         *layout = nullptr;
+    }
+}
+
+Shader* LogicalDevice::create_shader(const void* data, uint32_t size_bytes, ShaderType type)
+{
+    Shader* shader = new Shader(this, data, size_bytes, type);
+
+    return shader;
+}
+
+void LogicalDevice::destroy_shader(Shader** shader)
+{
+    if(shader && *shader)
+    {
+        delete (*shader);
+        *shader = nullptr;
     }
 }

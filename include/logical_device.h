@@ -18,7 +18,9 @@ class DescriptorSetLayout;
 class Framebuffer;
 class PipelineLayout;
 class RenderPass;
+class Shader;
 class Swapchain;
+enum class ShaderType;
 
 class LogicalDevice
 {
@@ -66,6 +68,9 @@ public:
 
     PipelineLayout*          create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts);
     void                     destroy_pipeline_layout(PipelineLayout** layout);
+
+    Shader*                  create_shader(const void* data, uint32_t size_bytes, ShaderType type);
+    void                     destroy_shader(Shader** shader);
 
 private:
     VkDevice _vk_device;
