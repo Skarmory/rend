@@ -6,6 +6,7 @@
 #include "descriptor_pool.h"
 #include "descriptor_set_layout.h"
 #include "framebuffer.h"
+#include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
 #include "shader.h"
@@ -275,6 +276,22 @@ void LogicalDevice::destroy_pipeline_layout(PipelineLayout** layout)
     {
         delete (*layout);
         *layout = nullptr;
+    }
+}
+
+Pipeline* LogicalDevice::create_pipeline(PipelineSettings* settings)
+{
+    Pipeline* pipeline = new Pipeline(this, settings);
+
+    return pipeline;
+}
+
+void LogicalDevice::destroy_pipeline(Pipeline** pipeline)
+{
+    if(pipeline && *pipeline)
+    {
+        delete (*pipeline);
+        *pipeline = nullptr;
     }
 }
 

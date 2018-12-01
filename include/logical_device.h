@@ -16,10 +16,12 @@ class CommandBuffer;
 class DescriptorPool;
 class DescriptorSetLayout;
 class Framebuffer;
+class Pipeline;
 class PipelineLayout;
 class RenderPass;
 class Shader;
 class Swapchain;
+struct PipelineSettings;
 enum class ShaderType;
 
 class LogicalDevice
@@ -68,6 +70,9 @@ public:
 
     PipelineLayout*          create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts);
     void                     destroy_pipeline_layout(PipelineLayout** layout);
+
+    Pipeline*                create_pipeline(PipelineSettings* settings);
+    void                     destroy_pipeline(Pipeline** pipeline);
 
     Shader*                  create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                     destroy_shader(Shader** shader);
