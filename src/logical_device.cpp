@@ -5,6 +5,7 @@
 #include "command_buffer.h"
 #include "descriptor_pool.h"
 #include "descriptor_set_layout.h"
+#include "fence.h"
 #include "framebuffer.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
@@ -332,5 +333,21 @@ void LogicalDevice::destroy_semaphore(Semaphore** semaphore)
     {
         delete (*semaphore);
         *semaphore = nullptr;
+    }
+}
+
+Fence* LogicalDevice::create_fence(void)
+{
+    Fence* fence = new Fence(this);
+
+    return fence;
+}
+
+void LogicalDevice::destroy_fence(Fence** fence)
+{
+    if(fence && *fence)
+    {
+        delete (*fence);
+        *fence = nullptr;
     }
 }

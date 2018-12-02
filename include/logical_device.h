@@ -15,6 +15,7 @@ class CommandPool;
 class CommandBuffer;
 class DescriptorPool;
 class DescriptorSetLayout;
+class Fence;
 class Framebuffer;
 class Pipeline;
 class PipelineLayout;
@@ -80,6 +81,9 @@ public:
 
     Semaphore*               create_semaphore(void);
     void                     destroy_semaphore(Semaphore** semaphore);
+
+    Fence*                   create_fence(void);
+    void                     destroy_fence(Fence** fence);
 
 private:
     VkDevice _vk_device;
