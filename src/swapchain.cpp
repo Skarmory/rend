@@ -3,8 +3,10 @@
 #include "device_context.h"
 #include "physical_device.h"
 #include "logical_device.h"
+#include "semaphore.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -62,9 +64,9 @@ void Swapchain::recreate(void)
     _get_images();
 }
 
-uint32_t Swapchain::acquire(VkSemaphore acquire_semaphore, VkFence acquire_fence)
+uint32_t Swapchain::acquire(Semaphore* acquire_semaphore, VkFence acquire_fence)
 {
-    VkResult result = vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), acquire_semaphore, acquire_fence, &_current_image_idx);
+    VkResult result = vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), acquire_semaphore->get_handle(), acquire_fence, &_current_image_idx);
     if(result != VK_SUCCESS)
     {
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -80,14 +82,19 @@ uint32_t Swapchain::acquire(VkSemaphore acquire_semaphore, VkFence acquire_fence
     return _current_image_idx;
 }
 
-void Swapchain::present(QueueType type, const std::vector<VkSemaphore>& wait_sems)
+void Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
+    std::vector<VkSemaphore> vk_sems;
+    vk_sems.reserve(wait_sems.size());
+
+    std::for_each(wait_sems.begin(), wait_sems.end(), [&vk_sems](Semaphore* s){ vk_sems.push_back(s->get_handle()); });
+
     VkPresentInfoKHR present_info =
     {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
         .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
-        .pWaitSemaphores = wait_sems.data(),
+        .pWaitSemaphores = vk_sems.data(),
         .swapchainCount = 1,
         .pSwapchains = &_vk_swapchain,
         .pImageIndices = &_current_image_idx,

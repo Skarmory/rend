@@ -19,6 +19,7 @@ class Framebuffer;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
+class Semaphore;
 class Shader;
 class Swapchain;
 struct PipelineSettings;
@@ -47,7 +48,7 @@ public:
     VkDevice                 get_handle(void) const;
     VkQueue                  get_queue(QueueType type) const;
 
-    bool                     queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<VkSemaphore>& wait_sems, const std::vector<VkSemaphore>& signal_sems, VkFence fence);
+    bool                     queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, VkFence fence);
 
     // Creational
     CommandPool*             create_command_pool(const QueueType type, bool can_reset);
@@ -77,6 +78,9 @@ public:
     Shader*                  create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                     destroy_shader(Shader** shader);
 
+    Semaphore*               create_semaphore(void);
+    void                     destroy_semaphore(Semaphore** semaphore);
+
 private:
     VkDevice _vk_device;
     VkQueue _vk_graphics_queue;
@@ -94,4 +98,3 @@ private:
 }
 
 #endif
-

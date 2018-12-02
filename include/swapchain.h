@@ -10,6 +10,7 @@ namespace rend
 {
 
 class LogicalDevice;
+class Semaphore;
 
 class Swapchain
 {
@@ -29,8 +30,8 @@ public:
     VkSwapchainKHR                  get_handle(void) const;
 
     void     recreate(void);
-    uint32_t acquire(VkSemaphore acquire_semaphore, VkFence acquire_fence);
-    void     present(QueueType type, const std::vector<VkSemaphore>& wait_sems);
+    uint32_t acquire(Semaphore* acquire_semaphore, VkFence acquire_fence);
+    void     present(QueueType type, const std::vector<Semaphore*>& wait_sems);
 
 private:
 

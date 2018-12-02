@@ -9,6 +9,7 @@
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
+#include "semaphore.h"
 #include "shader.h"
 #include "swapchain.h"
 #include "utils.h"
@@ -119,25 +120,32 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<VkSemaphore>& wait_sems, const std::vector<VkSemaphore>& signal_sems, VkFence fence)
+bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, VkFence fence)
 {
     std::vector<VkCommandBuffer> vk_command_buffers;
+    std::vector<VkSemaphore>     vk_wait_sems;
+    std::vector<VkSemaphore>     vk_sig_sems;
+
     vk_command_buffers.reserve(command_buffers.size());
+    vk_wait_sems.reserve(wait_sems.size());
+    vk_sig_sems.reserve(signal_sems.size());
 
     std::for_each(command_buffers.begin(), command_buffers.end(), [&vk_command_buffers](CommandBuffer* buf){ vk_command_buffers.push_back(buf->get_handle());  });
+    std::for_each(wait_sems.begin(), wait_sems.end(), [&vk_wait_sems](Semaphore* s){ vk_wait_sems.push_back(s->get_handle());  });
+    std::for_each(signal_sems.begin(), signal_sems.end(), [&vk_sig_sems](Semaphore* s){ vk_sig_sems.push_back(s->get_handle());  });
 
     VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
-        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
-        .pWaitSemaphores = wait_sems.data(),
+        .waitSemaphoreCount = static_cast<uint32_t>(vk_wait_sems.size()),
+        .pWaitSemaphores = vk_wait_sems.data(),
         .pWaitDstStageMask = &wait_stages,
         .commandBufferCount = static_cast<uint32_t>(command_buffers.size()),
         .pCommandBuffers = vk_command_buffers.data(),
-        .signalSemaphoreCount = static_cast<uint32_t>(signal_sems.size()),
-        .pSignalSemaphores = signal_sems.data()
+        .signalSemaphoreCount = static_cast<uint32_t>(vk_sig_sems.size()),
+        .pSignalSemaphores = vk_sig_sems.data()
     };
 
     VkQueue queue = get_queue(type);
@@ -308,5 +316,21 @@ void LogicalDevice::destroy_shader(Shader** shader)
     {
         delete (*shader);
         *shader = nullptr;
+    }
+}
+
+Semaphore* LogicalDevice::create_semaphore(void)
+{
+    Semaphore* semaphore = new Semaphore(this);
+
+    return semaphore;
+}
+
+void LogicalDevice::destroy_semaphore(Semaphore** semaphore)
+{
+    if(semaphore && *semaphore)
+    {
+        delete (*semaphore);
+        *semaphore = nullptr;
     }
 }
