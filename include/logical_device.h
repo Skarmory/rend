@@ -15,6 +15,7 @@ class CommandPool;
 class CommandBuffer;
 class DescriptorPool;
 class DescriptorSetLayout;
+class Event;
 class Fence;
 class Framebuffer;
 class Pipeline;
@@ -49,7 +50,7 @@ public:
     VkDevice                 get_handle(void) const;
     VkQueue                  get_queue(QueueType type) const;
 
-    bool                     queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, VkFence fence);
+    bool                     queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
 
     // Creational
     CommandPool*             create_command_pool(const QueueType type, bool can_reset);
@@ -82,8 +83,11 @@ public:
     Semaphore*               create_semaphore(void);
     void                     destroy_semaphore(Semaphore** semaphore);
 
-    Fence*                   create_fence(void);
+    Fence*                   create_fence(bool start_signalled=false);
     void                     destroy_fence(Fence** fence);
+
+    Event*                   create_event(void);
+    void                     destroy_event(Event** event);
 
 private:
     VkDevice _vk_device;

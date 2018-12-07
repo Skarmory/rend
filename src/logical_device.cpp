@@ -5,6 +5,7 @@
 #include "command_buffer.h"
 #include "descriptor_pool.h"
 #include "descriptor_set_layout.h"
+#include "event.h"
 #include "fence.h"
 #include "framebuffer.h"
 #include "pipeline.h"
@@ -121,7 +122,7 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, VkFence fence)
+bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence)
 {
     std::vector<VkCommandBuffer> vk_command_buffers;
     std::vector<VkSemaphore>     vk_wait_sems;
@@ -151,7 +152,7 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
 
     VkQueue queue = get_queue(type);
 
-    VULKAN_DEATH_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence), "Failed to submit queue");
+    VULKAN_DEATH_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence->get_handle()), "Failed to submit queue");
 
     return true;
 }
@@ -336,9 +337,9 @@ void LogicalDevice::destroy_semaphore(Semaphore** semaphore)
     }
 }
 
-Fence* LogicalDevice::create_fence(void)
+Fence* LogicalDevice::create_fence(bool start_signalled)
 {
-    Fence* fence = new Fence(this);
+    Fence* fence = new Fence(this, start_signalled);
 
     return fence;
 }
@@ -349,5 +350,21 @@ void LogicalDevice::destroy_fence(Fence** fence)
     {
         delete (*fence);
         *fence = nullptr;
+    }
+}
+
+Event* LogicalDevice::create_event(void)
+{
+    Event* event = new Event(this);
+
+    return event;
+}
+
+void LogicalDevice::destroy_event(Event** event)
+{
+    if(event && *event)
+    {
+        delete (*event);
+        *event = nullptr;
     }
 }
