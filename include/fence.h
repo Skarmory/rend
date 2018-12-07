@@ -2,6 +2,7 @@
 #define FENCE_H
 
 #include <vulkan/vulkan.h>
+#include <limits>
 
 namespace rend
 {
@@ -18,10 +19,12 @@ public:
     Fence& operator=(const Fence&) = delete;
     Fence& operator=(Fence&&)      = delete;
 
-    VkFence get_handle(void) const;
+    VkFence  get_handle(void) const;
+    void     reset(void) const;
+    VkResult wait(uint64_t timeout=std::numeric_limits<uint64_t>::max()) const;
 
 private:
-    Fence(LogicalDevice* device);
+    Fence(LogicalDevice* device, bool start_signalled);
     ~Fence(void);
 
 private:
