@@ -41,9 +41,9 @@ struct PipelineSettings
     VkCullModeFlags rasterisation_cull_mode                  = VK_CULL_MODE_BACK_BIT;
     VkFrontFace     rasterisation_front_face                 = VK_FRONT_FACE_COUNTER_CLOCKWISE; // Make this a renderer global setting?
     bool            rasterisation_depth_bias_enable          = false;
-    float           rasterisation_depth_bias_constant_factor = 1.0f;
-    float           rasterisation_depth_bias_clamp           = 1.0f;
-    float           rasterisation_depth_bias_slope_factor    = 1.0f;
+    float           rasterisation_depth_bias_constant_factor = 0.0f;
+    float           rasterisation_depth_bias_clamp           = 0.0f;
+    float           rasterisation_depth_bias_slope_factor    = 0.0f;
     float           rasterisation_line_width                 = 1.0f;
 
     // Multisample
