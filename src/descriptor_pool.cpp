@@ -8,6 +8,15 @@
 
 using namespace rend;
 
+DescriptorSet::DescriptorSet(VkDescriptorSet set) : _vk_set(set)
+{
+}
+
+VkDescriptorSet DescriptorSet::get_handle(void) const
+{
+    return _vk_set;
+}
+
 DescriptorPool::DescriptorPool(LogicalDevice* device, uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes) : _device(device), _max_sets(max_sets), _sets_allocated(0)
 {
     VkDescriptorPoolCreateInfo create_info =
@@ -28,12 +37,14 @@ DescriptorPool::~DescriptorPool(void)
     vkDestroyDescriptorPool(_device->get_handle(), _vk_pool, nullptr);
 }
 
-VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<VkDescriptorSet>& out_sets)
+VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets)
 {
     if(_sets_allocated >= _max_sets)
         return VK_ERROR_OUT_OF_POOL_MEMORY;
 
-    out_sets.resize(layouts.size());
+    std::vector<VkDescriptorSet> vk_sets;
+    vk_sets.reserve(layouts.size());
+    out_sets.reserve(layouts.size());
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(layouts.size());
@@ -50,8 +61,12 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
     };
 
     VkResult result;
-    if((result = vkAllocateDescriptorSets(_device->get_handle(), &alloc_info, out_sets.data())) == VK_SUCCESS)
+    if((result = vkAllocateDescriptorSets(_device->get_handle(), &alloc_info, vk_sets.data())) == VK_SUCCESS)
         _sets_allocated++;
+
+    std::for_each(vk_sets.begin(), vk_sets.end(), [&out_sets](VkDescriptorSet s){
+        out_sets.push_back(new DescriptorSet(s));
+    });
 
     return result;
 }
