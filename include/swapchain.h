@@ -30,7 +30,7 @@ public:
     VkSwapchainKHR                  get_handle(void) const;
 
     void     recreate(void);
-    uint32_t acquire(Semaphore* acquire_semaphore, VkFence acquire_fence);
+    uint32_t acquire(Semaphore* signal_sem, VkFence acquire_fence);
     void     present(QueueType type, const std::vector<Semaphore*>& wait_sems);
 
 private:
