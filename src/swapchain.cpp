@@ -1,6 +1,7 @@
 #include "swapchain.h"
 
 #include "device_context.h"
+#include "fence.h"
 #include "physical_device.h"
 #include "logical_device.h"
 #include "semaphore.h"
@@ -64,9 +65,17 @@ void Swapchain::recreate(void)
     _get_images();
 }
 
-uint32_t Swapchain::acquire(Semaphore* signal_sem, VkFence acquire_fence)
+uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    VkResult result = vkAcquireNextImageKHR(_logical_device->get_handle(), _vk_swapchain, std::numeric_limits<uint64_t>::max(), signal_sem->get_handle(), acquire_fence, &_current_image_idx);
+    VkResult result = vkAcquireNextImageKHR(
+        _logical_device->get_handle(),
+        _vk_swapchain,
+        std::numeric_limits<uint64_t>::max(),
+        signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
+        acquire_fence ? acquire_fence->get_handle() : VK_NULL_HANDLE,
+        &_current_image_idx
+    );
+
     if(result != VK_SUCCESS)
     {
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
