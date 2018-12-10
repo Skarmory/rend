@@ -16,19 +16,34 @@ class DescriptorSet
     friend class DescriptorPool;
 
 public:
-    DescriptorSet(const DescriptorSet&) = delete;
-    DescriptorSet(DescriptorSet&&) = delete;
+    DescriptorSet(const DescriptorSet&)            = delete;
+    DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
-    DescriptorSet& operator=(DescriptorSet&&) = delete;
+    DescriptorSet& operator=(DescriptorSet&&)      = delete;
 
     VkDescriptorSet get_handle(void) const;
 
+    // Describe binding for given image(s) to given binding point at given array elem
+    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorImageInfo>& descriptor_infos);
+
+    // Describe binding for given buffer(s) to given binding point at given array elem
+    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorBufferInfo>& descriptor_infos);
+
+    // Describe binding for given texel buffer(s) to given binding point at given array elem
+    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
+
+    // Update the descriptor set bindings. Call this when done describing the descriptor set
+    void update(void);
+
 private:
-    DescriptorSet(VkDescriptorSet set);
+    DescriptorSet(LogicalDevice* device, VkDescriptorSet set);
     ~DescriptorSet(void) = default;
 
 private:
     VkDescriptorSet _vk_set;
+
+    LogicalDevice* _device;
+    std::vector<VkWriteDescriptorSet> _vk_write_descs;
 };
 
 class DescriptorPool
