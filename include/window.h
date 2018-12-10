@@ -53,8 +53,6 @@ public:
     GLFWWindow(uint32_t width, uint32_t height, const char* title);
     ~GLFWWindow(void);
 
-    uint32_t    get_width(void) const;
-    uint32_t    get_height(void) const;
     GLFWwindow* get_window_handle(void) const;
 
     void resize(uint32_t width, uint32_t height);
