@@ -31,6 +31,9 @@ public:
     void begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
     void end_render_pass(void);
 
+    void set_viewport(const VkViewport& viewport);
+    void set_scissors(const VkRect2D& scissor);
+
 private:
 
     CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index);

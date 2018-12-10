@@ -67,3 +67,13 @@ void CommandBuffer::end_render_pass(void)
 {
     vkCmdEndRenderPass(_vk_command_buffer);
 }
+
+void CommandBuffer::set_viewport(const VkViewport& viewport)
+{
+    vkCmdSetViewport(_vk_command_buffer, 0, 1, &viewport);
+}
+
+void CommandBuffer::set_scissors(const VkRect2D& scissor)
+{
+    vkCmdSetScissor(_vk_command_buffer, 0, 1, &scissor);
+}
