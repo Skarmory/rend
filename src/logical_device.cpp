@@ -112,6 +112,20 @@ VkQueue LogicalDevice::get_queue(QueueType type) const
     return VK_NULL_HANDLE;
 }
 
+const QueueFamily* LogicalDevice::get_queue_family(QueueType type) const
+{
+    switch(type)
+    {
+        case QueueType::GRAPHICS: return _graphics_family;
+        case QueueType::TRANSFER: return _transfer_family;
+        default:
+            std::cerr << "Invalid queue type given in LogicalDevice::get_queue_family" << std::endl;
+            std::abort();
+    }
+
+    return nullptr;
+}
+
 const DeviceContext& LogicalDevice::get_device_context(void) const
 {
     return *_context;

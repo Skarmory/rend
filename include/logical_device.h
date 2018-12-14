@@ -31,8 +31,6 @@ class LogicalDevice
 {
 
 public:
-    class Key;
-
     LogicalDevice(const DeviceContext* device_context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
     ~LogicalDevice(void);
 
@@ -45,10 +43,9 @@ public:
     // Retrieval
     const DeviceContext&  get_device_context(void) const;
     const PhysicalDevice& get_physical_device(void) const;
-    const QueueFamily*    get_graphics_queue_family(void) const;
-    const QueueFamily*    get_transfer_queue_family(void) const;
     VkDevice              get_handle(void) const;
     VkQueue               get_queue(QueueType type) const;
+    const QueueFamily*    get_queue_family(QueueType type) const;
 
     bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
 
