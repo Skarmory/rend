@@ -8,7 +8,9 @@ namespace rend
 {
 
 class CommandPool;
+class DescriptorSet;
 class Framebuffer;
+class PipelineLayout;
 class RenderPass;
 
 class CommandBuffer
@@ -33,6 +35,8 @@ public:
 
     void set_viewport(const VkViewport& viewport);
     void set_scissors(const VkRect2D& scissor);
+
+    void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
 
 private:
 

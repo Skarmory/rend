@@ -1,9 +1,12 @@
 #include "command_buffer.h"
 
+#include "descriptor_pool.h"
 #include "framebuffer.h"
+#include "pipeline_layout.h"
 #include "render_pass.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <iostream>
 
 using namespace rend;
@@ -76,4 +79,15 @@ void CommandBuffer::set_viewport(const VkViewport& viewport)
 void CommandBuffer::set_scissors(const VkRect2D& scissor)
 {
     vkCmdSetScissor(_vk_command_buffer, 0, 1, &scissor);
+}
+
+void CommandBuffer::bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets)
+{
+    std::cout << "Sets: " << sets.size() << std::endl;
+    std::vector<VkDescriptorSet> vk_sets;
+    vk_sets.reserve(sets.size());
+
+    std::for_each(sets.begin(), sets.end(), [&vk_sets](DescriptorSet* s){ vk_sets.push_back(s->get_handle()); });
+
+    vkCmdBindDescriptorSets(_vk_command_buffer, bind_point, layout.get_handle(), 0, static_cast<uint32_t>(vk_sets.size()), vk_sets.data(), 0, nullptr);
 }
