@@ -102,7 +102,7 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
         return VK_ERROR_OUT_OF_POOL_MEMORY;
 
     std::vector<VkDescriptorSet> vk_sets;
-    vk_sets.reserve(layouts.size());
+    vk_sets.resize(layouts.size());
     out_sets.reserve(layouts.size());
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
