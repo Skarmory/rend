@@ -39,6 +39,10 @@ public:
 
     void bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline& pipeline);
     void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
+    void bind_index_buffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type);
+    void bind_vertex_buffers(uint32_t first_binding, const std::vector<VkBuffer>& buffers, const std::vector<VkDeviceSize>& offsets);
+
+    void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
 
 private:
 

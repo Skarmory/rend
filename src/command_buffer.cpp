@@ -15,12 +15,12 @@ using namespace rend;
 CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index)
     : _vk_command_buffer(vk_command_buffer), _index(index)
 {
-    std::cout << "Constructing command buffer" << std::endl;
+//    std::cout << "Constructing command buffer" << std::endl;
 }
 
 CommandBuffer::~CommandBuffer(void)
 {
-    std::cout << "Destructing command buffer" << std::endl;
+//    std::cout << "Destructing command buffer" << std::endl;
 }
 
 VkCommandBuffer CommandBuffer::get_handle(void) const
@@ -89,11 +89,25 @@ void CommandBuffer::bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline
 
 void CommandBuffer::bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets)
 {
-    std::cout << "Sets: " << sets.size() << std::endl;
     std::vector<VkDescriptorSet> vk_sets;
     vk_sets.reserve(sets.size());
 
     std::for_each(sets.begin(), sets.end(), [&vk_sets](DescriptorSet* s){ vk_sets.push_back(s->get_handle()); });
 
     vkCmdBindDescriptorSets(_vk_command_buffer, bind_point, layout.get_handle(), 0, static_cast<uint32_t>(vk_sets.size()), vk_sets.data(), 0, nullptr);
+}
+
+void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
+{
+    vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
+}
+
+void CommandBuffer::bind_index_buffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type)
+{
+    vkCmdBindIndexBuffer(_vk_command_buffer, buffer, offset, index_type);
+}
+
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VkBuffer>& buffers, const std::vector<VkDeviceSize>& offsets)
+{
+    vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), buffers.data(), offsets.data());
 }
