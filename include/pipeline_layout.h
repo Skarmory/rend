@@ -23,7 +23,7 @@ public:
     VkPipelineLayout get_handle(void) const;
 
 private:
-    PipelineLayout(LogicalDevice* device, const std::vector<DescriptorSetLayout*>& desc_set_layouts);
+    PipelineLayout(LogicalDevice* device, const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
     ~PipelineLayout(void);
 
 private:
