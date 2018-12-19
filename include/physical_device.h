@@ -21,11 +21,12 @@ public:
 
     LogicalDevice* create_logical_device(const VkQueueFlags queue_flags);
 
-    uint32_t                               get_index(void) const;
-    VkPhysicalDevice                       get_handle(void) const;
-    const std::vector<VkSurfaceFormatKHR>& get_surface_formats(void) const;
-    const std::vector<VkPresentModeKHR>&   get_surface_present_modes(void) const;
-    VkSurfaceCapabilitiesKHR               get_surface_capabilities(void) const;
+    uint32_t                                get_index(void) const;
+    VkPhysicalDevice                        get_handle(void) const;
+    const std::vector<VkSurfaceFormatKHR>&  get_surface_formats(void) const;
+    const std::vector<VkPresentModeKHR>&    get_surface_present_modes(void) const;
+    VkSurfaceCapabilitiesKHR                get_surface_capabilities(void) const;
+    const VkPhysicalDeviceMemoryProperties& get_memory_properties(void) const;
 
     bool has_features(const VkPhysicalDeviceFeatures& features) const;
     bool has_queues(VkQueueFlags queue_flags) const;
@@ -36,10 +37,11 @@ private:
     void _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
-    uint32_t                   _physical_device_index;
-    VkPhysicalDevice           _vk_physical_device;
-    VkPhysicalDeviceProperties _vk_physical_device_properties;
-    VkPhysicalDeviceFeatures   _vk_physical_device_features;
+    uint32_t                         _physical_device_index;
+    VkPhysicalDevice                 _vk_physical_device;
+    VkPhysicalDeviceProperties       _vk_physical_device_properties;
+    VkPhysicalDeviceFeatures         _vk_physical_device_features;
+    VkPhysicalDeviceMemoryProperties _vk_physical_device_memory_properties;
 
     std::vector<VkSurfaceFormatKHR> _vk_surface_formats;
     std::vector<VkPresentModeKHR>   _vk_present_modes;

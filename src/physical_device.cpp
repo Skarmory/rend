@@ -14,6 +14,7 @@ PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_d
 
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
+    vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
     VkSurfaceKHR surface = _context->get_surface();
     _find_queue_families(surface);
@@ -134,6 +135,10 @@ VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
     VULKAN_DEATH_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context->get_surface(), &caps), "Failed to get surface capabilities");
 
     return caps;
+}
+const VkPhysicalDeviceMemoryProperties& PhysicalDevice::get_memory_properties(void) const
+{
+    return _vk_physical_device_memory_properties;
 }
 
 bool PhysicalDevice::has_queues(VkQueueFlags queue_flags) const
