@@ -111,3 +111,8 @@ void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vecto
 {
     vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), buffers.data(), offsets.data());
 }
+
+void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data)
+{
+    vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
+}

@@ -44,6 +44,8 @@ public:
 
     void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
 
+    void push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data);
+
 private:
 
     CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index);
