@@ -9,22 +9,25 @@
 namespace rend
 {
 
-class DeviceContext;
-class PhysicalDevice;
-class CommandPool;
+class Buffer;
 class CommandBuffer;
+class CommandPool;
 class DescriptorPool;
 class DescriptorSetLayout;
+class DeviceContext;
 class Event;
 class Fence;
 class Framebuffer;
+class PhysicalDevice;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
 class Semaphore;
 class Shader;
 class Swapchain;
+
 struct PipelineSettings;
+
 enum class ShaderType;
 
 class LogicalDevice
@@ -47,7 +50,9 @@ public:
     VkQueue               get_queue(QueueType type) const;
     const QueueFamily*    get_queue_family(QueueType type) const;
 
+    // Commands
     bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
+    uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
     CommandPool*          create_command_pool(const QueueType type, bool can_reset);
@@ -68,7 +73,7 @@ public:
     DescriptorSetLayout*  create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
     void                  destroy_descriptor_set_layout(DescriptorSetLayout** layout);
 
-    PipelineLayout*       create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts);
+    PipelineLayout*       create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
     void                  destroy_pipeline_layout(PipelineLayout** layout);
 
     Pipeline*             create_pipeline(PipelineSettings* settings);
@@ -85,6 +90,9 @@ public:
 
     Event*                create_event(void);
     void                  destroy_event(Event** event);
+
+    Buffer*               create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage); 
+    void                  destroy_buffer(Buffer** buffer);
 
 private:
     VkDevice _vk_device;

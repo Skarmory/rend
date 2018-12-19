@@ -1,5 +1,6 @@
 #include "command_buffer.h"
 
+#include "buffer.h"
 #include "descriptor_pool.h"
 #include "framebuffer.h"
 #include "pipeline.h"
@@ -102,14 +103,19 @@ void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, 
     vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
 }
 
-void CommandBuffer::bind_index_buffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type)
+void CommandBuffer::bind_index_buffer(Buffer* buffer, VkDeviceSize offset, VkIndexType index_type)
 {
-    vkCmdBindIndexBuffer(_vk_command_buffer, buffer, offset, index_type);
+    vkCmdBindIndexBuffer(_vk_command_buffer, buffer->get_handle(), offset, index_type);
 }
 
-void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VkBuffer>& buffers, const std::vector<VkDeviceSize>& offsets)
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<Buffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
-    vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), buffers.data(), offsets.data());
+    std::vector<VkBuffer> vk_buffers;
+    vk_buffers.reserve(buffers.size());
+
+    std::for_each(buffers.begin(), buffers.end(), [&vk_buffers](Buffer* b){ vk_buffers.push_back(b->get_handle()); });
+
+    vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
 }
 
 void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data)

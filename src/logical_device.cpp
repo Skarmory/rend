@@ -1,5 +1,6 @@
 #include "logical_device.h"
 
+#include "buffer.h"
 #include "physical_device.h"
 #include "command_pool.h"
 #include "command_buffer.h"
@@ -171,6 +172,22 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
     return true;
 }
 
+uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties)
+{
+    const VkPhysicalDeviceMemoryProperties& properties = _physical_device->get_memory_properties();
+
+    for(uint32_t idx = 0; idx < properties.memoryTypeCount; idx++)
+    {
+        bool required_type = desired_type & (1 << idx);
+        bool required_prop = memory_properties & properties.memoryTypes[idx].propertyFlags;
+
+        if(required_type && required_prop)
+            return idx;
+    }
+
+    return std::numeric_limits<uint32_t>::max();
+}
+
 CommandPool* LogicalDevice::create_command_pool(const QueueType type, bool can_reset)
 {
     switch(type)
@@ -287,9 +304,9 @@ void LogicalDevice::destroy_descriptor_set_layout(DescriptorSetLayout** layout)
     }
 }
 
-PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts)
+PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
 {
-    PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts);
+    PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts, push_constant_ranges);
 
     return layout;
 }
@@ -380,5 +397,21 @@ void LogicalDevice::destroy_event(Event** event)
     {
         delete (*event);
         *event = nullptr;
+    }
+}
+
+Buffer* LogicalDevice::create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage)
+{
+    Buffer* buffer = new Buffer(this, size, memory_properties, usage);
+
+    return buffer;
+}
+
+void LogicalDevice::destroy_buffer(Buffer** buffer)
+{
+    if(buffer && *buffer)
+    {
+        delete (*buffer);
+        *buffer = nullptr;
     }
 }
