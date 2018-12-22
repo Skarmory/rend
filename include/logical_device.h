@@ -18,6 +18,7 @@ class DeviceContext;
 class Event;
 class Fence;
 class Framebuffer;
+class Image;
 class PhysicalDevice;
 class Pipeline;
 class PipelineLayout;
@@ -93,6 +94,9 @@ public:
 
     Buffer*               create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage); 
     void                  destroy_buffer(Buffer** buffer);
+
+    Image*                create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type);
+    void                  destroy_image(Image** image);
 
 private:
     VkDevice _vk_device;

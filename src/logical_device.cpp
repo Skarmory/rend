@@ -9,6 +9,7 @@
 #include "event.h"
 #include "fence.h"
 #include "framebuffer.h"
+#include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
@@ -413,5 +414,21 @@ void LogicalDevice::destroy_buffer(Buffer** buffer)
     {
         delete (*buffer);
         *buffer = nullptr;
+    }
+}
+
+Image* LogicalDevice::create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type)
+{
+    Image* image = new Image(this, extent, type, format, mip_levels, array_layers, samples, tiling, memory_properties, usage, view_type);
+
+    return image;
+}
+
+void LogicalDevice::destroy_image(Image** image)
+{
+    if(image && *image)
+    {
+        delete (*image);
+        *image = nullptr;
     }
 }
