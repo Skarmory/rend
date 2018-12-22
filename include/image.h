@@ -10,6 +10,8 @@ class LogicalDevice;
 
 class Image
 {
+    friend class LogicalDevice;
+
 public:
     Image(const Image&) = delete;
     Image(Image&&)      = delete;
