@@ -6,6 +6,7 @@
 namespace rend
 {
 
+class CommandBuffer;
 class LogicalDevice;
 
 class Image
@@ -18,8 +19,14 @@ public:
     Image& operator=(const Image&) = delete;
     Image& operator=(Image&&)      = delete;
 
-    VkImage     get_handle(void) const;
-    VkImageView get_view(void) const;
+    VkImage       get_handle(void) const;
+    VkImageView   get_view(void) const;
+    VkImageLayout get_layout(void) const;
+    VkExtent3D    get_extent(void) const;
+    uint32_t      get_array_layers(void) const;
+    uint32_t      get_mip_levels(void) const;
+
+    bool load(void* data, size_t size_bytes, CommandBuffer* buffer);
 
 private:
     Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format,
@@ -32,6 +39,7 @@ private:
     VkImage               _vk_image;
     VkImageView           _vk_image_view;
     VkDeviceMemory        _vk_memory;
+    VkMemoryPropertyFlags _vk_memory_properties;
     VkExtent3D            _vk_extent;
     VkImageType           _vk_type;
     VkFormat              _vk_format;
@@ -40,8 +48,10 @@ private:
     VkSampleCountFlagBits _vk_samples;
     VkImageTiling         _vk_tiling;
     VkImageUsageFlags     _vk_usage;
+    VkImageLayout         _vk_layout;
 
     LogicalDevice* _device;
+    size_t         _size_bytes;
 };
 
 }
