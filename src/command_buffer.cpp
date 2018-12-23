@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "descriptor_pool.h"
 #include "framebuffer.h"
+#include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
@@ -121,4 +122,24 @@ void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vecto
 void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data)
 {
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
+}
+void CommandBuffer::copy_buffer_to_image(Buffer* buffer, Image* image)
+{
+    VkBufferImageCopy copy =
+    {
+        .bufferOffset           = 0,
+        .bufferRowLength        = image->get_extent().width,
+        .bufferImageHeight      = image->get_extent().height,
+        .imageSubresource       =
+            {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel       = 0,
+                .baseArrayLayer = 0,
+                .layerCount     = image->get_array_layers()
+            },
+        .imageOffset            = { 0, 0, 0 },
+        .imageExtent            = image->get_extent()
+    };
+
+    vkCmdCopyBufferToImage(_vk_command_buffer, buffer->get_handle(), image->get_handle(), image->get_layout(), 1, &copy);
 }
