@@ -7,6 +7,7 @@ namespace rend
 {
 
 class CommandBuffer;
+class CommandPool;
 class LogicalDevice;
 
 class Image
@@ -26,7 +27,11 @@ public:
     uint32_t      get_array_layers(void) const;
     uint32_t      get_mip_levels(void) const;
 
-    bool load(void* data, size_t size_bytes, CommandBuffer* buffer);
+    bool loaded(void) const;
+
+    bool load(void* data, size_t size_bytes, CommandPool* buffer);
+
+    bool transition(VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage, VkImageLayout transition_to, CommandPool* pool);
 
 private:
     Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format,
@@ -52,6 +57,7 @@ private:
 
     LogicalDevice* _device;
     size_t         _size_bytes;
+    bool           _loaded;
 };
 
 }
