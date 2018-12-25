@@ -50,6 +50,8 @@ public:
 
     void copy_buffer_to_image(Buffer* buffer, Image* image);
 
+    void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
+
 private:
 
     CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index);

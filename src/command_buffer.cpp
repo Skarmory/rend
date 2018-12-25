@@ -143,3 +143,8 @@ void CommandBuffer::copy_buffer_to_image(Buffer* buffer, Image* image)
 
     vkCmdCopyBufferToImage(_vk_command_buffer, buffer->get_handle(), image->get_handle(), image->get_layout(), 1, &copy);
 }
+
+void CommandBuffer::pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers)
+{
+    vkCmdPipelineBarrier(_vk_command_buffer, src, dst, dependency, static_cast<uint32_t>(memory_barriers.size()), memory_barriers.data(), static_cast<uint32_t>(buffer_memory_barriers.size()), buffer_memory_barriers.data(), static_cast<uint32_t>(image_memory_barriers.size()), image_memory_barriers.data());
+}
