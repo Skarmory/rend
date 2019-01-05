@@ -80,10 +80,35 @@ Image::Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkForma
     };
 
     VULKAN_DEATH_CHECK(vkCreateImageView(_device->get_handle(), &image_view_info, nullptr, &_vk_image_view), "Failed to create image view");
+
+    VkSamplerCreateInfo sampler_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .magFilter = VK_FILTER_LINEAR,
+        .minFilter = VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        .mipLodBias = 1.0f,
+        .anisotropyEnable = VK_FALSE,
+        .maxAnisotropy = 1.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_ALWAYS,
+        .minLod = 1.0f,
+        .maxLod = 1.0f,
+        .borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+        .unnormalizedCoordinates = VK_FALSE
+    };
+
+    VULKAN_DEATH_CHECK(vkCreateSampler(_device->get_handle(), &sampler_info, nullptr, &_vk_sampler), "Failed to create sampler");
 }
 
 Image::~Image(void)
 {
+    vkDestroySampler(_device->get_handle(), _vk_sampler, nullptr);
     vkDestroyImageView(_device->get_handle(), _vk_image_view, nullptr);
     vkFreeMemory(_device->get_handle(), _vk_memory, nullptr);
     vkDestroyImage(_device->get_handle(), _vk_image, nullptr);
@@ -97,6 +122,11 @@ VkImage Image::get_handle(void) const
 VkImageView Image::get_view(void) const
 {
     return _vk_image_view;
+}
+
+VkSampler Image::get_sampler(void) const
+{
+    return _vk_sampler;
 }
 
 VkImageLayout Image::get_layout(void) const

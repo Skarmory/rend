@@ -22,6 +22,7 @@ public:
 
     VkImage       get_handle(void) const;
     VkImageView   get_view(void) const;
+    VkSampler     get_sampler(void) const;
     VkImageLayout get_layout(void) const;
     VkExtent3D    get_extent(void) const;
     uint32_t      get_array_layers(void) const;
@@ -43,6 +44,7 @@ private:
 private:
     VkImage               _vk_image;
     VkImageView           _vk_image_view;
+    VkSampler             _vk_sampler;
     VkDeviceMemory        _vk_memory;
     VkMemoryPropertyFlags _vk_memory_properties;
     VkExtent3D            _vk_extent;
