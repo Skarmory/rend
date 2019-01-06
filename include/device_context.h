@@ -25,8 +25,9 @@ public:
     DeviceContext& operator=(const DeviceContext&) = delete;
     DeviceContext& operator=(DeviceContext&&)      = delete;
 
-    VkInstance   get_instance(void) const;
-    VkSurfaceKHR get_surface(void) const;
+    VkInstance     get_instance(void) const;
+    VkSurfaceKHR   get_surface(void) const;
+    LogicalDevice* get_device(void) const;
 
     LogicalDevice* create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
 

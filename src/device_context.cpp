@@ -35,11 +35,6 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
         .ppEnabledExtensionNames = extensions 
     };
 
-    /*
-    if( vkCreateInstance(&instance_create_info, nullptr, &_vk_instance) != VK_SUCCESS )
-        throw std::runtime_error("Failed to create Vulkan instance");
-    */
-
     VULKAN_DEATH_CHECK(vkCreateInstance(&instance_create_info, nullptr, &_vk_instance), "Failed to create Vulkan instance");
 
     // Step 2: Create surface
@@ -80,6 +75,11 @@ VkInstance DeviceContext::get_instance(void) const
 VkSurfaceKHR DeviceContext::get_surface(void) const
 {
     return _window->_vk_surface;
+}
+
+LogicalDevice* DeviceContext::get_device(void) const
+{
+    return _logical_device;
 }
 
 LogicalDevice* DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
