@@ -64,7 +64,7 @@ private:
     const QueueFamily* const _queue_family;
     const bool               _can_reset;
 
-    std::vector<CommandBuffer*>  _command_buffers;
+    std::vector<CommandBuffer*> _command_buffers;
 };
 
 }
