@@ -1,40 +1,38 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <cstddef>
 
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
+class GPUBuffer;
+
+enum class BufferType
+{
+    VERTEX,
+    INDEX,
+    STAGING
+};
 
 class Buffer
 {
-    friend class LogicalDevice;
-
 public:
+    Buffer(DeviceContext* context, size_t size_bytes, BufferType buffer_type);
+    ~Buffer(void);
+
     Buffer(const Buffer&) = delete;
     Buffer(Buffer&&)      = delete;
     Buffer& operator=(const Buffer&) = delete;
     Buffer& operator=(Buffer&&)      = delete;
 
-    VkBuffer           get_handle(void) const;
-    VkBufferUsageFlags get_usage(void) const;
-    size_t             get_size(void) const;
-
-    bool load(void* data, size_t size_bytes);
+    GPUBuffer* get_gpu_buffer(void) const;
 
 private:
-    Buffer(LogicalDevice* device, size_t capacity, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage);
-    ~Buffer(void);
-
-private:
-    VkBuffer           _vk_buffer;
-    VkDeviceMemory     _vk_memory;
-    VkBufferUsageFlags _vk_buffer_usage;
-
-    LogicalDevice* _device;
-    size_t         _capacity;
+    DeviceContext* _context;
+    GPUBuffer*     _gpu_buffer;
+    BufferType     _type;
 };
 
 }
