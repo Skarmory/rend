@@ -1,8 +1,8 @@
 #include "command_buffer.h"
 
-#include "buffer.h"
 #include "descriptor_pool.h"
 #include "framebuffer.h"
+#include "gpu_buffer.h"
 #include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
@@ -104,17 +104,17 @@ void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, 
     vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
 }
 
-void CommandBuffer::bind_index_buffer(Buffer* buffer, VkDeviceSize offset, VkIndexType index_type)
+void CommandBuffer::bind_index_buffer(GPUBuffer* buffer, VkDeviceSize offset, VkIndexType index_type)
 {
     vkCmdBindIndexBuffer(_vk_command_buffer, buffer->get_handle(), offset, index_type);
 }
 
-void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<Buffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
     std::vector<VkBuffer> vk_buffers;
     vk_buffers.reserve(buffers.size());
 
-    std::for_each(buffers.begin(), buffers.end(), [&vk_buffers](Buffer* b){ vk_buffers.push_back(b->get_handle()); });
+    std::for_each(buffers.begin(), buffers.end(), [&vk_buffers](GPUBuffer* b){ vk_buffers.push_back(b->get_handle()); });
 
     vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
 }
@@ -123,7 +123,7 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
 {
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
-void CommandBuffer::copy_buffer_to_image(Buffer* buffer, Image* image)
+void CommandBuffer::copy_buffer_to_image(GPUBuffer* buffer, Image* image)
 {
     VkBufferImageCopy copy =
     {
@@ -142,6 +142,18 @@ void CommandBuffer::copy_buffer_to_image(Buffer* buffer, Image* image)
     };
 
     vkCmdCopyBufferToImage(_vk_command_buffer, buffer->get_handle(), image->get_handle(), image->get_layout(), 1, &copy);
+}
+
+void CommandBuffer::copy_buffer_to_buffer(GPUBuffer* src, GPUBuffer* dst)
+{
+    VkBufferCopy copy =
+    {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size      = src->get_size()
+    };
+
+    vkCmdCopyBuffer(_vk_command_buffer, src->get_handle(), dst->get_handle(), 1, &copy);
 }
 
 void CommandBuffer::pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers)
