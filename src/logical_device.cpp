@@ -1,6 +1,5 @@
 #include "logical_device.h"
 
-#include "buffer.h"
 #include "physical_device.h"
 #include "command_pool.h"
 #include "command_buffer.h"
@@ -9,6 +8,7 @@
 #include "event.h"
 #include "fence.h"
 #include "framebuffer.h"
+#include "gpu_buffer.h"
 #include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
@@ -401,14 +401,14 @@ void LogicalDevice::destroy_event(Event** event)
     }
 }
 
-Buffer* LogicalDevice::create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage)
+GPUBuffer* LogicalDevice::create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage)
 {
-    Buffer* buffer = new Buffer(this, size, memory_properties, usage);
+    GPUBuffer* buffer = new GPUBuffer(this, size, memory_properties, usage);
 
     return buffer;
 }
 
-void LogicalDevice::destroy_buffer(Buffer** buffer)
+void LogicalDevice::destroy_buffer(GPUBuffer** buffer)
 {
     if(buffer && *buffer)
     {

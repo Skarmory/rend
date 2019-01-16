@@ -9,7 +9,6 @@
 namespace rend
 {
 
-class Buffer;
 class CommandBuffer;
 class CommandPool;
 class DescriptorPool;
@@ -18,6 +17,7 @@ class DeviceContext;
 class Event;
 class Fence;
 class Framebuffer;
+class GPUBuffer;
 class Image;
 class PhysicalDevice;
 class Pipeline;
@@ -92,8 +92,8 @@ public:
     Event*                create_event(void);
     void                  destroy_event(Event** event);
 
-    Buffer*               create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage); 
-    void                  destroy_buffer(Buffer** buffer);
+    GPUBuffer*            create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage);
+    void                  destroy_buffer(GPUBuffer** buffer);
 
     Image*                create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type);
     void                  destroy_image(Image** image);
