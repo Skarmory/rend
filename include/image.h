@@ -6,7 +6,6 @@
 namespace rend
 {
 
-class CommandBuffer;
 class CommandPool;
 class LogicalDevice;
 
@@ -28,9 +27,8 @@ public:
     uint32_t      get_array_layers(void) const;
     uint32_t      get_mip_levels(void) const;
 
-    bool loaded(void) const;
-
-    bool load(void* data, size_t size_bytes, CommandPool* buffer);
+    VkDeviceMemory        get_memory(void) const;
+    VkMemoryPropertyFlags get_memory_properties(void) const;
 
     bool transition(VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage, VkImageLayout transition_to, CommandPool* pool);
 

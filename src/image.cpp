@@ -2,7 +2,6 @@
 
 #include <cstring>
 
-#include "buffer.h"
 #include "command_buffer.h"
 #include "command_pool.h"
 #include "fence.h"
@@ -149,45 +148,14 @@ uint32_t Image::get_mip_levels(void) const
     return _mip_levels;
 }
 
-bool Image::loaded(void) const
+VkDeviceMemory Image::get_memory(void) const
 {
-    return _loaded;
+    return _vk_memory;
 }
 
-bool Image::load(void* data, size_t size_bytes, CommandPool* pool)
+VkMemoryPropertyFlags Image::get_memory_properties(void) const
 {
-    // If device memory is local, need to load into a different resource and copy over
-    if(_vk_memory_properties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-    {
-        CommandBuffer* temp_cbuffer = pool->allocate_command_buffer();
-        Fence* temp_fence =  _device->create_fence(false);
-        Buffer* staging = _device->create_buffer(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-
-        staging->load(data, size_bytes);
-
-        temp_cbuffer->begin();
-        temp_cbuffer->copy_buffer_to_image(staging, this);
-        temp_cbuffer->end();
-
-        _device->queue_submit({ temp_cbuffer }, QueueType::GRAPHICS, {}, {}, temp_fence);
-
-        temp_fence->wait();
-
-        _device->destroy_buffer(&staging);
-        _device->destroy_fence(&temp_fence);
-        pool->free_command_buffer(temp_cbuffer);
-    }
-    else
-    {
-        void* mapped;
-        vkMapMemory(_device->get_handle(), _vk_memory, 0, _size_bytes, 0, &mapped);
-        memcpy(mapped, data, size_bytes);
-        vkUnmapMemory(_device->get_handle(), _vk_memory);
-    }
-
-    _loaded = true;
-
-    return true;
+    return _vk_memory_properties;
 }
 
 bool Image::transition(VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage, VkImageLayout transition_to, CommandPool* pool)
