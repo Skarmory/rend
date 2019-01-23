@@ -29,8 +29,6 @@ using namespace rend;
 LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
     : _vk_device(VK_NULL_HANDLE), _vk_graphics_queue(VK_NULL_HANDLE), _vk_transfer_queue(VK_NULL_HANDLE), _context(context),  _physical_device(physical_device), _graphics_family(graphics_family), _transfer_family(transfer_family)
 {
-    std::cout << "Constructing logical device" << std::endl;
-
     // Step 1: Construct queue creation info
     float priority = 1.0f;
 
@@ -84,8 +82,6 @@ LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice*
 
 LogicalDevice::~LogicalDevice(void)
 {
-    std::cout << "Destructing logical device" << std::endl;
-
     for(CommandPool* pool : _command_pools)
     {
         if(pool)
@@ -106,9 +102,6 @@ VkQueue LogicalDevice::get_queue(QueueType type) const
     {
         case QueueType::GRAPHICS: return _vk_graphics_queue;
         case QueueType::TRANSFER: return _vk_transfer_queue;
-        default:
-            std::cerr << "Invalid queue type given in LogicalDevice::get_queue" << std::endl;
-            std::abort();
     }
 
     return VK_NULL_HANDLE;
@@ -120,9 +113,6 @@ const QueueFamily* LogicalDevice::get_queue_family(QueueType type) const
     {
         case QueueType::GRAPHICS: return _graphics_family;
         case QueueType::TRANSFER: return _transfer_family;
-        default:
-            std::cerr << "Invalid queue type given in LogicalDevice::get_queue_family" << std::endl;
-            std::abort();
     }
 
     return nullptr;
@@ -199,8 +189,6 @@ CommandPool* LogicalDevice::create_command_pool(const QueueType type, bool can_r
         case QueueType::TRANSFER:
             _command_pools.push_back(new CommandPool(this, *_transfer_family, can_reset));
             break;
-        default:
-            DEATH_CHECK(true, "Unknown queue type specified");
     }
 
     return _command_pools.back();
