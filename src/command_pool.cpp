@@ -13,8 +13,6 @@ using namespace rend;
 CommandPool::CommandPool(LogicalDevice* const logical_device, const QueueFamily& queue_family, bool can_reset)
     : _logical_device(logical_device), _queue_family(&queue_family), _can_reset(can_reset)
 {
-    std::cout << "Constructing command pool" << std::endl;
-
     VkCommandPoolCreateFlags flags = can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0;
 
     VkCommandPoolCreateInfo create_info = {
@@ -29,8 +27,6 @@ CommandPool::CommandPool(LogicalDevice* const logical_device, const QueueFamily&
 
 CommandPool::~CommandPool(void)
 {
-    std::cout << "Destructing command pool" << std::endl;
-
     vkDestroyCommandPool(_logical_device->get_handle(), _vk_command_pool, nullptr);
 }
 
