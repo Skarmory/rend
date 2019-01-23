@@ -10,8 +10,6 @@ using namespace rend;
 
 PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device) : _physical_device_index(physical_device_index), _vk_physical_device(physical_device), _context(context), _logical_device(nullptr)
 {
-    std::cout << "Constructing physical device" << std::endl;
-
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
@@ -24,8 +22,6 @@ PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_d
 
 PhysicalDevice::~PhysicalDevice(void)
 {
-    std::cout << "Destructing physical device" << std::endl;
-
     if(_logical_device)
         delete _logical_device;
 }
@@ -35,8 +31,6 @@ void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
     uint32_t count;
     std::vector<VkQueueFamilyProperties> queue_family_properties;
     vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, nullptr);
-
-    std::cout << "Found " << count << " queue families" << std::endl;
 
     _queue_families.reserve(count);
     queue_family_properties.resize(count);
