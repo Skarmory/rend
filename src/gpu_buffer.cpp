@@ -73,18 +73,3 @@ VkMemoryPropertyFlags GPUBuffer::get_memory_properties(void) const
 {
     return _vk_memory_properties;
 }
-
-/*
-bool GPUBuffer::load(void* data, size_t size_bytes)
-{
-    if(size_bytes > _capacity)
-        return false;
-
-    void* mapped;
-    vkMapMemory(_device->get_handle(), _vk_memory, 0, static_cast<uint32_t>(size_bytes), 0, &mapped);
-    memcpy(mapped, data, size_bytes);
-    vkUnmapMemory(_device->get_handle(), _vk_memory);
-
-    return true;
-}
-*/

@@ -25,8 +25,6 @@ public:
     VkDeviceMemory        get_memory(void) const;
     VkMemoryPropertyFlags get_memory_properties(void) const;
 
-    //bool load(void* data, size_t size_bytes);
-
 private:
     GPUBuffer(LogicalDevice* device, size_t capacity, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage);
     ~GPUBuffer(void);
