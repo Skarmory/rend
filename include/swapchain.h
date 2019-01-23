@@ -1,10 +1,12 @@
 #ifndef SWAPCHAIN_H
 #define SWAPCHAIN_H
 
+#include <limits>
 #include <vulkan.h>
 #include <vector>
 
 #include "queue_family.h"
+#include "rend_defs.h"
 
 namespace rend
 {

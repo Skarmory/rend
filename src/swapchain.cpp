@@ -8,15 +8,12 @@
 #include "utils.h"
 
 #include <algorithm>
-#include <iostream>
 #include <limits>
 
 using namespace rend;
 
 Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0), _current_image_idx(0), _vk_swapchain(VK_NULL_HANDLE)
 {
-    std::cout << "Constructing swap chain" << std::endl;
-
     DEATH_CHECK(desired_images == 0, "Failed to create swapchain: desired images cannot be 0");
 
     _create(desired_images);
@@ -26,8 +23,6 @@ Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired
 
 Swapchain::~Swapchain(void)
 {
-    std::cout << "Destructing swap chain" << std::endl;
-
     _destroy();
     vkDestroySwapchainKHR(_logical_device->get_handle(), _vk_swapchain, nullptr);
 }
@@ -80,7 +75,7 @@ uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
     {
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
         {
-            return std::numeric_limits<uint32_t>::max();
+            return SWAPCHAIN_OUT_OF_DATE;
         }
         else
         {
@@ -120,13 +115,8 @@ void Swapchain::_create(uint32_t desired_images)
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
 
     _surface_format = _find_surface_format(physical_device.get_surface_formats());
-    std::cout << "Chosen format: " << _surface_format.format << " // " << _surface_format.colorSpace << std::endl;
-
     _present_mode = _find_present_mode(physical_device.get_surface_present_modes());
-    std::cout << "Chosen present mode: " << _present_mode << std::endl;
-
     _image_count = _find_image_count(desired_images, surface_caps);
-    std::cout << "Chosen image count: " << _image_count << std::endl;
 
     _vk_extent = surface_caps.currentExtent;
 
@@ -175,8 +165,6 @@ void Swapchain::_get_images(void)
 
     _vk_image_views.resize(_image_count);
 
-    std::cout << "Image count: " << _image_count << std::endl;
-
     VkImageViewCreateInfo image_view_create_info = {};
     image_view_create_info.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     image_view_create_info.format                          = _surface_format.format;
@@ -207,7 +195,6 @@ VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFo
             return surface_format;
     }
 
-    std::cout << "No good surface formats found. Defaulting to: " << surface_formats[0].format << " // " << surface_formats[0].colorSpace << std::endl;
     return surface_formats[0];
 }
 
@@ -234,16 +221,10 @@ uint32_t Swapchain::_find_image_count(uint32_t desired_images, const VkSurfaceCa
 
     if(surface_caps.maxImageCount > 0 && desired_images > surface_caps.maxImageCount)
     {
-        std::cout << "Too many images requested. Device only supports " << surface_caps.maxImageCount
-                  << ". Setting image count to that." << std::endl;
-
         _image_count = surface_caps.maxImageCount;
     }
     else if(surface_caps.minImageCount > 0 && desired_images < surface_caps.minImageCount + 1)
     {
-        std::cout << "Too few images requested. Device requires at least " << surface_caps.minImageCount
-                  << ". Setting image count to that." << std::endl;
-
         _image_count = surface_caps.minImageCount + 1;
     }
 
