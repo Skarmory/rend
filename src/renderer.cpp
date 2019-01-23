@@ -25,15 +25,14 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
     _context = new DeviceContext(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);
     _swapchain = _context->get_device()->create_swapchain(3);
-    _staging_command_pool = _context->get_device()->create_command_pool(QueueType::GRAPHICS, true);
-    _staging_buffers.reserve(8);
+    _command_pool = _context->get_device()->create_command_pool(QueueType::GRAPHICS, true);
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
         _frame_resources[idx].acquire_sem = _context->get_device()->create_semaphore();
         _frame_resources[idx].present_sem = _context->get_device()->create_semaphore();
         _frame_resources[idx].submit_fen  = _context->get_device()->create_fence(true);
-        _frame_resources[idx].staging_command_buffer = _staging_command_pool->allocate_command_buffer();
+        _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
 
     _create_default_renderpass();
@@ -50,9 +49,6 @@ Renderer::~Renderer(void)
         _task_queue.pop();
     }
 
-    for(GPUBuffer* buffer : _staging_buffers)
-        _context->get_device()->destroy_buffer(&buffer);
-
     for(Framebuffer* framebuffer : _default_framebuffers)
         _context->get_device()->destroy_framebuffer(&framebuffer);
 
@@ -65,7 +61,7 @@ Renderer::~Renderer(void)
         _context->get_device()->destroy_fence(&_frame_resources[idx].submit_fen);
     }
 
-    _context->get_device()->destroy_command_pool(&_staging_command_pool);
+    _context->get_device()->destroy_command_pool(&_command_pool);
     _context->get_device()->destroy_swapchain(&_swapchain);
 
     delete _context;
@@ -146,7 +142,7 @@ FrameResources* Renderer::start_frame(void)
 
     frame_res->submit_fen->wait();
     frame_res->submit_fen->reset();
-    frame_res->staging_command_buffer->reset();
+    frame_res->command_buffer->reset();
 
     do
     {
@@ -170,12 +166,12 @@ void Renderer::begin_render_pass(FrameResources* frame_res, std::vector<VkClearV
     if(render_area.extent.width == 0 && render_area.extent.height == 0)
         render_area.extent = _swapchain->get_extent();
 
-    frame_res->staging_command_buffer->begin_render_pass(*_default_render_pass, _default_framebuffers[frame_res->swapchain_idx], render_area, clear_values);
+    frame_res->command_buffer->begin_render_pass(*_default_render_pass, _default_framebuffers[frame_res->swapchain_idx], render_area, clear_values);
 }
 
 void Renderer::end_render_pass(FrameResources* frame_res)
 {
-    frame_res->staging_command_buffer->end_render_pass();
+    frame_res->command_buffer->end_render_pass();
 }
 
 void Renderer::resize_resources(void)
@@ -191,7 +187,7 @@ void Renderer::_process_task_queue(FrameResources* resources)
 
     Fence* load_fence = _context->get_device()->create_fence(false);
 
-    resources->staging_command_buffer->begin();
+    resources->command_buffer->begin();
 
     while(!_task_queue.empty())
     {
@@ -201,15 +197,15 @@ void Renderer::_process_task_queue(FrameResources* resources)
         delete task;
     }
 
-    resources->staging_command_buffer->end();
+    resources->command_buffer->end();
 
-    if(resources->staging_command_buffer->recorded())
+    if(resources->command_buffer->recorded())
     {
-        _context->get_device()->queue_submit({ resources->staging_command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
+        _context->get_device()->queue_submit({ resources->command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
         load_fence->wait();
     }
 
-    resources->staging_command_buffer->reset();
+    resources->command_buffer->reset();
     _context->get_device()->destroy_fence(&load_fence);
 
     for(auto staging_buffer : resources->staging_buffers)
@@ -250,10 +246,10 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
         switch(resource_type)
         {
             case ResourceType::BUFFER:
-                resources->staging_command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<Buffer*>(resource)->get_gpu_buffer());
+                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<Buffer*>(resource)->get_gpu_buffer());
                 break;
             case ResourceType::TEXTURE2D:
-                resources->staging_command_buffer->copy_buffer_to_image(staging_buffer, static_cast<Texture2D*>(resource)->get_image());
+                resources->command_buffer->copy_buffer_to_image(staging_buffer, static_cast<Texture2D*>(resource)->get_image());
                 break;
         }
     }
@@ -363,7 +359,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
             return;
     }
 
-    resources->staging_command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
+    resources->command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
     image->get_image()->_vk_layout = final_layout;
 }

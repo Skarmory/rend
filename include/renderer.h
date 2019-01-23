@@ -32,14 +32,12 @@ enum class ResourceType
 
 struct FrameResources
 {
-    CommandBuffer* staging_command_buffer;
     std::vector<GPUBuffer*> staging_buffers;
-
-    uint32_t swapchain_idx;
-
-    Semaphore* acquire_sem;
-    Semaphore* present_sem;
-    Fence*     submit_fen;
+    uint32_t                swapchain_idx;
+    CommandBuffer*          command_buffer;
+    Semaphore*              acquire_sem;
+    Semaphore*              present_sem;
+    Fence*                  submit_fen;
 };
 
 struct Task
@@ -116,14 +114,12 @@ private:
 private:
     DeviceContext* _context;
     Swapchain*     _swapchain;
-    CommandPool*   _staging_command_pool;
-    CommandBuffer* _staging_command_buffer;
+    CommandPool*   _command_pool;
 
     std::vector<Framebuffer*> _default_framebuffers;
     RenderPass* _default_render_pass;
 
     std::queue<Task*>       _task_queue;
-    std::vector<GPUBuffer*> _staging_buffers;
 
     uint32_t _frame_counter;
     static const uint32_t _FRAMES_IN_FLIGHT = 2;
