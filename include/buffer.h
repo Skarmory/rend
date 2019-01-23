@@ -13,6 +13,7 @@ enum class BufferType
 {
     VERTEX,
     INDEX,
+    UNIFORM,
     STAGING
 };
 
