@@ -11,8 +11,6 @@ using namespace rend;
 
 DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window) : _window(window)
 {
-    std::cout << "\tConstructing device context" << std::endl;
-
     // Step 1: Create Vulkan instance
     VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -44,8 +42,6 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
     std::vector<VkPhysicalDevice> physical_devices;
     uint32_t physical_device_count;
     vkEnumeratePhysicalDevices(_vk_instance, &physical_device_count, nullptr);
-
-    std::cout << "\t\tFound " << physical_device_count << " physical devices";
 
     _physical_devices.reserve(physical_device_count);
     physical_devices.resize(physical_device_count);
