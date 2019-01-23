@@ -53,8 +53,6 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
 
 DeviceContext::~DeviceContext(void)
 {
-    std::cout << "Destructing device context" << std::endl;
-
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
         delete _physical_devices[physical_device_index];
 
