@@ -12,6 +12,7 @@ class LogicalDevice;
 class Image
 {
     friend class LogicalDevice;
+    friend class ImageTransitionTask;
 
 public:
     Image(const Image&) = delete;
@@ -29,8 +30,6 @@ public:
 
     VkDeviceMemory        get_memory(void) const;
     VkMemoryPropertyFlags get_memory_properties(void) const;
-
-    bool transition(VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage, VkImageLayout transition_to, CommandPool* pool);
 
 private:
     Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format,
