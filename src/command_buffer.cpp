@@ -15,14 +15,12 @@
 using namespace rend;
 
 CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index)
-    : _vk_command_buffer(vk_command_buffer), _index(index)
+    : _vk_command_buffer(vk_command_buffer), _index(index), _recording(false), _recorded(false)
 {
-//    std::cout << "Constructing command buffer" << std::endl;
 }
 
 CommandBuffer::~CommandBuffer(void)
 {
-//    std::cout << "Destructing command buffer" << std::endl;
 }
 
 VkCommandBuffer CommandBuffer::get_handle(void) const
@@ -41,20 +39,38 @@ void CommandBuffer::begin(void)
     };
 
     VULKAN_DEATH_CHECK(vkBeginCommandBuffer(_vk_command_buffer, &info), "Failed to begin command buffer");
+
+    _recording = true;
 }
 
 void CommandBuffer::end(void)
 {
     vkEndCommandBuffer(_vk_command_buffer);
+
+    _recording = false;
 }
 
 void CommandBuffer::reset(void)
 {
     VULKAN_DEATH_CHECK(vkResetCommandBuffer(_vk_command_buffer, 0), "Failed to reset command buffer");
+
+    _recorded = false;
+}
+
+bool CommandBuffer::recording(void) const
+{
+    return _recording;    
+}
+
+bool CommandBuffer::recorded(void) const
+{
+    return _recorded;
 }
 
 void CommandBuffer::begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values)
 {
+    _recorded = true;
+
     VkRenderPassBeginInfo info =
     {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -71,26 +87,36 @@ void CommandBuffer::begin_render_pass(const RenderPass& render_pass, Framebuffer
 
 void CommandBuffer::end_render_pass(void)
 {
+    _recorded = true;
+
     vkCmdEndRenderPass(_vk_command_buffer);
 }
 
 void CommandBuffer::set_viewport(const VkViewport& viewport)
 {
+    _recorded = true;
+
     vkCmdSetViewport(_vk_command_buffer, 0, 1, &viewport);
 }
 
 void CommandBuffer::set_scissors(const VkRect2D& scissor)
 {
+    _recorded = true;
+
     vkCmdSetScissor(_vk_command_buffer, 0, 1, &scissor);
 }
 
 void CommandBuffer::bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline& pipeline)
 {
+    _recorded = true;
+
     vkCmdBindPipeline(_vk_command_buffer, bind_point, pipeline.get_handle());
 }
 
 void CommandBuffer::bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets)
 {
+    _recorded = true;
+
     std::vector<VkDescriptorSet> vk_sets;
     vk_sets.reserve(sets.size());
 
@@ -101,16 +127,22 @@ void CommandBuffer::bind_descriptor_sets(VkPipelineBindPoint bind_point, const P
 
 void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
 {
+    _recorded = true;
+
     vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
 }
 
 void CommandBuffer::bind_index_buffer(GPUBuffer* buffer, VkDeviceSize offset, VkIndexType index_type)
 {
+    _recorded = true;
+
     vkCmdBindIndexBuffer(_vk_command_buffer, buffer->get_handle(), offset, index_type);
 }
 
 void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
+    _recorded = true;
+
     std::vector<VkBuffer> vk_buffers;
     vk_buffers.reserve(buffers.size());
 
@@ -121,10 +153,15 @@ void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vecto
 
 void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data)
 {
+    _recorded = true;
+
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
+
 void CommandBuffer::copy_buffer_to_image(GPUBuffer* buffer, Image* image)
 {
+    _recorded = true;
+
     VkBufferImageCopy copy =
     {
         .bufferOffset           = 0,
@@ -146,6 +183,8 @@ void CommandBuffer::copy_buffer_to_image(GPUBuffer* buffer, Image* image)
 
 void CommandBuffer::copy_buffer_to_buffer(GPUBuffer* src, GPUBuffer* dst)
 {
+    _recorded = true;
+
     VkBufferCopy copy =
     {
         .srcOffset = 0,
@@ -158,5 +197,7 @@ void CommandBuffer::copy_buffer_to_buffer(GPUBuffer* src, GPUBuffer* dst)
 
 void CommandBuffer::pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers)
 {
+    _recorded = true;
+
     vkCmdPipelineBarrier(_vk_command_buffer, src, dst, dependency, static_cast<uint32_t>(memory_barriers.size()), memory_barriers.data(), static_cast<uint32_t>(buffer_memory_barriers.size()), buffer_memory_barriers.data(), static_cast<uint32_t>(image_memory_barriers.size()), image_memory_barriers.data());
 }

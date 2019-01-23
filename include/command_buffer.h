@@ -32,6 +32,8 @@ public:
     void begin(void);
     void end(void);
     void reset(void);
+    bool recording(void) const;
+    bool recorded(void) const;
 
     void begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
     void end_render_pass(void);
@@ -60,7 +62,9 @@ private:
 
 private:
     VkCommandBuffer _vk_command_buffer;
-    uint32_t _index;
+    uint32_t        _index;
+    bool            _recording;
+    bool            _recorded;
 };
 
 }
