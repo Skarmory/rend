@@ -49,6 +49,8 @@ Renderer::~Renderer(void)
         _task_queue.pop();
     }
 
+    _context->get_device()->destroy_image(&_default_depth_buffer);
+
     for(Framebuffer* framebuffer : _default_framebuffers)
         _context->get_device()->destroy_framebuffer(&framebuffer);
 
@@ -366,7 +368,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
 
 void Renderer::_create_default_renderpass(void)
 {
-    std::vector<VkAttachmentDescription> attach_descs(1);
+    std::vector<VkAttachmentDescription> attach_descs(2);
     attach_descs[0].format        = VK_FORMAT_B8G8R8A8_UNORM;
     attach_descs[0].loadOp        = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attach_descs[0].storeOp       = VK_ATTACHMENT_STORE_OP_STORE;
@@ -374,14 +376,27 @@ void Renderer::_create_default_renderpass(void)
     attach_descs[0].finalLayout   = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     attach_descs[0].samples       = VK_SAMPLE_COUNT_1_BIT;
 
-    std::vector<VkAttachmentReference> colour_attachment_ref(1);
-    colour_attachment_ref[0].attachment = 0;
-    colour_attachment_ref[0].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attach_descs[1].format         = VK_FORMAT_D24_UNORM_S8_UINT;
+    attach_descs[1].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attach_descs[1].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    attach_descs[1].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attach_descs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attach_descs[1].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    attach_descs[1].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    attach_descs[1].samples        = VK_SAMPLE_COUNT_1_BIT;
+
+    std::vector<VkAttachmentReference> attachment_refs(2);
+    attachment_refs[0].attachment = 0;
+    attachment_refs[0].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    attachment_refs[1].attachment = 1;
+    attachment_refs[1].layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     std::vector<VkSubpassDescription> subpass_descs(1);
-    subpass_descs[0].pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_descs[0].colorAttachmentCount = 1;
-    subpass_descs[0].pColorAttachments    = colour_attachment_ref.data();
+    subpass_descs[0].pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_descs[0].colorAttachmentCount    = 1;
+    subpass_descs[0].pColorAttachments       = &attachment_refs[0];
+    subpass_descs[0].pDepthStencilAttachment = &attachment_refs[1];
 
     std::vector<VkSubpassDependency> subpass_deps(2);
     subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -409,17 +424,24 @@ void Renderer::_create_default_framebuffers(bool recreate)
 
     if(recreate)
     {
+        _context->get_device()->destroy_image(&_default_depth_buffer);
+        _default_depth_buffer = _context->get_device()->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
-            _default_framebuffers[idx]->recreate({ views[idx] }, framebuffer_dims);
+            _default_framebuffers[idx]->recreate({ views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
         }
+
+
     }
     else
     {
+        _default_depth_buffer = _context->get_device()->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+
         _default_framebuffers.resize(views.size());
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
-            _default_framebuffers[idx] = _context->get_device()->create_framebuffer(*_default_render_pass, { views[idx] }, framebuffer_dims);
+            _default_framebuffers[idx] = _context->get_device()->create_framebuffer(*_default_render_pass, { views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
         }
     }
 }

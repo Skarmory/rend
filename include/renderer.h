@@ -18,6 +18,7 @@ class DeviceContext;
 class Fence;
 class Framebuffer;
 class GPUBuffer;
+class Image;
 class RenderPass;
 class Semaphore;
 class Swapchain;
@@ -117,6 +118,7 @@ private:
     CommandPool*   _command_pool;
 
     std::vector<Framebuffer*> _default_framebuffers;
+    Image* _default_depth_buffer;
     RenderPass* _default_render_pass;
 
     std::queue<Task*>       _task_queue;
