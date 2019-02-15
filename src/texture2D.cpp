@@ -36,7 +36,8 @@ Texture2D::Texture2D(DeviceContext* context, uint32_t width, uint32_t height, ui
             VK_IMAGE_TILING_OPTIMAL,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             usage,
-            VK_IMAGE_VIEW_TYPE_2D
+            VK_IMAGE_VIEW_TYPE_2D,
+            VK_IMAGE_ASPECT_COLOR_BIT
         );
 }
 

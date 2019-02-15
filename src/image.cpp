@@ -10,7 +10,7 @@
 
 using namespace rend;
 
-Image::Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type)
+Image::Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
     : _vk_memory_properties(memory_properties), _vk_extent(extent), _vk_type(type), _vk_format(format), _mip_levels(mip_levels), _array_layers(array_layers), _vk_samples(samples), _vk_tiling(tiling), _vk_usage(usage), _vk_layout(VK_IMAGE_LAYOUT_UNDEFINED),  _device(device), _size_bytes(0), _loaded(false)
 {
     uint32_t queue_family_index = _device->get_queue_family(QueueType::GRAPHICS)->get_index();
@@ -70,7 +70,7 @@ Image::Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkForma
         },
         .subresourceRange =
         {
-            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+            .aspectMask     = aspects,
             .baseMipLevel   = 0,
             .levelCount     = _mip_levels,
             .baseArrayLayer = 0,

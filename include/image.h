@@ -35,7 +35,7 @@ private:
     Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format,
           uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling,
           VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage,
-          VkImageViewType view_type);
+          VkImageViewType view_type, VkImageAspectFlags aspects);
     ~Image(void);
 
 private:
