@@ -4,9 +4,16 @@ LDFLAGS=-lvulkan -lglfw -DGLFW_WINDOW
 NAME=librend.so
 
 INCL=$(wildcard include/*.h)
+INCL_LIGHT=$(wildcard include/lights/*.h)
+
 SRCS=$(wildcard src/*.cpp)
+SRCS_LIGHT=$(wildcard src/lights/*.cpp)
+
 OBJS=$(SRCS:.cpp=.o)
+OBJS+=$(SRCS_LIGHT:.cpp=.o)
+
 DEPS=$(SRCS:.cpp=.d)
+DEPS+=$(SRCS_LIGHT:.cpp=.d)
 
 .PHONY: clean fullclean
 
