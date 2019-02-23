@@ -28,6 +28,7 @@ public:
 
     // Describe binding for given buffer(s) to given binding point at given array elem
     void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorBufferInfo>& descriptor_infos);
+    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const VkDescriptorBufferInfo* data, uint32_t count);
 
     // Describe binding for given texel buffer(s) to given binding point at given array elem
     void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
