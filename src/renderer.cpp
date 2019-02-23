@@ -104,6 +104,11 @@ Texture2D* Renderer::create_diffuse(uint32_t width, uint32_t height, uint32_t mi
     return new Texture2D(_context, width, height, mip_levels, TextureType::DIFFUSE);
 }
 
+Texture2D* Renderer::create_depth_buffer(uint32_t width, uint32_t height)
+{
+    return new Texture2D(_context, width, height, 1, TextureType::DEPTH_BUFFER);
+}
+
 void Renderer::load(Texture2D* texture, void* data, size_t size_bytes)
 {
     LoadTask* task = new LoadTask;

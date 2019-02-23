@@ -12,7 +12,8 @@ class Image;
 enum class TextureType
 {
     TRANSFER,
-    DIFFUSE
+    DIFFUSE,
+    DEPTH_BUFFER
 };
 
 class Texture2D

@@ -92,6 +92,7 @@ public:
     Buffer*    create_index_buffer(size_t index_count, size_t index_size);
     Buffer*    create_uniform_buffer(size_t size_bytes);
     Texture2D* create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels);
+    Texture2D* create_depth_buffer(uint32_t width, uint32_t height);
 
     // Resource functions
     void load(Texture2D* texture, void* data, size_t size_bytes);

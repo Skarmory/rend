@@ -13,16 +13,24 @@ Texture2D::Texture2D(DeviceContext* context, uint32_t width, uint32_t height, ui
 {
     VkImageUsageFlags usage;
     VkFormat format;
+    VkImageAspectFlags aspects;
 
     switch(_type)
     {
         case TextureType::TRANSFER:
             usage  = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
             format = VK_FORMAT_R8G8B8A8_UNORM;
+            aspects = VK_IMAGE_ASPECT_COLOR_BIT;
             break;
         case TextureType::DIFFUSE:
             usage  = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             format = VK_FORMAT_R8G8B8A8_UNORM;
+            aspects = VK_IMAGE_ASPECT_COLOR_BIT;
+            break;
+        case TextureType::DEPTH_BUFFER:
+            usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            format = VK_FORMAT_D24_UNORM_S8_UINT;
+            aspects = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
             break;
     };
 
@@ -37,7 +45,7 @@ Texture2D::Texture2D(DeviceContext* context, uint32_t width, uint32_t height, ui
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             usage,
             VK_IMAGE_VIEW_TYPE_2D,
-            VK_IMAGE_ASPECT_COLOR_BIT
+            aspects
         );
 }
 
