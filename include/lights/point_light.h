@@ -7,7 +7,7 @@ namespace rend
 struct PointLight
 {
     PointLight(void);
-    PointLight(float r, float g, float b, float radius, float constant, float linear, float quadratic);
+    PointLight(float r, float g, float b, float radius, float power);
     ~PointLight(void);
 
     struct
@@ -15,13 +15,12 @@ struct PointLight
         float r;
         float g;
         float b;
-        float _;
     } colour;
 
+    float _pad;
     float radius;
-    float constant;
-    float linear;
-    float quadratic;
+    float power;
+    float _pad2[2];
 };
 
 }
