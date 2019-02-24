@@ -4,7 +4,7 @@
 namespace rend
 {
 
-struct PointLight
+struct alignas(16) PointLight
 {
     PointLight(void);
     PointLight(float r, float g, float b, float radius, float power);
@@ -20,7 +20,6 @@ struct PointLight
     float _pad;
     float radius;
     float power;
-    float _pad2[2];
 };
 
 }
