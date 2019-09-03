@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
-LDFLAGS=-lvulkan -lglfw -DGLFW_WINDOW
+CPPFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -DGLFW_WINDOW
+LDFLAGS=-lglfw -DGLFW_WINDOW
 NAME=librend.so
 
 INCL=$(wildcard include/*.h)
@@ -15,13 +15,22 @@ OBJS+=$(SRCS_LIGHT:.cpp=.o)
 DEPS=$(SRCS:.cpp=.d)
 DEPS+=$(SRCS_LIGHT:.cpp=.d)
 
-.PHONY: clean fullclean
+.PHONY: clean default fullclean vulkan vulkan-debug
+
+default: $(NAME)
+
+vulkan-debug: CPPFLAGS += -g -DDEBUG
+vulkan-debug: vulkan
+
+vulkan: CPPFLAGS += -DUSE_VULKAN -isystem /usr/include/vulkan
+vulkan: LDFLAGS += -lvulkan
+vulkan: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME) $(LDFLAGS)
+	$(CC) $(CPPFLAGS) $(OBJS) -o $(NAME) $(LDFLAGS)
 
 %.o: %.cpp
-	$(CC) -MMD $(CFLAGS) -c $< -o $@
+	$(CC) -MMD $(CPPFLAGS) -c $< -o $@
 
 clean:
 	@rm -f $(OBJS)
