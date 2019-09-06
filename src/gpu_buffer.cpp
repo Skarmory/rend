@@ -1,5 +1,6 @@
 #include "gpu_buffer.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "utils.h"
 
@@ -7,11 +8,26 @@
 
 using namespace rend;
 
-GPUBuffer::GPUBuffer(LogicalDevice* device, size_t capacity, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
-    : _vk_memory_properties(memory_properties), _vk_buffer_usage(buffer_usage), _device(device), _capacity(capacity)
+GPUBuffer::GPUBuffer(DeviceContext* context)
+    : _context(context), _vk_buffer(VK_NULL_HANDLE), _vk_memory(VK_NULL_HANDLE),
+      _vk_memory_properties(static_cast<VkMemoryPropertyFlags>(0)),
+      _vk_buffer_usage(static_cast<VkBufferUsageFlags>(0)),
+      _capacity(static_cast<size_t>(0))
 {
-    uint32_t queue_family_index = _device->get_queue_family(QueueType::GRAPHICS)->get_index();
-    
+}
+
+GPUBuffer::~GPUBuffer(void)
+{
+    LogicalDevice* dev = _context->get_device();
+    vkFreeMemory(dev->get_handle(), _vk_memory, nullptr);
+    vkDestroyBuffer(dev->get_handle(), _vk_buffer, nullptr);
+}
+
+bool GPUBuffer::create(size_t capacity, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
+{
+    LogicalDevice* dev = _context->get_device();
+    uint32_t queue_family_index = dev->get_queue_family(QueueType::GRAPHICS)->get_index();
+
     VkBufferCreateInfo create_info =
     {
         .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -24,29 +40,31 @@ GPUBuffer::GPUBuffer(LogicalDevice* device, size_t capacity, VkMemoryPropertyFla
         .pQueueFamilyIndices   = &queue_family_index
     };
 
-    VULKAN_DEATH_CHECK(vkCreateBuffer(_device->get_handle(), &create_info, nullptr, &_vk_buffer), "Failed to create buffer"); 
+    if(vkCreateBuffer(dev->get_handle(), &create_info, nullptr, &_vk_buffer) != VK_SUCCESS)
+        return false;
 
-    VkMemoryRequirements memory_reqs;
-    vkGetBufferMemoryRequirements(_device->get_handle(), _vk_buffer, &memory_reqs);
-    
+    VkMemoryRequirements memory_reqs = {};
+    vkGetBufferMemoryRequirements(dev->get_handle(), _vk_buffer, &memory_reqs);
+
     VkMemoryAllocateInfo alloc_info =
     {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = static_cast<VkDeviceSize>(capacity),
-        .memoryTypeIndex = _device->find_memory_type(memory_reqs.memoryTypeBits, memory_properties)
+        .memoryTypeIndex = dev->find_memory_type(memory_reqs.memoryTypeBits, memory_properties)
     };
 
-    VULKAN_DEATH_CHECK(vkAllocateMemory(_device->get_handle(), &alloc_info, nullptr, &_vk_memory), "Failed to allocate memory");
+    if(vkAllocateMemory(dev->get_handle(), &alloc_info, nullptr, &_vk_memory) != VK_SUCCESS)
+        return false;
 
-    VULKAN_DEATH_CHECK(vkBindBufferMemory(_device->get_handle(), _vk_buffer, _vk_memory, 0), "Failed to bind buffer memory");
-}
+    if(vkBindBufferMemory(dev->get_handle(), _vk_buffer, _vk_memory, 0) != VK_SUCCESS)
+        return false;
 
-GPUBuffer::~GPUBuffer(void)
-{
-    vkFreeMemory(_device->get_handle(), _vk_memory, nullptr);
+    _capacity = capacity;
+    _vk_memory_properties = memory_properties;
+    _vk_buffer_usage = buffer_usage;
 
-    vkDestroyBuffer(_device->get_handle(), _vk_buffer, nullptr);
+    return true;
 }
 
 VkBuffer GPUBuffer::get_handle(void) const
