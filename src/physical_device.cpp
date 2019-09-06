@@ -22,8 +22,7 @@ PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_d
 
 PhysicalDevice::~PhysicalDevice(void)
 {
-    if(_logical_device)
-        delete _logical_device;
+    delete _logical_device;
 }
 
 void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
