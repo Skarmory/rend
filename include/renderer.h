@@ -26,12 +26,14 @@ class Texture2D;
 class Window;
 
 class IndexBuffer;
+class VertexBuffer;
 
 enum class ResourceType
 {
     BUFFER,
     TEXTURE2D,
-    INDEX_BUFFER
+    INDEX_BUFFER,
+    VERTEX_BUFFER
 };
 
 struct FrameResources
@@ -93,8 +95,6 @@ public:
     RenderPass*    get_default_render_pass(void) const;
 
     // Creational
-    Buffer*    create_vertex_buffer(size_t vertex_count, size_t vertex_size);
-    IndexBuffer* create_index_buffer(uint32_t index_count, size_t index_size);
     Buffer*    create_uniform_buffer(size_t size_bytes);
     Texture2D* create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels);
     Texture2D* create_depth_buffer(uint32_t width, uint32_t height);

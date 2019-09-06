@@ -13,6 +13,7 @@
 #include "semaphore.h"
 #include "swapchain.h"
 #include "texture2D.h"
+#include "vertex_buffer.h"
 
 #include <assert.h>
 #include <cstring>
@@ -21,7 +22,7 @@
 using namespace rend;
 
 Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues, std::vector<const char*> extensions, std::vector<const char*> layers)
-    : _frame_counter(0)
+    : _frame_counter(0), _frame_resources({})
 {
     _context = new DeviceContext(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);
@@ -30,6 +31,7 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
+        _frame_resources[idx].swapchain_idx = 0xdeadbeef;
         _frame_resources[idx].acquire_sem = _context->get_device()->create_semaphore();
         _frame_resources[idx].present_sem = _context->get_device()->create_semaphore();
         _frame_resources[idx].submit_fen  = _context->get_device()->create_fence(true);
@@ -83,11 +85,6 @@ Swapchain* Renderer::get_swapchain(void) const
 RenderPass* Renderer::get_default_render_pass(void) const
 {
     return _default_render_pass;
-}
-
-Buffer* Renderer::create_vertex_buffer(size_t vertex_count, size_t vertex_size)
-{
-    return new Buffer(_context, vertex_count * vertex_size, BufferType::VERTEX);
 }
 
 Buffer* Renderer::create_uniform_buffer(size_t size_bytes)
@@ -203,6 +200,7 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
     bool is_device_local = false;
     switch(resource_type)
     {
+        case ResourceType::VERTEX_BUFFER:
         case ResourceType::INDEX_BUFFER:
             is_device_local = true;
             break;
@@ -232,6 +230,9 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
 
         switch(resource_type)
         {
+            case ResourceType::VERTEX_BUFFER:
+                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<VertexBuffer*>(resource)->gpu_buffer());
+                break;
             case ResourceType::INDEX_BUFFER:
                 resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<IndexBuffer*>(resource)->gpu_buffer());
                 break;
@@ -247,6 +248,9 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
     {
         switch(resource_type)
         {
+            case ResourceType::VERTEX_BUFFER:
+                memory = static_cast<VertexBuffer*>(resource)->gpu_buffer()->get_memory();
+                break;
             case ResourceType::INDEX_BUFFER:
                 memory = static_cast<IndexBuffer*>(resource)->gpu_buffer()->get_memory();
                 break;
