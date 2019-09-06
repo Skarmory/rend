@@ -4,6 +4,9 @@
 
 #include "index_buffer_base.h"
 
+#include <cstdint>
+#include <cstddef>
+
 namespace rend
 {
 
@@ -24,7 +27,7 @@ public:
     GPUBuffer* gpu_buffer(void) const;
 
 protected:
-    bool create_index_buffer_api(/*void* data,*/ uint32_t indices_count, size_t index_size);
+    bool create_index_buffer_api(uint32_t indices_count, size_t index_size);
 
 private:
     DeviceContext* _context;

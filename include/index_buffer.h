@@ -5,6 +5,9 @@
 #include "vulkan_index_buffer.h"
 #endif
 
+#include <cstdint>
+#include <cstddef>
+
 namespace rend
 {
 
@@ -25,7 +28,7 @@ public:
     IndexBuffer& operator=(const IndexBuffer&) = delete;
     IndexBuffer& operator=(IndexBuffer&&) = delete;
 
-    bool create_index_buffer(/*void* data,*/ uint32_t indices_count, size_t index_size);
+    bool create_index_buffer(uint32_t indices_count, size_t index_size);
 };
 
 }
