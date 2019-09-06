@@ -389,22 +389,6 @@ void LogicalDevice::destroy_event(Event** event)
     }
 }
 
-GPUBuffer* LogicalDevice::create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage)
-{
-    GPUBuffer* buffer = new GPUBuffer(this, size, memory_properties, usage);
-
-    return buffer;
-}
-
-void LogicalDevice::destroy_buffer(GPUBuffer** buffer)
-{
-    if(buffer && *buffer)
-    {
-        delete (*buffer);
-        *buffer = nullptr;
-    }
-}
-
 Image* LogicalDevice::create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
 {
     Image* image = new Image(this, extent, type, format, mip_levels, array_layers, samples, tiling, memory_properties, usage, view_type, aspects);

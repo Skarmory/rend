@@ -25,10 +25,13 @@ class Swapchain;
 class Texture2D;
 class Window;
 
+class IndexBuffer;
+
 enum class ResourceType
 {
     BUFFER,
-    TEXTURE2D
+    TEXTURE2D,
+    INDEX_BUFFER
 };
 
 struct FrameResources
@@ -49,11 +52,12 @@ struct Task
 
 struct LoadTask : public Task
 {
-    ResourceType resource_type;
     void*        resource;
+    ResourceType resource_type;
     void*        data;
     size_t       size_bytes;
 
+    LoadTask(void* resource, ResourceType type, void* data, size_t bytes) : resource(resource), resource_type(type), data(data), size_bytes(bytes) {}
     virtual void execute(DeviceContext* context, FrameResources* resources) override;
 };
 
@@ -64,6 +68,7 @@ struct ImageTransitionTask : public Task
     VkPipelineStageFlags dst;
     VkImageLayout        final_layout;
 
+    ImageTransitionTask(Texture2D* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
     virtual void execute(DeviceContext* context, FrameResources* resources) override;
 };
 
@@ -89,14 +94,13 @@ public:
 
     // Creational
     Buffer*    create_vertex_buffer(size_t vertex_count, size_t vertex_size);
-    Buffer*    create_index_buffer(size_t index_count, size_t index_size);
+    IndexBuffer* create_index_buffer(uint32_t index_count, size_t index_size);
     Buffer*    create_uniform_buffer(size_t size_bytes);
     Texture2D* create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels);
     Texture2D* create_depth_buffer(uint32_t width, uint32_t height);
 
     // Resource functions
-    void load(Texture2D* texture, void* data, size_t size_bytes);
-    void load(Buffer* buffer, void* data, size_t size_bytes);
+    void load(void* resource, ResourceType type, void* data, size_t bytes);
     void transition(Texture2D* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions

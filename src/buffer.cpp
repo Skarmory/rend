@@ -7,10 +7,10 @@
 using namespace rend;
 
 Buffer::Buffer(DeviceContext* context, size_t size_bytes, BufferType buffer_type)
-    : _context(context), _type(buffer_type)
+    : _context(context), _gpu_buffer(nullptr), _type(buffer_type)
 {
-    VkMemoryPropertyFlags memory_properties;
-    VkBufferUsageFlags    buffer_usage;
+    VkMemoryPropertyFlags memory_properties = 0;
+    VkBufferUsageFlags    buffer_usage = 0;
 
     switch(_type)
     {
@@ -32,12 +32,13 @@ Buffer::Buffer(DeviceContext* context, size_t size_bytes, BufferType buffer_type
             break;
     }
 
-    _gpu_buffer = _context->get_device()->create_buffer(size_bytes, memory_properties, buffer_usage);
+    _gpu_buffer = new GPUBuffer(_context);
+    _gpu_buffer->create(size_bytes, memory_properties, buffer_usage);
 }
 
 Buffer::~Buffer(void)
 {
-    _context->get_device()->destroy_buffer(&_gpu_buffer);
+    delete _gpu_buffer;
 }
 
 GPUBuffer* Buffer::get_gpu_buffer(void) const

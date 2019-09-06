@@ -12,6 +12,7 @@ class DescriptorSet;
 class Framebuffer;
 class GPUBuffer;
 class Image;
+class IndexBuffer;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
@@ -43,7 +44,7 @@ public:
 
     void bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline& pipeline);
     void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
-    void bind_index_buffer(GPUBuffer* buffer, VkDeviceSize offset, VkIndexType index_type);
+    void bind_index_buffer(IndexBuffer* buffer, VkDeviceSize offset, VkIndexType index_type);
     void bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
 
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);

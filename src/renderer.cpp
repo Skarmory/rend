@@ -8,6 +8,7 @@
 #include "framebuffer.h"
 #include "gpu_buffer.h"
 #include "image.h"
+#include "index_buffer.h"
 #include "logical_device.h"
 #include "semaphore.h"
 #include "swapchain.h"
@@ -89,11 +90,6 @@ Buffer* Renderer::create_vertex_buffer(size_t vertex_count, size_t vertex_size)
     return new Buffer(_context, vertex_count * vertex_size, BufferType::VERTEX);
 }
 
-Buffer* Renderer::create_index_buffer(size_t index_count, size_t index_size)
-{
-    return new Buffer(_context, index_count * index_size, BufferType::INDEX);
-}
-
 Buffer* Renderer::create_uniform_buffer(size_t size_bytes)
 {
     return new Buffer(_context, size_bytes, BufferType::UNIFORM);
@@ -109,36 +105,15 @@ Texture2D* Renderer::create_depth_buffer(uint32_t width, uint32_t height)
     return new Texture2D(_context, width, height, 1, TextureType::DEPTH_BUFFER);
 }
 
-void Renderer::load(Texture2D* texture, void* data, size_t size_bytes)
+void Renderer::load(void* resource, ResourceType type, void* data, size_t bytes)
 {
-    LoadTask* task = new LoadTask;
-    task->resource_type = ResourceType::TEXTURE2D;
-    task->resource      = texture;
-    task->data          = data;
-    task->size_bytes    = size_bytes;
-
-    _task_queue.push(task);
-}
-
-void Renderer::load(Buffer* buffer, void* data, size_t size_bytes)
-{
-    LoadTask* task      = new LoadTask;
-    task->resource_type = ResourceType::BUFFER;
-    task->resource      = buffer;
-    task->data          = data;
-    task->size_bytes    = size_bytes;
-
+    LoadTask* task = new LoadTask(resource, type, data, bytes);
     _task_queue.push(task);
 }
 
 void Renderer::transition(Texture2D* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
 {
-    ImageTransitionTask* task = new ImageTransitionTask;
-    task->image        = texture;
-    task->src          = src;
-    task->dst          = dst;
-    task->final_layout = final_layout;
-
+    ImageTransitionTask* task = new ImageTransitionTask(texture, src, dst, final_layout);
     _task_queue.push(task);
 }
 
@@ -217,7 +192,7 @@ void Renderer::_process_task_queue(FrameResources* resources)
 
     for(auto staging_buffer : resources->staging_buffers)
     {
-        _context->get_device()->destroy_buffer(&staging_buffer);
+        delete staging_buffer;
     }
 
     resources->staging_buffers.clear();
@@ -225,9 +200,12 @@ void Renderer::_process_task_queue(FrameResources* resources)
 
 void LoadTask::execute(DeviceContext* context, FrameResources* resources)
 {
-    bool is_device_local;
+    bool is_device_local = false;
     switch(resource_type)
     {
+        case ResourceType::INDEX_BUFFER:
+            is_device_local = true;
+            break;
         case ResourceType::BUFFER:
             is_device_local = static_cast<Buffer*>(resource)->get_gpu_buffer()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
@@ -236,12 +214,14 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
             break;
     }
 
-    VkDeviceMemory memory;
-    void* mapped;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    void* mapped = NULL;
 
     if(is_device_local)
     {
-        GPUBuffer* staging_buffer = context->get_device()->create_buffer(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+        GPUBuffer* staging_buffer = new GPUBuffer(context);
+        staging_buffer->create(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
         resources->staging_buffers.push_back(staging_buffer);
 
         memory = staging_buffer->get_memory();
@@ -252,6 +232,9 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
 
         switch(resource_type)
         {
+            case ResourceType::INDEX_BUFFER:
+                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<IndexBuffer*>(resource)->gpu_buffer());
+                break;
             case ResourceType::BUFFER:
                 resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<Buffer*>(resource)->get_gpu_buffer());
                 break;
@@ -264,6 +247,9 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
     {
         switch(resource_type)
         {
+            case ResourceType::INDEX_BUFFER:
+                memory = static_cast<IndexBuffer*>(resource)->gpu_buffer()->get_memory();
+                break;
             case ResourceType::BUFFER:
                 memory = static_cast<Buffer*>(resource)->get_gpu_buffer()->get_memory();
                 break;
@@ -436,8 +422,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
         {
             _default_framebuffers[idx]->recreate({ views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
         }
-
-
     }
     else
     {

@@ -9,6 +9,9 @@
 #include "render_pass.h"
 #include "utils.h"
 
+#include "vulkan_index_buffer.h"
+#include "index_buffer.h"
+
 #include <algorithm>
 #include <iostream>
 
@@ -139,11 +142,11 @@ void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, 
     vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
 }
 
-void CommandBuffer::bind_index_buffer(GPUBuffer* buffer, VkDeviceSize offset, VkIndexType index_type)
+void CommandBuffer::bind_index_buffer(IndexBuffer* buffer, VkDeviceSize offset, VkIndexType index_type)
 {
     _recorded = true;
 
-    vkCmdBindIndexBuffer(_vk_command_buffer, buffer->get_handle(), offset, index_type);
+    vkCmdBindIndexBuffer(_vk_command_buffer, static_cast<VulkanIndexBuffer*>(buffer)->gpu_buffer()->get_handle(), offset, index_type);
 }
 
 void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)

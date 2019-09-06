@@ -92,9 +92,6 @@ public:
     Event*                create_event(void);
     void                  destroy_event(Event** event);
 
-    GPUBuffer*            create_buffer(size_t size, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags usage);
-    void                  destroy_buffer(GPUBuffer** buffer);
-
     Image*                create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects);
     void                  destroy_image(Image** image);
 
