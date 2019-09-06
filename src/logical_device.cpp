@@ -84,8 +84,7 @@ LogicalDevice::~LogicalDevice(void)
 {
     for(CommandPool* pool : _command_pools)
     {
-        if(pool)
-            delete pool;
+        delete pool;
     }
 
     vkDestroyDevice(_vk_device, nullptr);
