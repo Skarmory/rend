@@ -69,8 +69,8 @@ private:
     VkDescriptorPool _vk_pool;
 
     LogicalDevice* _device;
+    std::vector<DescriptorSet*> _sets;
     const uint32_t _max_sets;
-    uint32_t       _sets_allocated;
 };
 
 }
