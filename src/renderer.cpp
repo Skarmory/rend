@@ -13,6 +13,7 @@
 #include "semaphore.h"
 #include "swapchain.h"
 #include "texture2D.h"
+#include "uniform_buffer.h"
 #include "vertex_buffer.h"
 
 #include <assert.h>
@@ -86,11 +87,6 @@ Swapchain* Renderer::get_swapchain(void) const
 RenderPass* Renderer::get_default_render_pass(void) const
 {
     return _default_render_pass;
-}
-
-Buffer* Renderer::create_uniform_buffer(size_t size_bytes)
-{
-    return new Buffer(_context, size_bytes, BufferType::UNIFORM);
 }
 
 Texture2D* Renderer::create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels)
@@ -205,8 +201,8 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
         case ResourceType::INDEX_BUFFER:
             is_device_local = true;
             break;
-        case ResourceType::BUFFER:
-            is_device_local = static_cast<Buffer*>(resource)->get_gpu_buffer()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        case ResourceType::UNIFORM_BUFFER:
+            is_device_local = static_cast<UniformBuffer*>(resource)->gpu_buffer()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
         case ResourceType::TEXTURE2D:
             is_device_local = static_cast<Texture2D*>(resource)->get_image()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -237,8 +233,8 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
             case ResourceType::INDEX_BUFFER:
                 resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<IndexBuffer*>(resource)->gpu_buffer());
                 break;
-            case ResourceType::BUFFER:
-                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<Buffer*>(resource)->get_gpu_buffer());
+            case ResourceType::UNIFORM_BUFFER:
+                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<UniformBuffer*>(resource)->gpu_buffer());
                 break;
             case ResourceType::TEXTURE2D:
                 resources->command_buffer->copy_buffer_to_image(staging_buffer, static_cast<Texture2D*>(resource)->get_image());
@@ -255,8 +251,8 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
             case ResourceType::INDEX_BUFFER:
                 memory = static_cast<IndexBuffer*>(resource)->gpu_buffer()->get_memory();
                 break;
-            case ResourceType::BUFFER:
-                memory = static_cast<Buffer*>(resource)->get_gpu_buffer()->get_memory();
+            case ResourceType::UNIFORM_BUFFER:
+                memory = static_cast<UniformBuffer*>(resource)->gpu_buffer()->get_memory();
                 break;
             case ResourceType::TEXTURE2D:
                 memory = static_cast<Texture2D*>(resource)->get_image()->get_memory();

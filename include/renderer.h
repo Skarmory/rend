@@ -30,10 +30,10 @@ class VertexBuffer;
 
 enum class ResourceType
 {
-    BUFFER,
     TEXTURE2D,
     INDEX_BUFFER,
-    VERTEX_BUFFER
+    VERTEX_BUFFER,
+    UNIFORM_BUFFER
 };
 
 struct FrameResources
@@ -95,7 +95,6 @@ public:
     RenderPass*    get_default_render_pass(void) const;
 
     // Creational
-    Buffer*    create_uniform_buffer(size_t size_bytes);
     Texture2D* create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels);
     Texture2D* create_depth_buffer(uint32_t width, uint32_t height);
 
