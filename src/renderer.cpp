@@ -22,7 +22,8 @@
 using namespace rend;
 
 Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues, std::vector<const char*> extensions, std::vector<const char*> layers)
-    : _frame_counter(0), _frame_resources({})
+    : _context(nullptr), _swapchain(nullptr), _command_pool(nullptr),
+      _default_depth_buffer(nullptr), _default_render_pass(nullptr), _frame_counter(0)
 {
     _context = new DeviceContext(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);

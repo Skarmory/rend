@@ -12,7 +12,10 @@
 
 using namespace rend;
 
-Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images) : _logical_device(logical_device), _image_count(0), _current_image_idx(0), _vk_swapchain(VK_NULL_HANDLE)
+Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images)
+    : _logical_device(logical_device), _image_count(0), _current_image_idx(0),
+      _surface_format({}), _present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR),
+      _vk_swapchain(VK_NULL_HANDLE), _vk_extent({})
 {
     DEATH_CHECK(desired_images == 0, "Failed to create swapchain: desired images cannot be 0");
 
