@@ -26,7 +26,7 @@ public:
     const VertexBuffer& operator=(const VertexBuffer&) = delete;
     const VertexBuffer& operator=(VertexBuffer&&) = delete;
 
-    bool create_vertex_buffer(uint32_t indices_count, size_t index_size);
+    bool create_vertex_buffer(uint32_t vertices_count, size_t vertex_size);
 };
 
 }

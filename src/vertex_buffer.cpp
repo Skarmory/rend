@@ -14,9 +14,9 @@ VertexBuffer::~VertexBuffer(void)
 {
 }
 
-bool VertexBuffer::create_vertex_buffer(uint32_t indices_count, size_t index_size)
+bool VertexBuffer::create_vertex_buffer(uint32_t vertices_count, size_t vertex_size)
 {
-    if(!create_vertex_buffer_api(indices_count, index_size))
+    if(!create_vertex_buffer_api(vertices_count, vertex_size))
     {
         // TODO: Log stuff
         return false;
