@@ -27,13 +27,26 @@
 using namespace rend;
 
 LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
-    : _vk_device(VK_NULL_HANDLE), _vk_graphics_queue(VK_NULL_HANDLE), _vk_transfer_queue(VK_NULL_HANDLE), _context(context),  _physical_device(physical_device), _graphics_family(graphics_family), _transfer_family(transfer_family)
+    : _vk_device(VK_NULL_HANDLE),
+      _vk_graphics_queue(VK_NULL_HANDLE),
+      _vk_transfer_queue(VK_NULL_HANDLE),
+      _context(context),
+      _physical_device(physical_device),
+      _graphics_family(graphics_family),
+      _transfer_family(transfer_family)
 {
+}
+
+bool LogicalDevice::create_logical_device(void)
+{
+    if(_vk_device != VK_NULL_HANDLE)
+        return false;
+
     // Step 1: Construct queue creation info
     float priority = 1.0f;
 
     std::set<uint32_t> unique_queue_families;
-    if(graphics_family)
+    if(_graphics_family)
     {
         unique_queue_families.emplace(_graphics_family->get_index());
         unique_queue_families.emplace(_transfer_family->get_index());
@@ -73,11 +86,13 @@ LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice*
     VULKAN_DEATH_CHECK(vkCreateDevice(_physical_device->get_handle(), &device_create_info, nullptr, &_vk_device), "Failed to create logical device");
 
     // Step 3: Get queue handles
-    if(graphics_family)
+    if(_graphics_family)
     {
         vkGetDeviceQueue(_vk_device, _graphics_family->get_index(), 0, &_vk_graphics_queue);
         vkGetDeviceQueue(_vk_device, _transfer_family->get_index(), 0, &_vk_transfer_queue);
     }
+
+    return true;
 }
 
 LogicalDevice::~LogicalDevice(void)

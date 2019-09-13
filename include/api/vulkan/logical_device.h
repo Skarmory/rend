@@ -44,6 +44,8 @@ public:
     LogicalDevice& operator=(const LogicalDevice&) = delete;
     LogicalDevice& operator=(LogicalDevice&&) = delete;
 
+    bool create_logical_device(void);
+
     // Retrieval
     const DeviceContext&  get_device_context(void) const;
     const PhysicalDevice& get_physical_device(void) const;
@@ -102,9 +104,8 @@ private:
 
     const DeviceContext*  _context;
     const PhysicalDevice* _physical_device;
-
-    const QueueFamily* const _graphics_family;
-    const QueueFamily* const _transfer_family;
+    const QueueFamily*    _graphics_family;
+    const QueueFamily*    _transfer_family;
 
     std::vector<CommandPool*> _command_pools;
 };

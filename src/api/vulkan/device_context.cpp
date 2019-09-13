@@ -88,12 +88,15 @@ bool DeviceContext::create_device_context(const char** extensions, uint32_t exte
     return true;
 }
 
-LogicalDevice* DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
+bool DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
 {
-    PhysicalDevice* chosen_physical_device = _find_physical_device(desired_features);
-    _logical_device  = chosen_physical_device->create_logical_device(desired_queues);
+    if(!_logical_device)
+    {
+        PhysicalDevice* chosen_physical_device = _find_physical_device(desired_features);
+        _logical_device  = chosen_physical_device->create_logical_device(desired_queues);
+    }
 
-    return _logical_device;
+    return true;
 }
 
 PhysicalDevice* DeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
