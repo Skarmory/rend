@@ -83,7 +83,11 @@ bool DeviceContext::create_device_context(const char** extensions, uint32_t exte
     vkEnumeratePhysicalDevices(_vk_instance, &physical_device_count, physical_devices.data());
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
-        _physical_devices.push_back(new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]));
+    {
+        PhysicalDevice* pdev = new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]);
+        pdev->create_physical_device();
+        _physical_devices.push_back(pdev);
+    }
 
     return true;
 }
@@ -93,10 +97,14 @@ bool DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_featur
     if(!_logical_device)
     {
         PhysicalDevice* chosen_physical_device = _find_physical_device(desired_features);
-        _logical_device  = chosen_physical_device->create_logical_device(desired_queues);
+        if(chosen_physical_device->create_logical_device(desired_queues))
+        {
+            _logical_device = chosen_physical_device->get_logical_device();
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
 
 PhysicalDevice* DeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
