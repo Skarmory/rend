@@ -8,16 +8,12 @@
 
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device) : _physical_device_index(physical_device_index), _vk_physical_device(physical_device), _context(context), _logical_device(nullptr)
+PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device)
+    : _physical_device_index(physical_device_index),
+      _vk_physical_device(physical_device),
+      _context(context),
+      _logical_device(nullptr)
 {
-    vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
-    vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
-    vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
-
-    VkSurfaceKHR surface = _context->get_surface();
-    _find_queue_families(surface);
-    _find_surface_formats(surface);
-    _find_surface_present_modes(surface);
 }
 
 PhysicalDevice::~PhysicalDevice(void)
@@ -75,12 +71,27 @@ void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
 }
 
-LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
+bool PhysicalDevice::create_physical_device(void)
+{
+    vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
+    vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
+    vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
+
+    VkSurfaceKHR surface = _context->get_surface();
+    _find_queue_families(surface);
+    _find_surface_formats(surface);
+    _find_surface_present_modes(surface);
+
+    return true;
+}
+
+bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
 {
     if(_logical_device)
     {
+        // TODO Logging
         std::cerr << "Attempted to create logical device when one already exists" << std::endl;
-        return _logical_device;
+        return false;
     }
 
     QueueFamily* graphics_family = nullptr;
@@ -100,6 +111,11 @@ LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_fl
     _logical_device = new LogicalDevice(_context, this, graphics_family, present_family);
     _logical_device->create_logical_device();
 
+    return true;
+}
+
+LogicalDevice* PhysicalDevice::get_logical_device(void) const
+{
     return _logical_device;
 }
 

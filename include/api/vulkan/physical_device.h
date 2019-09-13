@@ -19,8 +19,10 @@ public:
     PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device);
     ~PhysicalDevice(void);
 
-    LogicalDevice* create_logical_device(const VkQueueFlags queue_flags);
+    bool create_physical_device(void);
+    bool create_logical_device(const VkQueueFlags queue_flags);
 
+    LogicalDevice*                          get_logical_device(void) const;
     uint32_t                                get_index(void) const;
     VkPhysicalDevice                        get_handle(void) const;
     const std::vector<VkSurfaceFormatKHR>&  get_surface_formats(void) const;
