@@ -9,8 +9,43 @@
 
 using namespace rend;
 
-DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window) : _window(window)
+DeviceContext::DeviceContext(void)
+    : _vk_instance(VK_NULL_HANDLE), _logical_device(nullptr), _window(nullptr)
 {
+}
+
+DeviceContext::~DeviceContext(void)
+{
+    for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
+        delete _physical_devices[physical_device_index];
+
+    delete _window;
+
+    vkDestroyInstance(_vk_instance, nullptr);
+}
+
+VkInstance DeviceContext::get_instance(void) const
+{
+    return _vk_instance;
+}
+
+VkSurfaceKHR DeviceContext::get_surface(void) const
+{
+    return _window->_vk_surface;
+}
+
+LogicalDevice* DeviceContext::get_device(void) const
+{
+    return _logical_device;
+}
+
+bool DeviceContext::create_device_context(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window)
+{
+    if(_vk_instance != VK_NULL_HANDLE)
+        return false;
+
+    _window = window;
+
     // Step 1: Create Vulkan instance
     VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -49,31 +84,8 @@ DeviceContext::DeviceContext(const char** extensions, uint32_t extension_count, 
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
         _physical_devices.push_back(new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]));
-}
 
-DeviceContext::~DeviceContext(void)
-{
-    for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
-        delete _physical_devices[physical_device_index];
-
-    delete _window;
-
-    vkDestroyInstance(_vk_instance, nullptr);
-}
-
-VkInstance DeviceContext::get_instance(void) const
-{
-    return _vk_instance;
-}
-
-VkSurfaceKHR DeviceContext::get_surface(void) const
-{
-    return _window->_vk_surface;
-}
-
-LogicalDevice* DeviceContext::get_device(void) const
-{
-    return _logical_device;
+    return true;
 }
 
 LogicalDevice* DeviceContext::create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)

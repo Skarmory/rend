@@ -16,7 +16,7 @@ class Window;
 class DeviceContext
 {
 public:
-    DeviceContext(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window);
+    DeviceContext(void);
     ~DeviceContext(void);
 
     DeviceContext(const DeviceContext&) = delete;
@@ -29,6 +29,7 @@ public:
     VkSurfaceKHR   get_surface(void) const;
     LogicalDevice* get_device(void) const;
 
+    bool create_device_context(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window* window);
     LogicalDevice* create_device(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
 
 private:
