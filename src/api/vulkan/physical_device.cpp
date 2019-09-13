@@ -98,6 +98,7 @@ LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_fl
     }
 
     _logical_device = new LogicalDevice(_context, this, graphics_family, present_family);
+    _logical_device->create_logical_device();
 
     return _logical_device;
 }
