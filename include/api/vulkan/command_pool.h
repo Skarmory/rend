@@ -1,5 +1,5 @@
-#ifndef COMMAND_POOL_H
-#define COMMAND_POOL_H
+#ifndef REND_COMMAND_POOL_H
+#define REND_COMMAND_POOL_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,7 +7,7 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 class QueueFamily;
 class CommandBuffer;
 
@@ -20,12 +20,13 @@ class CommandBuffer;
  */
 class CommandPool
 {
-    friend class LogicalDevice;
-
 public:
-
+    CommandPool(DeviceContext* context);
+    ~CommandPool(void);
     CommandPool(const CommandPool&) = delete;
     CommandPool& operator=(const CommandPool&) = delete;
+
+    bool create_command_pool(const QueueFamily* queue_family, bool can_reset);
 
     /*
      * Allocate a specified number of command buffers. These are primary command buffers by default.
@@ -53,16 +54,11 @@ public:
     void free_all(void);
 
 private:
+    VkCommandPool  _vk_command_pool;
+    DeviceContext* _context;
 
-    CommandPool(LogicalDevice* const logical_device, const QueueFamily& queue_family, bool can_reset);
-    ~CommandPool(void);
-
-private:
-    VkCommandPool            _vk_command_pool;
-    LogicalDevice* const     _logical_device;
-
-    const QueueFamily* const _queue_family;
-    const bool               _can_reset;
+    const QueueFamily* _queue_family;
+    bool               _can_reset;
 
     std::vector<CommandBuffer*> _command_buffers;
 };

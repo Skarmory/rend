@@ -1,6 +1,7 @@
 #include "command_pool.h"
 
 #include "command_buffer.h"
+#include "device_context.h"
 #include "logical_device.h"
 #include "queue_family.h"
 #include "utils.h"
@@ -10,24 +11,38 @@
 
 using namespace rend;
 
-CommandPool::CommandPool(LogicalDevice* const logical_device, const QueueFamily& queue_family, bool can_reset)
-    : _logical_device(logical_device), _queue_family(&queue_family), _can_reset(can_reset)
+CommandPool::CommandPool(DeviceContext* context)
+    : _vk_command_pool(VK_NULL_HANDLE),
+      _context(context),
+      _queue_family(nullptr),
+      _can_reset(false)
 {
-    VkCommandPoolCreateFlags flags = can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0;
-
-    VkCommandPoolCreateInfo create_info = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = flags,
-        .queueFamilyIndex = queue_family.get_index()
-    };
-
-    VULKAN_DEATH_CHECK(vkCreateCommandPool(logical_device->get_handle(), &create_info, nullptr, &_vk_command_pool), "Failed to create Vulkan command pool");
 }
 
 CommandPool::~CommandPool(void)
 {
-    vkDestroyCommandPool(_logical_device->get_handle(), _vk_command_pool, nullptr);
+    vkDestroyCommandPool(_context->get_device()->get_handle(), _vk_command_pool, nullptr);
+}
+
+bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_reset)
+{
+    if(_vk_command_pool != VK_NULL_HANDLE)
+        return false;
+
+    VkCommandPoolCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0),
+        .queueFamilyIndex = queue_family->get_index()
+    };
+
+    if(vkCreateCommandPool(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_command_pool) != VK_SUCCESS)
+        return false;
+
+    _queue_family = queue_family;
+    _can_reset = can_reset;
+
+    return true;
 }
 
 std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count, bool primary)
@@ -48,7 +63,7 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
     std::vector<CommandBuffer*> buffers;
     buffers.reserve(count);
 
-    VULKAN_DEATH_CHECK(vkAllocateCommandBuffers(_logical_device->get_handle(), &alloc_info, vk_buffers.data()), "Failed to allocate command buffers");
+    VULKAN_DEATH_CHECK(vkAllocateCommandBuffers(_context->get_device()->get_handle(), &alloc_info, vk_buffers.data()), "Failed to allocate command buffers");
 
     _command_buffers.reserve(_command_buffers.size() + count);
 
@@ -90,7 +105,7 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
 
     }
 
-    vkFreeCommandBuffers(_logical_device->get_handle(), _vk_command_pool, swap_count, vk_buffers.data());
+    vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, swap_count, vk_buffers.data());
 
     _command_buffers.erase(_command_buffers.end() - swap_count, _command_buffers.end());
 }
@@ -111,7 +126,7 @@ void CommandPool::free_all(void)
         delete buffer;
     }
 
-    vkFreeCommandBuffers(_logical_device->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
+    vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
 
     _command_buffers.clear();
 }

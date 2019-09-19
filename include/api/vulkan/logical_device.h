@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    CommandPool*          create_command_pool(const QueueType type, bool can_reset);
-    void                  destroy_command_pool(CommandPool** command_pool);
-
     Swapchain*            create_swapchain(uint32_t desired_images);
     void                  destroy_swapchain(Swapchain** swapchain);
 

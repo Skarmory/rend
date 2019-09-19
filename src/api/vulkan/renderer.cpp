@@ -28,8 +28,11 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
     _context = new DeviceContext;
     _context->create_device_context(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);
+
     _swapchain = _context->get_device()->create_swapchain(3);
-    _command_pool = _context->get_device()->create_command_pool(QueueType::GRAPHICS, true);
+
+    _command_pool = new CommandPool(_context);
+    _command_pool->create_command_pool(_context->get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
@@ -68,7 +71,8 @@ Renderer::~Renderer(void)
         _context->get_device()->destroy_fence(&_frame_resources[idx].submit_fen);
     }
 
-    _context->get_device()->destroy_command_pool(&_command_pool);
+    delete _command_pool;
+
     _context->get_device()->destroy_swapchain(&_swapchain);
 
     delete _context;
