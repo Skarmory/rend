@@ -193,40 +193,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-CommandPool* LogicalDevice::create_command_pool(const QueueType type, bool can_reset)
-{
-    switch(type)
-    {
-        case QueueType::GRAPHICS:
-            _command_pools.push_back(new CommandPool(this, *_graphics_family, can_reset));
-            break;
-        case QueueType::TRANSFER:
-            _command_pools.push_back(new CommandPool(this, *_transfer_family, can_reset));
-            break;
-    }
-
-    return _command_pools.back();
-}
-
-void LogicalDevice::destroy_command_pool(CommandPool** command_pool)
-{
-    if(!command_pool || !(*command_pool))
-        return;
-
-    auto it = std::find(_command_pools.begin(), _command_pools.end(), *command_pool);
-    if(it == _command_pools.end())
-        return;  // Not allocated by this device
-
-    std::iter_swap(it, _command_pools.end() - 1);
-    _command_pools.pop_back();
-
-    (*command_pool)->free_all();
-
-    delete (*command_pool);
-
-    *command_pool = nullptr;
-}
-
 Swapchain* LogicalDevice::create_swapchain(uint32_t desired_images)
 {
     Swapchain* swapchain = new Swapchain(this, desired_images);
