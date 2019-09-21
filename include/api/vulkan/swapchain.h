@@ -11,16 +11,16 @@
 namespace rend
 {
 
+class DeviceContext;
 class Fence;
 class LogicalDevice;
 class Semaphore;
 
 class Swapchain
 {
-    friend class LogicalDevice;
-
 public:
-
+    Swapchain(DeviceContext* context);
+    ~Swapchain(void);
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
     Swapchain& operator=(const Swapchain&) = delete;
@@ -32,16 +32,12 @@ public:
     VkExtent2D                      get_extent(void) const;
     VkSwapchainKHR                  get_handle(void) const;
 
+    void     create_swapchain(uint32_t desired_images);
     void     recreate(void);
     uint32_t acquire(Semaphore* signal_sem, Fence* acquire_fence);
     void     present(QueueType type, const std::vector<Semaphore*>& wait_sems);
 
 private:
-
-    Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images);
-    ~Swapchain(void);
-
-    void               _create(uint32_t desired_images);
     void               _destroy(void);
     void               _get_images(void);
     VkSurfaceFormatKHR _find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats);
@@ -49,13 +45,13 @@ private:
     uint32_t           _find_image_count(uint32_t desired_images, const VkSurfaceCapabilitiesKHR& surface_caps);
 
 private:
-    const LogicalDevice* const _logical_device; 
-    uint32_t                   _image_count;
-    uint32_t                   _current_image_idx;
-    VkSurfaceFormatKHR         _surface_format;
-    VkPresentModeKHR           _present_mode;
-    VkSwapchainKHR             _vk_swapchain;
-    VkExtent2D                 _vk_extent;
+    DeviceContext*     _context;
+    uint32_t           _image_count;
+    uint32_t           _current_image_idx;
+    VkSurfaceFormatKHR _surface_format;
+    VkPresentModeKHR   _present_mode;
+    VkSwapchainKHR     _vk_swapchain;
+    VkExtent2D         _vk_extent;
 
     std::vector<VkImage>       _vk_images;
     std::vector<VkImageView>   _vk_image_views;

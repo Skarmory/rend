@@ -29,7 +29,8 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
     _context->create_device_context(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);
 
-    _swapchain = _context->get_device()->create_swapchain(3);
+    _swapchain = new Swapchain(_context);
+    _swapchain->create_swapchain(3);
 
     _command_pool = new CommandPool(_context);
     _command_pool->create_command_pool(_context->get_device()->get_queue_family(QueueType::GRAPHICS), true);
@@ -72,9 +73,7 @@ Renderer::~Renderer(void)
     }
 
     delete _command_pool;
-
-    _context->get_device()->destroy_swapchain(&_swapchain);
-
+    delete _swapchain;
     delete _context;
 }
 

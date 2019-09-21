@@ -12,22 +12,21 @@
 
 using namespace rend;
 
-Swapchain::Swapchain(const LogicalDevice* const logical_device, uint32_t desired_images)
-    : _logical_device(logical_device), _image_count(0), _current_image_idx(0),
-      _surface_format({}), _present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR),
-      _vk_swapchain(VK_NULL_HANDLE), _vk_extent({})
+Swapchain::Swapchain(DeviceContext* context)
+    : _context(context),
+      _image_count(0),
+      _current_image_idx(0),
+      _surface_format({}),
+      _present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR),
+      _vk_swapchain(VK_NULL_HANDLE),
+      _vk_extent({})
 {
-    DEATH_CHECK(desired_images == 0, "Failed to create swapchain: desired images cannot be 0");
-
-    _create(desired_images);
-
-    _get_images();
 }
 
 Swapchain::~Swapchain(void)
 {
     _destroy();
-    vkDestroySwapchainKHR(_logical_device->get_handle(), _vk_swapchain, nullptr);
+    vkDestroySwapchainKHR(_context->get_device()->get_handle(), _vk_swapchain, nullptr);
 }
 
 VkFormat Swapchain::get_format(void) const
@@ -55,18 +54,61 @@ VkSwapchainKHR Swapchain::get_handle(void) const
     return _vk_swapchain;
 }
 
+void Swapchain::create_swapchain(uint32_t desired_images)
+{
+    const PhysicalDevice& physical_device = _context->get_device()->get_physical_device();
+
+    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
+
+    _surface_format = _find_surface_format(physical_device.get_surface_formats());
+    _present_mode = _find_present_mode(physical_device.get_surface_present_modes());
+    _image_count = _find_image_count(desired_images, surface_caps);
+
+    _vk_extent = surface_caps.currentExtent;
+
+    VkSwapchainKHR old_swapchain = _vk_swapchain;
+
+    VkSwapchainCreateInfoKHR create_info = {
+        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext                 = nullptr,
+        .flags                 = 0,
+        .surface               = _context->get_surface(),
+        .minImageCount         = _image_count,
+        .imageFormat           = _surface_format.format,
+        .imageColorSpace       = _surface_format.colorSpace,
+        .imageExtent           = surface_caps.currentExtent,
+        .imageArrayLayers      = 1,
+        .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices   = nullptr,
+        .preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+        .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode           = _present_mode,
+        .clipped               = VK_TRUE,
+        .oldSwapchain          = old_swapchain
+    };
+
+    VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
+
+    if(old_swapchain != VK_NULL_HANDLE)
+        vkDestroySwapchainKHR(_context->get_device()->get_handle(), old_swapchain, nullptr);
+
+    _get_images();
+}
+
+
 void Swapchain::recreate(void)
 {
-    vkDeviceWaitIdle(_logical_device->get_handle());
+    vkDeviceWaitIdle(_context->get_device()->get_handle());
     _destroy();
-    _create(_image_count);
-    _get_images();
+    create_swapchain(_image_count);
 }
 
 uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
     VkResult result = vkAcquireNextImageKHR(
-        _logical_device->get_handle(),
+        _context->get_device()->get_handle(),
         _vk_swapchain,
         std::numeric_limits<uint64_t>::max(),
         signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
@@ -108,63 +150,22 @@ void Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems
         .pResults = nullptr
     };
 
-    VULKAN_DEATH_CHECK(vkQueuePresentKHR(_logical_device->get_queue(type), &present_info), "Failed to present queue");
-}
-
-void Swapchain::_create(uint32_t desired_images)
-{
-    const PhysicalDevice& physical_device = _logical_device->get_physical_device();
-
-    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
-
-    _surface_format = _find_surface_format(physical_device.get_surface_formats());
-    _present_mode = _find_present_mode(physical_device.get_surface_present_modes());
-    _image_count = _find_image_count(desired_images, surface_caps);
-
-    _vk_extent = surface_caps.currentExtent;
-
-    VkSwapchainKHR old_swapchain = _vk_swapchain;
-
-    VkSwapchainCreateInfoKHR create_info = {
-        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .surface               = _logical_device->get_device_context().get_surface(),
-        .minImageCount         = _image_count,
-        .imageFormat           = _surface_format.format,
-        .imageColorSpace       = _surface_format.colorSpace,
-        .imageExtent           = surface_caps.currentExtent,
-        .imageArrayLayers      = 1,
-        .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices   = nullptr,
-        .preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
-        .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode           = _present_mode,
-        .clipped               = VK_TRUE,
-        .oldSwapchain          = old_swapchain
-    };
-
-    VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_logical_device->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
-
-    if(old_swapchain != VK_NULL_HANDLE)
-        vkDestroySwapchainKHR(_logical_device->get_handle(), old_swapchain, nullptr);
+    VULKAN_DEATH_CHECK(vkQueuePresentKHR(_context->get_device()->get_queue(type), &present_info), "Failed to present queue");
 }
 
 void Swapchain::_destroy(void)
 {
     for(size_t idx = 0; idx < _image_count; idx++)
-        vkDestroyImageView(_logical_device->get_handle(), _vk_image_views[idx], nullptr);
+        vkDestroyImageView(_context->get_device()->get_handle(), _vk_image_views[idx], nullptr);
 }
 
 void Swapchain::_get_images(void)
 {
-    vkGetSwapchainImagesKHR(_logical_device->get_handle(), _vk_swapchain, &_image_count, nullptr);
+    vkGetSwapchainImagesKHR(_context->get_device()->get_handle(), _vk_swapchain, &_image_count, nullptr);
 
     _vk_images.resize(_image_count);
 
-    vkGetSwapchainImagesKHR(_logical_device->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
+    vkGetSwapchainImagesKHR(_context->get_device()->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
 
     _vk_image_views.resize(_image_count);
 
@@ -181,7 +182,7 @@ void Swapchain::_get_images(void)
     for(size_t idx = 0; idx < _vk_images.size(); idx++)
     {
         image_view_create_info.image = _vk_images[idx];
-        VULKAN_DEATH_CHECK(vkCreateImageView(_logical_device->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]), "Failed to create swapchain image image view");
+        VULKAN_DEATH_CHECK(vkCreateImageView(_context->get_device()->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]), "Failed to create swapchain image image view");
     }
 }
 
