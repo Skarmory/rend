@@ -193,22 +193,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-Swapchain* LogicalDevice::create_swapchain(uint32_t desired_images)
-{
-    Swapchain* swapchain = new Swapchain(this, desired_images);
-
-    return swapchain;
-}
-
-void LogicalDevice::destroy_swapchain(Swapchain** swapchain)
-{
-    if(swapchain || *swapchain)
-    {
-        delete (*swapchain);
-        *swapchain = nullptr;
-    }
-}
-
 RenderPass* LogicalDevice::create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps)
 {
     RenderPass* render_pass = new RenderPass(this, attachment_descs, subpass_descs, subpass_deps);

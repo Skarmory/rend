@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    Swapchain*            create_swapchain(uint32_t desired_images);
-    void                  destroy_swapchain(Swapchain** swapchain);
-
     RenderPass*           create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps);
     void                  destroy_render_pass(RenderPass** render_pass);
 
