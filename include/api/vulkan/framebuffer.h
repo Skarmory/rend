@@ -1,7 +1,7 @@
 #ifndef FRAME_BUFFER_H
 #define FRAME_BUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 #include <vector>
 
 namespace rend

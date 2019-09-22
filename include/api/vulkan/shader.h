@@ -1,7 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 namespace rend
 {

@@ -1,7 +1,7 @@
 #ifndef FENCE_H
 #define FENCE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 #include <limits>
 
 namespace rend

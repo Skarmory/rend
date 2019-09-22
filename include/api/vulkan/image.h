@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 namespace rend
 {

@@ -1,7 +1,7 @@
 #ifndef DESCRIPTOR_POOL_H
 #define DESCRIPTOR_POOL_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 #include <vector>
 
 namespace rend

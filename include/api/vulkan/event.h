@@ -1,7 +1,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 namespace rend
 {

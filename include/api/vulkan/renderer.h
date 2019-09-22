@@ -4,7 +4,7 @@
 #include <array>
 #include <queue>
 #include <vector>
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 #include "rend_defs.h"
 

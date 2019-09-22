@@ -4,7 +4,7 @@
 #include "image.h"
 #include "logical_device.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 using namespace rend;
 

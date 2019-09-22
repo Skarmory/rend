@@ -1,7 +1,7 @@
 #ifndef GPU_BUFFER_H
 #define GPU_BUFFER_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 namespace rend
 {

@@ -1,7 +1,7 @@
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 
 namespace rend
 {

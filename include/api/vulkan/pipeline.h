@@ -1,7 +1,7 @@
 #ifndef PIPELINE_H
 #define PIPELINE_H
 
-#include <vulkan/vulkan.h>
+#include <vulkan.h>
 #include <vector>
 
 namespace rend
