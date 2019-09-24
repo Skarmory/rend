@@ -1,5 +1,5 @@
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#ifndef REND_SEMAPHORE_H
+#define REND_SEMAPHORE_H
 
 #include <vulkan.h>
 
