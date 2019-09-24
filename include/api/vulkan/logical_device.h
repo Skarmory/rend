@@ -79,9 +79,6 @@ public:
     Shader*               create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                  destroy_shader(Shader** shader);
 
-    Semaphore*            create_semaphore(void);
-    void                  destroy_semaphore(Semaphore** semaphore);
-
     Fence*                create_fence(bool start_signalled=false);
     void                  destroy_fence(Fence** fence);
 

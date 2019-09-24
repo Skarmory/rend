@@ -8,7 +8,6 @@
 #include "event.h"
 #include "fence.h"
 #include "framebuffer.h"
-#include "gpu_buffer.h"
 #include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
@@ -302,22 +301,6 @@ void LogicalDevice::destroy_shader(Shader** shader)
     {
         delete (*shader);
         *shader = nullptr;
-    }
-}
-
-Semaphore* LogicalDevice::create_semaphore(void)
-{
-    Semaphore* semaphore = new Semaphore(this);
-
-    return semaphore;
-}
-
-void LogicalDevice::destroy_semaphore(Semaphore** semaphore)
-{
-    if(semaphore && *semaphore)
-    {
-        delete (*semaphore);
-        *semaphore = nullptr;
     }
 }
 

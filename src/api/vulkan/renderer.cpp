@@ -38,8 +38,10 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
         _frame_resources[idx].swapchain_idx = 0xdeadbeef;
-        _frame_resources[idx].acquire_sem = _context->get_device()->create_semaphore();
-        _frame_resources[idx].present_sem = _context->get_device()->create_semaphore();
+        _frame_resources[idx].acquire_sem = new Semaphore(_context);
+        _frame_resources[idx].present_sem = new Semaphore(_context);
+        _frame_resources[idx].acquire_sem->create_semaphore();
+        _frame_resources[idx].present_sem->create_semaphore();
         _frame_resources[idx].submit_fen  = _context->get_device()->create_fence(true);
         _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
@@ -67,8 +69,8 @@ Renderer::~Renderer(void)
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
-        _context->get_device()->destroy_semaphore(&_frame_resources[idx].acquire_sem);
-        _context->get_device()->destroy_semaphore(&_frame_resources[idx].present_sem);
+        delete _frame_resources[idx].acquire_sem;
+        delete _frame_resources[idx].present_sem;
         _context->get_device()->destroy_fence(&_frame_resources[idx].submit_fen);
     }
 

@@ -1,11 +1,21 @@
 #include "semaphore.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "utils.h"
 
 using namespace rend;
 
-Semaphore::Semaphore(LogicalDevice* device) : _device(device)
+Semaphore::Semaphore(DeviceContext* context) : _context(context)
+{
+}
+
+Semaphore::~Semaphore(void)
+{
+    vkDestroySemaphore(_context->get_device()->get_handle(), _vk_semaphore, nullptr);
+}
+
+bool Semaphore::create_semaphore(void)
 {
     VkSemaphoreCreateInfo create_info =
     {
@@ -14,12 +24,10 @@ Semaphore::Semaphore(LogicalDevice* device) : _device(device)
         .flags = 0
     };
 
-    VULKAN_DEATH_CHECK(vkCreateSemaphore(_device->get_handle(), &create_info, nullptr, &_vk_semaphore), "Failed to create semaphore");
-}
+    if(vkCreateSemaphore(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_semaphore) != VK_SUCCESS)
+        return false;
 
-Semaphore::~Semaphore(void)
-{
-    vkDestroySemaphore(_device->get_handle(), _vk_semaphore, nullptr);
+    return true;
 }
 
 VkSemaphore Semaphore::get_handle(void) const

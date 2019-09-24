@@ -6,28 +6,26 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 
 class Semaphore
 {
-    friend class LogicalDevice;
-
 public:
+    Semaphore(DeviceContext* context);
+    ~Semaphore(void);
     Semaphore(const Semaphore&) = delete;
     Semaphore(Semaphore&&)      = delete;
     Semaphore& operator=(const Semaphore&) = delete;
     Semaphore& operator=(Semaphore&&)      = delete;
 
-    VkSemaphore get_handle(void) const;
+    bool create_semaphore(void);
 
-private:
-    Semaphore(LogicalDevice* device);
-    ~Semaphore(void);
+    VkSemaphore get_handle(void) const;
 
 private:
     VkSemaphore _vk_semaphore;
 
-    LogicalDevice* _device;
+    DeviceContext* _context;
 };
 
 }
