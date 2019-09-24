@@ -304,22 +304,6 @@ void LogicalDevice::destroy_shader(Shader** shader)
     }
 }
 
-Fence* LogicalDevice::create_fence(bool start_signalled)
-{
-    Fence* fence = new Fence(this, start_signalled);
-
-    return fence;
-}
-
-void LogicalDevice::destroy_fence(Fence** fence)
-{
-    if(fence && *fence)
-    {
-        delete (*fence);
-        *fence = nullptr;
-    }
-}
-
 Event* LogicalDevice::create_event(void)
 {
     Event* event = new Event(this);

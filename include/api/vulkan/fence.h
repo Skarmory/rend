@@ -1,5 +1,5 @@
-#ifndef FENCE_H
-#define FENCE_H
+#ifndef REND_FENCE_H
+#define REND_FENCE_H
 
 #include <vulkan.h>
 #include <limits>
@@ -7,30 +7,27 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 
 class Fence
 {
-    friend class LogicalDevice;
-
 public:
+    Fence(DeviceContext* context);
+    ~Fence(void);
     Fence(const Fence&) = delete;
     Fence(Fence&&)      = delete;
     Fence& operator=(const Fence&) = delete;
     Fence& operator=(Fence&&)      = delete;
+
+    bool create_fence(bool start_signalled);
 
     VkFence  get_handle(void) const;
     void     reset(void) const;
     VkResult wait(uint64_t timeout=std::numeric_limits<uint64_t>::max()) const;
 
 private:
-    Fence(LogicalDevice* device, bool start_signalled);
-    ~Fence(void);
-
-private:
+    DeviceContext* _context;
     VkFence _vk_fence;
-
-    LogicalDevice* _device;
 };
 
 }

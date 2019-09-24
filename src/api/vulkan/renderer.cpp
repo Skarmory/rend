@@ -40,9 +40,11 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
         _frame_resources[idx].swapchain_idx = 0xdeadbeef;
         _frame_resources[idx].acquire_sem = new Semaphore(_context);
         _frame_resources[idx].present_sem = new Semaphore(_context);
+        _frame_resources[idx].submit_fen  = new Fence(_context);
+
         _frame_resources[idx].acquire_sem->create_semaphore();
         _frame_resources[idx].present_sem->create_semaphore();
-        _frame_resources[idx].submit_fen  = _context->get_device()->create_fence(true);
+        _frame_resources[idx].submit_fen->create_fence(true);
         _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
 
@@ -71,7 +73,7 @@ Renderer::~Renderer(void)
     {
         delete _frame_resources[idx].acquire_sem;
         delete _frame_resources[idx].present_sem;
-        _context->get_device()->destroy_fence(&_frame_resources[idx].submit_fen);
+        delete _frame_resources[idx].submit_fen;
     }
 
     delete _command_pool;
@@ -166,7 +168,8 @@ void Renderer::_process_task_queue(FrameResources* resources)
     if(_task_queue.empty())
         return;
 
-    Fence* load_fence = _context->get_device()->create_fence(false);
+    Fence* load_fence = new Fence(_context);
+    load_fence->create_fence(false);
 
     resources->command_buffer->begin();
 
@@ -187,7 +190,7 @@ void Renderer::_process_task_queue(FrameResources* resources)
     }
 
     resources->command_buffer->reset();
-    _context->get_device()->destroy_fence(&load_fence);
+    delete load_fence;
 
     for(auto staging_buffer : resources->staging_buffers)
     {

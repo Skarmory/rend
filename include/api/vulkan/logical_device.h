@@ -79,9 +79,6 @@ public:
     Shader*               create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                  destroy_shader(Shader** shader);
 
-    Fence*                create_fence(bool start_signalled=false);
-    void                  destroy_fence(Fence** fence);
-
     Event*                create_event(void);
     void                  destroy_event(Event** event);
 
