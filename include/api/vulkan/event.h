@@ -1,33 +1,31 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef REND_EVENT_H
+#define REND_EVENT_H
 
 #include <vulkan.h>
 
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 
 class Event
 {
-    friend class LogicalDevice;
-
 public:
+    Event(DeviceContext* context);
+    ~Event(void);
     Event(const Event&) = delete;
     Event(Event&&)      = delete;
     Event& operator=(const Event&) = delete;
     Event& operator=(Event&&)      = delete;
 
-    VkEvent get_handle(void) const;
+    bool create_event(void);
 
-private:
-    Event(LogicalDevice* device);
-    ~Event(void);
+    VkEvent get_handle(void) const;
 
 private:
     VkEvent _vk_event;
 
-    LogicalDevice* _device;
+    DeviceContext* _context;
 };
 
 }

@@ -79,9 +79,6 @@ public:
     Shader*               create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                  destroy_shader(Shader** shader);
 
-    Event*                create_event(void);
-    void                  destroy_event(Event** event);
-
     Image*                create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects);
     void                  destroy_image(Image** image);
 

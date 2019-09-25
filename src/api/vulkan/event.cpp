@@ -1,11 +1,21 @@
 #include "event.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "utils.h"
 
 using namespace rend;
 
-Event::Event(LogicalDevice* device) : _device(device)
+Event::Event(DeviceContext* context) : _context(context)
+{
+}
+
+Event::~Event(void)
+{
+    vkDestroyEvent(_context->get_device()->get_handle(), _vk_event, nullptr);
+}
+
+bool Event::create_event(void)
 {
     VkEventCreateInfo create_info =
     {
@@ -14,15 +24,13 @@ Event::Event(LogicalDevice* device) : _device(device)
         .flags = 0
     };
 
-    VULKAN_DEATH_CHECK(
-        vkCreateEvent(_device->get_handle(), &create_info, nullptr, &_vk_event),
-        "Failed to create event"
-    );
-}
+    if(vkCreateEvent(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_event) != VK_SUCCESS)
+    {
+        std::cerr << "Failed to create event" << std::endl;
+        return false;
+    }
 
-Event::~Event(void)
-{
-    vkDestroyEvent(_device->get_handle(), _vk_event, nullptr);
+    return true;
 }
 
 VkEvent Event::get_handle(void) const
