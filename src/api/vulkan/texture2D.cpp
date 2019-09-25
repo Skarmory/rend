@@ -34,24 +34,25 @@ Texture2D::Texture2D(DeviceContext* context, uint32_t width, uint32_t height, ui
             break;
     };
 
-    _image = _context->get_device()->create_image(
-            VkExtent3D{ width, height, 1},
-            VK_IMAGE_TYPE_2D,
-            format,
-            mip_levels,
-            1,
-            VK_SAMPLE_COUNT_1_BIT,
-            VK_IMAGE_TILING_OPTIMAL,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            usage,
-            VK_IMAGE_VIEW_TYPE_2D,
-            aspects
-        );
+    _image = new Image(_context);
+    _image->create_image(
+        VkExtent3D{ width, height, 1},
+        VK_IMAGE_TYPE_2D,
+        format,
+        mip_levels,
+        1,
+        VK_SAMPLE_COUNT_1_BIT,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        usage,
+        VK_IMAGE_VIEW_TYPE_2D,
+        aspects
+    );
 }
 
 Texture2D::~Texture2D(void)
 {
-    _context->get_device()->destroy_image(&_image);
+    delete _image;
 }
 
 Image* Texture2D::get_image(void) const

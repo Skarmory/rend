@@ -7,18 +7,25 @@ namespace rend
 {
 
 class CommandPool;
-class LogicalDevice;
+class DeviceContext;
 
 class Image
 {
-    friend class LogicalDevice;
-    friend class ImageTransitionTask;
-
 public:
-    Image(const Image&) = delete;
-    Image(Image&&)      = delete;
+    Image(DeviceContext* context);
+    ~Image(void);
+    Image(const Image&)            = delete;
+    Image(Image&&)                 = delete;
     Image& operator=(const Image&) = delete;
     Image& operator=(Image&&)      = delete;
+
+    bool create_image(
+        VkExtent3D extent, VkImageType type, VkFormat format,
+        uint32_t mip_levels, uint32_t array_layers,
+        VkSampleCountFlagBits samples, VkImageTiling tiling,
+        VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage,
+        VkImageViewType view_type, VkImageAspectFlags aspects
+    );
 
     VkImage       get_handle(void) const;
     VkImageView   get_view(void) const;
@@ -31,12 +38,13 @@ public:
     VkDeviceMemory        get_memory(void) const;
     VkMemoryPropertyFlags get_memory_properties(void) const;
 
+    void transition(VkImageLayout final_layout);
+
 private:
-    Image(LogicalDevice* device, VkExtent3D extent, VkImageType type, VkFormat format,
-          uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling,
-          VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage,
-          VkImageViewType view_type, VkImageAspectFlags aspects);
-    ~Image(void);
+    bool _create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkImageUsageFlags usage);
+    bool _alloc_vk_memory(VkMemoryPropertyFlags memory_properties);
+    bool _create_vk_image_view(VkFormat format, VkImageViewType view_type, VkImageAspectFlags aspects, uint32_t mip_levels, uint32_t array_layers);
+    bool _create_vk_sampler(void);
 
 private:
     VkImage               _vk_image;
@@ -54,7 +62,7 @@ private:
     VkImageUsageFlags     _vk_usage;
     VkImageLayout         _vk_layout;
 
-    LogicalDevice* _device;
+    DeviceContext* _context;
     size_t         _size_bytes;
     bool           _loaded;
 };

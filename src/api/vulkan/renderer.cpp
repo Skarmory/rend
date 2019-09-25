@@ -62,7 +62,7 @@ Renderer::~Renderer(void)
         _task_queue.pop();
     }
 
-    _context->get_device()->destroy_image(&_default_depth_buffer);
+    delete _default_depth_buffer;
 
     for(Framebuffer* framebuffer : _default_framebuffers)
         _context->get_device()->destroy_framebuffer(&framebuffer);
@@ -286,7 +286,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
         .pNext               = nullptr,
         .srcAccessMask       = 0,
         .dstAccessMask       = 0,
-        .oldLayout           = image->get_image()->_vk_layout,
+        .oldLayout           = image->get_image()->get_layout(),
         .newLayout           = final_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -301,7 +301,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
         }
     };
 
-    switch(image->get_image()->_vk_layout)
+    switch(image->get_image()->get_layout())
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             barrier->srcAccessMask = 0; break;
@@ -363,7 +363,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
 
     resources->command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
-    image->get_image()->_vk_layout = final_layout;
+    image->get_image()->transition(final_layout);
 }
 
 void Renderer::_create_default_renderpass(void)
@@ -424,8 +424,9 @@ void Renderer::_create_default_framebuffers(bool recreate)
 
     if(recreate)
     {
-        _context->get_device()->destroy_image(&_default_depth_buffer);
-        _default_depth_buffer = _context->get_device()->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        delete _default_depth_buffer;
+        _default_depth_buffer = new Image(_context);
+        _default_depth_buffer->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
@@ -434,7 +435,8 @@ void Renderer::_create_default_framebuffers(bool recreate)
     }
     else
     {
-        _default_depth_buffer = _context->get_device()->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        _default_depth_buffer = new Image(_context);
+        _default_depth_buffer->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 
         _default_framebuffers.resize(views.size());
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
