@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    RenderPass*           create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps);
-    void                  destroy_render_pass(RenderPass** render_pass);
-
     Framebuffer*          create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions);
     void                  destroy_framebuffer(Framebuffer** framebuffer);
 

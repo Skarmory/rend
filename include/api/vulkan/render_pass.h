@@ -1,5 +1,5 @@
-#ifndef RENDERPASS_H
-#define RENDERPASS_H
+#ifndef REND_RENDERPASS_H
+#define REND_RENDERPASS_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,29 +7,26 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 
 class RenderPass
 {
-    friend class LogicalDevice;
-
 public:
+    RenderPass(DeviceContext* device);
+    ~RenderPass(void);
     RenderPass(const RenderPass&)            = delete;
     RenderPass(RenderPass&&)                 = delete;
     RenderPass& operator=(const RenderPass&) = delete;
     RenderPass& operator=(RenderPass&&)      = delete;
 
-    VkRenderPass get_handle(void) const;
+    bool create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps);
 
-private:
-    RenderPass(LogicalDevice* device, const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps);
-    ~RenderPass(void);
+    VkRenderPass get_handle(void) const;
 
 private:
     VkRenderPass _vk_render_pass;
 
-    LogicalDevice* _device;
-
+    DeviceContext* _context;
 };
 
 }

@@ -192,22 +192,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-RenderPass* LogicalDevice::create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps)
-{
-    RenderPass* render_pass = new RenderPass(this, attachment_descs, subpass_descs, subpass_deps);
-
-    return render_pass;
-}
-
-void LogicalDevice::destroy_render_pass(RenderPass** render_pass)
-{
-    if(render_pass && *render_pass)
-    {
-        delete (*render_pass);
-        *render_pass = nullptr;
-    }
-}
-
 Framebuffer* LogicalDevice::create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions)
 {
     Framebuffer* framebuffer = new Framebuffer(this, render_pass, image_views, dimensions);

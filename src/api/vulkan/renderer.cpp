@@ -9,6 +9,7 @@
 #include "image.h"
 #include "index_buffer.h"
 #include "logical_device.h"
+#include "render_pass.h"
 #include "semaphore.h"
 #include "swapchain.h"
 #include "texture2D.h"
@@ -67,7 +68,7 @@ Renderer::~Renderer(void)
     for(Framebuffer* framebuffer : _default_framebuffers)
         _context->get_device()->destroy_framebuffer(&framebuffer);
 
-    _context->get_device()->destroy_render_pass(&_default_render_pass);
+    delete _default_render_pass;
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
@@ -412,7 +413,8 @@ void Renderer::_create_default_renderpass(void)
     subpass_deps[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     subpass_deps[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 
-    _default_render_pass = _context->get_device()->create_render_pass(attach_descs, subpass_descs, subpass_deps);
+    _default_render_pass = new RenderPass(_context);
+    _default_render_pass->create_render_pass(attach_descs, subpass_descs, subpass_deps);
 }
 
 void Renderer::_create_default_framebuffers(bool recreate)
