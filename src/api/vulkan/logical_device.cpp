@@ -192,22 +192,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-Framebuffer* LogicalDevice::create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions)
-{
-    Framebuffer* framebuffer = new Framebuffer(this, render_pass, image_views, dimensions);
-
-    return framebuffer;
-}
-
-void LogicalDevice::destroy_framebuffer(Framebuffer** framebuffer)
-{
-    if(framebuffer && *framebuffer)
-    {
-        delete (*framebuffer);
-        *framebuffer = nullptr;
-    }
-}
-
 DescriptorPool* LogicalDevice::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
 {
     DescriptorPool* pool = new DescriptorPool(this, max_sets, pool_sizes);

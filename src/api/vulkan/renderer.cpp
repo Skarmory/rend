@@ -66,7 +66,7 @@ Renderer::~Renderer(void)
     delete _default_depth_buffer;
 
     for(Framebuffer* framebuffer : _default_framebuffers)
-        _context->get_device()->destroy_framebuffer(&framebuffer);
+        delete framebuffer;
 
     delete _default_render_pass;
 
@@ -443,7 +443,8 @@ void Renderer::_create_default_framebuffers(bool recreate)
         _default_framebuffers.resize(views.size());
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
-            _default_framebuffers[idx] = _context->get_device()->create_framebuffer(*_default_render_pass, { views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
+            _default_framebuffers[idx] = new Framebuffer(_context);
+            _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, { views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
         }
     }
 }

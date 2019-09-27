@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    Framebuffer*          create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& image_views, VkExtent3D dimensions);
-    void                  destroy_framebuffer(Framebuffer** framebuffer);
-
     DescriptorPool*       create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
     void                  destroy_descriptor_pool(DescriptorPool** pool);
 
