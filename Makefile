@@ -14,7 +14,8 @@ DEPS=$(SRCS:.cpp=.d)
 
 .PHONY: clean default fullclean vulkan vulkan-debug
 
-default: $(NAME)
+default:
+	@echo "Specify a target. Options: vulkan, vulkan-debug"
 
 vulkan-debug: CPPFLAGS += -g -DDEBUG
 vulkan-debug: vulkan
