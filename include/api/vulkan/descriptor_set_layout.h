@@ -1,5 +1,5 @@
-#ifndef DESCRIPTOR_SET_LAYOUT_H
-#define DESCRIPTOR_SET_LAYOUT_H
+#ifndef REND_DESCRIPTOR_SET_LAYOUT_H
+#define REND_DESCRIPTOR_SET_LAYOUT_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,28 +7,26 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 
 class DescriptorSetLayout
 {
-    friend class LogicalDevice;
-
 public:
-    DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-    DescriptorSetLayout(DescriptorSetLayout&&)      = delete;
+    DescriptorSetLayout(DeviceContext* device);
+    ~DescriptorSetLayout(void);
+    DescriptorSetLayout(const DescriptorSetLayout&)            = delete;
+    DescriptorSetLayout(DescriptorSetLayout&&)                 = delete;
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout& operator=(DescriptorSetLayout&&)      = delete;
+
+    bool create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
 
     VkDescriptorSetLayout get_handle(void) const;
 
 private:
-    DescriptorSetLayout(LogicalDevice* device, const std::vector<VkDescriptorSetLayoutBinding>& bindings);
-    ~DescriptorSetLayout(void);
+    DeviceContext* _context;
 
-private:
     VkDescriptorSetLayout _vk_layout;
-
-    LogicalDevice* _device;
 };
 
 }

@@ -1,11 +1,23 @@
 #include "descriptor_set_layout.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "utils.h"
 
 using namespace rend;
 
-DescriptorSetLayout::DescriptorSetLayout(LogicalDevice* device, const std::vector<VkDescriptorSetLayoutBinding>& bindings) : _device(device)
+DescriptorSetLayout::DescriptorSetLayout(DeviceContext* context)
+    : _context(context),
+      _vk_layout(VK_NULL_HANDLE)
+{
+}
+
+DescriptorSetLayout::~DescriptorSetLayout(void)
+{
+    vkDestroyDescriptorSetLayout(_context->get_device()->get_handle(), _vk_layout, nullptr);
+}
+
+bool DescriptorSetLayout::create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
 {
     VkDescriptorSetLayoutCreateInfo create_info =
     {
@@ -16,12 +28,10 @@ DescriptorSetLayout::DescriptorSetLayout(LogicalDevice* device, const std::vecto
         .pBindings = bindings.data()
     };
 
-    VULKAN_DEATH_CHECK(vkCreateDescriptorSetLayout(_device->get_handle(), &create_info, nullptr, &_vk_layout), "Failed to create descriptor set layout");
-}
+    if(vkCreateDescriptorSetLayout(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
+        return false;
 
-DescriptorSetLayout::~DescriptorSetLayout(void)
-{
-    vkDestroyDescriptorSetLayout(_device->get_handle(), _vk_layout, nullptr);
+    return true;
 }
 
 VkDescriptorSetLayout DescriptorSetLayout::get_handle(void) const

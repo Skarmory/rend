@@ -208,22 +208,6 @@ void LogicalDevice::destroy_descriptor_pool(DescriptorPool** pool)
     }
 }
 
-DescriptorSetLayout* LogicalDevice::create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
-{
-    DescriptorSetLayout* layout = new DescriptorSetLayout(this, bindings);
-
-    return layout;
-}
-
-void LogicalDevice::destroy_descriptor_set_layout(DescriptorSetLayout** layout)
-{
-    if(layout && *layout)
-    {
-        delete (*layout);
-        *layout = nullptr;
-    }
-}
-
 PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
 {
     PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts, push_constant_ranges);

@@ -61,9 +61,6 @@ public:
     DescriptorPool*       create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
     void                  destroy_descriptor_pool(DescriptorPool** pool);
 
-    DescriptorSetLayout*  create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
-    void                  destroy_descriptor_set_layout(DescriptorSetLayout** layout);
-
     PipelineLayout*       create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
     void                  destroy_pipeline_layout(PipelineLayout** layout);
 
