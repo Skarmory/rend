@@ -25,7 +25,7 @@ Swapchain::Swapchain(DeviceContext* context)
 
 Swapchain::~Swapchain(void)
 {
-    _destroy();
+    _destroy_image_views();
     vkDestroySwapchainKHR(_context->get_device()->get_handle(), _vk_swapchain, nullptr);
 }
 
@@ -54,7 +54,75 @@ VkSwapchainKHR Swapchain::get_handle(void) const
     return _vk_swapchain;
 }
 
-void Swapchain::create_swapchain(uint32_t desired_images)
+bool Swapchain::create_swapchain(uint32_t desired_images)
+{
+    if(_vk_swapchain != VK_NULL_HANDLE)
+        return false;
+
+    return _create_swapchain(desired_images);
+}
+
+
+void Swapchain::recreate(void)
+{
+    vkDeviceWaitIdle(_context->get_device()->get_handle());
+    _destroy_image_views();
+    _create_swapchain(_image_count);
+}
+
+uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
+{
+    VkResult result = vkAcquireNextImageKHR(
+        _context->get_device()->get_handle(),
+        _vk_swapchain,
+        std::numeric_limits<uint64_t>::max(),
+        signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
+        acquire_fence ? acquire_fence->get_handle() : VK_NULL_HANDLE,
+        &_current_image_idx
+    );
+
+    if(result != VK_SUCCESS)
+    {
+        if(result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            return SWAPCHAIN_OUT_OF_DATE;
+        }
+        else
+        {
+            DEATH_CHECK(false, "Failed to acquire next swapchain image");
+        }
+    }
+
+    return _current_image_idx;
+}
+
+bool Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
+{
+    std::vector<VkSemaphore> vk_sems;
+    vk_sems.reserve(wait_sems.size());
+
+    for(Semaphore* sem : wait_sems)
+        vk_sems.push_back(sem->get_handle());
+
+    VkPresentInfoKHR present_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
+        .pWaitSemaphores = vk_sems.data(),
+        .swapchainCount = 1,
+        .pSwapchains = &_vk_swapchain,
+        .pImageIndices = &_current_image_idx,
+        .pResults = nullptr
+    };
+
+    if(vkQueuePresentKHR(_context->get_device()->get_queue(type), &present_info) != VK_SUCCESS)
+        return false;
+
+    return true;
+}
+
+bool Swapchain::_create_swapchain(uint32_t desired_images)
 {
     const PhysicalDevice& physical_device = _context->get_device()->get_physical_device();
 
@@ -89,71 +157,18 @@ void Swapchain::create_swapchain(uint32_t desired_images)
         .oldSwapchain          = old_swapchain
     };
 
-    VULKAN_DEATH_CHECK(vkCreateSwapchainKHR(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain), "Failed to create swapchain");
+    if(vkCreateSwapchainKHR(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
+        return false;
 
     if(old_swapchain != VK_NULL_HANDLE)
         vkDestroySwapchainKHR(_context->get_device()->get_handle(), old_swapchain, nullptr);
 
     _get_images();
+
+    return true;
 }
 
-
-void Swapchain::recreate(void)
-{
-    vkDeviceWaitIdle(_context->get_device()->get_handle());
-    _destroy();
-    create_swapchain(_image_count);
-}
-
-uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
-{
-    VkResult result = vkAcquireNextImageKHR(
-        _context->get_device()->get_handle(),
-        _vk_swapchain,
-        std::numeric_limits<uint64_t>::max(),
-        signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
-        acquire_fence ? acquire_fence->get_handle() : VK_NULL_HANDLE,
-        &_current_image_idx
-    );
-
-    if(result != VK_SUCCESS)
-    {
-        if(result == VK_ERROR_OUT_OF_DATE_KHR)
-        {
-            return SWAPCHAIN_OUT_OF_DATE;
-        }
-        else
-        {
-            DEATH_CHECK(false, "Failed to acquire next swapchain image");
-        }
-    }
-
-    return _current_image_idx;
-}
-
-void Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
-{
-    std::vector<VkSemaphore> vk_sems;
-    vk_sems.reserve(wait_sems.size());
-
-    std::for_each(wait_sems.begin(), wait_sems.end(), [&vk_sems](Semaphore* s){ vk_sems.push_back(s->get_handle()); });
-
-    VkPresentInfoKHR present_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .pNext = nullptr,
-        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
-        .pWaitSemaphores = vk_sems.data(),
-        .swapchainCount = 1,
-        .pSwapchains = &_vk_swapchain,
-        .pImageIndices = &_current_image_idx,
-        .pResults = nullptr
-    };
-
-    VULKAN_DEATH_CHECK(vkQueuePresentKHR(_context->get_device()->get_queue(type), &present_info), "Failed to present queue");
-}
-
-void Swapchain::_destroy(void)
+void Swapchain::_destroy_image_views(void)
 {
     for(size_t idx = 0; idx < _image_count; idx++)
         vkDestroyImageView(_context->get_device()->get_handle(), _vk_image_views[idx], nullptr);

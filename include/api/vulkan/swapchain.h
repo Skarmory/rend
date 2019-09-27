@@ -32,13 +32,14 @@ public:
     VkExtent2D                      get_extent(void) const;
     VkSwapchainKHR                  get_handle(void) const;
 
-    void     create_swapchain(uint32_t desired_images);
+    bool     create_swapchain(uint32_t desired_images);
     void     recreate(void);
     uint32_t acquire(Semaphore* signal_sem, Fence* acquire_fence);
-    void     present(QueueType type, const std::vector<Semaphore*>& wait_sems);
+    bool     present(QueueType type, const std::vector<Semaphore*>& wait_sems);
 
 private:
-    void               _destroy(void);
+    bool               _create_swapchain(uint32_t desired_images);
+    void               _destroy_image_views(void);
     void               _get_images(void);
     VkSurfaceFormatKHR _find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats);
     VkPresentModeKHR   _find_present_mode(const std::vector<VkPresentModeKHR>& present_modes);
