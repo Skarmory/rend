@@ -12,7 +12,10 @@
 using namespace rend;
 
 Image::Image(DeviceContext* context)
-    : _vk_memory_properties(0),
+    : _vk_image(VK_NULL_HANDLE),
+      _vk_image_view(VK_NULL_HANDLE),
+      _vk_sampler(VK_NULL_HANDLE),
+      _vk_memory_properties(0),
       _vk_extent({0, 0, 0}),
       _vk_type(VK_IMAGE_TYPE_MAX_ENUM),
       _vk_format(VK_FORMAT_MAX_ENUM),
@@ -38,6 +41,9 @@ Image::~Image(void)
 
 bool Image::create_image(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
 {
+    if(_vk_image != VK_NULL_HANDLE)
+        return false;
+
     if(!_create_vk_image(type, format, extent, mip_levels, array_layers, samples, tiling, usage))
     {
         return false;
