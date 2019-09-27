@@ -6,7 +6,9 @@
 
 using namespace rend;
 
-Semaphore::Semaphore(DeviceContext* context) : _context(context)
+Semaphore::Semaphore(DeviceContext* context)
+    : _vk_semaphore(VK_NULL_HANDLE),
+      _context(context)
 {
 }
 
@@ -17,6 +19,9 @@ Semaphore::~Semaphore(void)
 
 bool Semaphore::create_semaphore(void)
 {
+    if(_vk_semaphore != VK_NULL_HANDLE)
+        return false;
+
     VkSemaphoreCreateInfo create_info =
     {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
