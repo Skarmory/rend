@@ -8,7 +8,9 @@
 
 using namespace rend;
 
-Fence::Fence(DeviceContext* context) : _context(context)
+Fence::Fence(DeviceContext* context)
+    : _context(context),
+      _vk_fence(VK_NULL_HANDLE)
 {
 }
 
@@ -19,6 +21,9 @@ Fence::~Fence(void)
 
 bool Fence::create_fence(bool start_signalled)
 {
+    if(_vk_fence !=  VK_NULL_HANDLE)
+        return false;
+
     VkFenceCreateInfo create_info =
     {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
