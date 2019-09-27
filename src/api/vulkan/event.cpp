@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-Event::Event(DeviceContext* context) : _context(context)
+Event::Event(DeviceContext* context) : _vk_event(VK_NULL_HANDLE), _context(context)
 {
 }
 
@@ -17,6 +17,9 @@ Event::~Event(void)
 
 bool Event::create_event(void)
 {
+    if(_vk_event != VK_NULL_HANDLE)
+        return false;
+
     VkEventCreateInfo create_info =
     {
         .sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO,
