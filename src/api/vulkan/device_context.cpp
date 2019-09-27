@@ -84,8 +84,8 @@ bool DeviceContext::create_device_context(const char** extensions, uint32_t exte
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
-        PhysicalDevice* pdev = new PhysicalDevice(this, physical_device_index, physical_devices[physical_device_index]);
-        pdev->create_physical_device();
+        PhysicalDevice* pdev = new PhysicalDevice(this);
+        pdev->create_physical_device(physical_device_index, physical_devices[physical_device_index]);
         _physical_devices.push_back(pdev);
     }
 

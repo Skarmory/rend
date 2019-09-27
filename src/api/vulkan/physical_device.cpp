@@ -8,11 +8,11 @@
 
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(const DeviceContext* context, uint32_t physical_device_index, VkPhysicalDevice physical_device)
-    : _physical_device_index(physical_device_index),
-      _vk_physical_device(physical_device),
-      _context(context),
-      _logical_device(nullptr)
+PhysicalDevice::PhysicalDevice(DeviceContext* context)
+    : _context(context),
+      _logical_device(nullptr),
+      _physical_device_index(0xdeadbeef),
+      _vk_physical_device(VK_NULL_HANDLE)
 {
 }
 
@@ -35,21 +35,21 @@ void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
     {
         VkBool32 supports_present;
         vkGetPhysicalDeviceSurfaceSupportKHR(_vk_physical_device, queue_family_index, surface, &supports_present);
-       _queue_families.push_back(QueueFamily(queue_family_index, queue_family_properties[queue_family_index], supports_present));
+        _queue_families.push_back(QueueFamily(queue_family_index, queue_family_properties[queue_family_index], supports_present));
 
-       QueueFamily* queue_family = &_queue_families[queue_family_index];
+        QueueFamily* queue_family = &_queue_families[queue_family_index];
 
-       if(queue_family->get_properties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
-           _graphics_queue_families.push_back(queue_family);
+        if(queue_family->get_properties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            _graphics_queue_families.push_back(queue_family);
 
-       if(queue_family->supports_present_queue())
-           _present_queue_families.push_back(queue_family);
+        if(queue_family->supports_present_queue())
+            _present_queue_families.push_back(queue_family);
     }
 }
 
 void PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
 {
-    uint32_t count;
+    uint32_t count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, nullptr);
 
     if(count == 0)
@@ -61,7 +61,7 @@ void PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
 
 void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
 {
-    uint32_t count;
+    uint32_t count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, nullptr);
 
     if(count == 0)
@@ -71,8 +71,14 @@ void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
 }
 
-bool PhysicalDevice::create_physical_device(void)
+bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
+    if(_vk_physical_device != VK_NULL_HANDLE)
+        return false;
+
+    _physical_device_index = physical_device_index;
+    _vk_physical_device = physical_device;
+
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
