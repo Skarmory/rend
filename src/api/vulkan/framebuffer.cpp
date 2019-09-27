@@ -53,6 +53,9 @@ const RenderPass* Framebuffer::get_render_pass(void) const
 
 bool Framebuffer::recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
 {
+    if(_vk_framebuffer == VK_NULL_HANDLE)
+        return false;
+
     _destroy();
     return _create(attachments, dimensions);
 }
