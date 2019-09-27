@@ -1,5 +1,6 @@
 #include "descriptor_pool.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "descriptor_set_layout.h"
 #include "utils.h"
@@ -10,7 +11,9 @@ using namespace rend;
 
 /* ----- Descriptor Set ----- */
 
-DescriptorSet::DescriptorSet(LogicalDevice* device, VkDescriptorSet set) : _vk_set(set), _device(device)
+DescriptorSet::DescriptorSet(DeviceContext* context, VkDescriptorSet set)
+    : _context(context),
+      _vk_set(set)
 {
 }
 
@@ -85,15 +88,32 @@ void DescriptorSet::describe(uint32_t binding, uint32_t array_elem, VkDescriptor
 
 void DescriptorSet::update(void)
 {
-    vkUpdateDescriptorSets(_device->get_handle(), _vk_write_descs.size(), _vk_write_descs.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_context->get_device()->get_handle(), _vk_write_descs.size(), _vk_write_descs.data(), 0, nullptr);
 
     _vk_write_descs.clear();
 }
 
 /* ----- Descriptor Pool ----- */
 
-DescriptorPool::DescriptorPool(LogicalDevice* device, uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes) : _device(device), _max_sets(max_sets)
+DescriptorPool::DescriptorPool(DeviceContext* context)
+    : _context(context),
+      _max_sets(0),
+      _vk_pool(VK_NULL_HANDLE)
 {
+}
+
+DescriptorPool::~DescriptorPool(void)
+{
+    for(auto dset : _sets)
+        delete dset;
+    vkDestroyDescriptorPool(_context->get_device()->get_handle(), _vk_pool, nullptr);
+}
+
+bool DescriptorPool::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
+{
+    if(_vk_pool != VK_NULL_HANDLE)
+        return false;
+
     _sets.reserve(_max_sets);
 
     VkDescriptorPoolCreateInfo create_info =
@@ -106,14 +126,12 @@ DescriptorPool::DescriptorPool(LogicalDevice* device, uint32_t max_sets, const s
         .pPoolSizes    = pool_sizes.data()
     };
 
-    VULKAN_DEATH_CHECK(vkCreateDescriptorPool(_device->get_handle(), &create_info, nullptr, &_vk_pool), "Failed to create descriptor pool");
-}
+    if(vkCreateDescriptorPool(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_pool) != VK_SUCCESS)
+        return false;
 
-DescriptorPool::~DescriptorPool(void)
-{
-    for(auto dset : _sets)
-        delete dset;
-    vkDestroyDescriptorPool(_device->get_handle(), _vk_pool, nullptr);
+    _max_sets = max_sets;
+
+    return true;
 }
 
 VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets)
@@ -128,7 +146,8 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(layouts.size());
 
-    std::for_each(layouts.begin(), layouts.end(), [&vk_layouts](DescriptorSetLayout* l){ vk_layouts.push_back(l->get_handle()); });
+    for(DescriptorSetLayout* layout : layouts)
+        vk_layouts.push_back(layout->get_handle());
 
     VkDescriptorSetAllocateInfo alloc_info =
     {
@@ -140,12 +159,12 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
     };
 
     VkResult result = VK_SUCCESS;
-    if((result = vkAllocateDescriptorSets(_device->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
+    if((result = vkAllocateDescriptorSets(_context->get_device()->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
         return result;
 
     for(auto vk_set : vk_sets)
     {
-        DescriptorSet* dset = new DescriptorSet(_device, vk_set);
+        DescriptorSet* dset = new DescriptorSet(_context, vk_set);
         _sets.push_back(dset);
         out_sets.push_back(dset);
     }

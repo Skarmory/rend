@@ -192,22 +192,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-DescriptorPool* LogicalDevice::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
-{
-    DescriptorPool* pool = new DescriptorPool(this, max_sets, pool_sizes);
-
-    return pool;
-}
-
-void LogicalDevice::destroy_descriptor_pool(DescriptorPool** pool)
-{
-    if(pool && *pool)
-    {
-        delete (*pool);
-        *pool = nullptr;
-    }
-}
-
 PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
 {
     PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts, push_constant_ranges);

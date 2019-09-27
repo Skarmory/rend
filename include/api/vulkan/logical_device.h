@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    DescriptorPool*       create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
-    void                  destroy_descriptor_pool(DescriptorPool** pool);
-
     PipelineLayout*       create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
     void                  destroy_pipeline_layout(PipelineLayout** layout);
 

@@ -1,5 +1,5 @@
-#ifndef DESCRIPTOR_POOL_H
-#define DESCRIPTOR_POOL_H
+#ifndef REND_DESCRIPTOR_POOL_H
+#define REND_DESCRIPTOR_POOL_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,15 +7,15 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 class DescriptorPool;
 class DescriptorSetLayout;
 
 class DescriptorSet
 {
-    friend class DescriptorPool;
-
 public:
+    DescriptorSet(DeviceContext* device, VkDescriptorSet set);
+    ~DescriptorSet(void) = default;
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
@@ -36,41 +36,35 @@ public:
     // Update the descriptor set bindings. Call this when done describing the descriptor set
     void update(void);
 
-private:
-    DescriptorSet(LogicalDevice* device, VkDescriptorSet set);
-    ~DescriptorSet(void) = default;
 
 private:
+    DeviceContext* _context;
+
     VkDescriptorSet _vk_set;
-
-    LogicalDevice* _device;
     std::vector<VkWriteDescriptorSet> _vk_write_descs;
 };
 
 class DescriptorPool
 {
-    friend class LogicalDevice;
-
 public:
-
-    DescriptorPool(const DescriptorPool&) = delete;
-    DescriptorPool(DescriptorPool&&)      = delete;
+    DescriptorPool(DeviceContext* context);
+    ~DescriptorPool(void);
+    DescriptorPool(const DescriptorPool&)            = delete;
+    DescriptorPool(DescriptorPool&&)                 = delete;
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool& operator=(DescriptorPool&&)      = delete;
 
+    bool create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
+
     VkResult allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets);
 
-private:
-
-    DescriptorPool(LogicalDevice* device, uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
-    ~DescriptorPool(void);
 
 private:
+    DeviceContext* _context;
+    uint32_t _max_sets;
     VkDescriptorPool _vk_pool;
 
-    LogicalDevice* _device;
     std::vector<DescriptorSet*> _sets;
-    const uint32_t _max_sets;
 };
 
 }
