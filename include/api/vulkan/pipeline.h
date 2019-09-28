@@ -1,5 +1,5 @@
-#ifndef PIPELINE_H
-#define PIPELINE_H
+#ifndef REND_PIPELINE_H
+#define REND_PIPELINE_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,7 +7,7 @@
 namespace rend
 {
 
-class LogicalDevice;
+class DeviceContext;
 class PipelineLayout;
 class RenderPass;
 class Shader;
@@ -81,24 +81,24 @@ struct PipelineSettings
 
 class Pipeline
 {
-    friend class LogicalDevice;
-
 public:
+    Pipeline(DeviceContext* device);
+    ~Pipeline(void);
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&)      = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     Pipeline& operator=(Pipeline&&)      = delete;
 
+    bool create_pipeline(PipelineSettings* settings);
+
     VkPipeline get_handle(void) const;
+    const PipelineSettings& settings(void) const;
 
 private:
-    Pipeline(LogicalDevice* device, PipelineSettings* settings);
-    ~Pipeline(void);
+    DeviceContext* _context;
+    PipelineSettings _pipeline_settings;
 
-private:
     VkPipeline _vk_pipeline;
-
-    LogicalDevice* _device;
 };
 
 }

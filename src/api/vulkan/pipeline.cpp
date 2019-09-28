@@ -1,5 +1,6 @@
 #include "pipeline.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
@@ -10,8 +11,18 @@
 
 using namespace rend;
 
-Pipeline::Pipeline(LogicalDevice* device, PipelineSettings* settings) : _device(device)
+Pipeline::Pipeline(DeviceContext* context)
+    : _context(context),
+      _pipeline_settings({}),
+      _vk_pipeline(VK_NULL_HANDLE)
 {
+}
+
+bool Pipeline::create_pipeline(PipelineSettings* settings)
+{
+    if(_vk_pipeline != VK_NULL_HANDLE)
+        return false;
+
     std::vector<VkPipelineShaderStageCreateInfo> shader_stage_infos(settings->shader_stage_shaders.size());
     for(size_t idx = 0; idx < shader_stage_infos.size(); idx++)
     {
@@ -166,15 +177,25 @@ Pipeline::Pipeline(LogicalDevice* device, PipelineSettings* settings) : _device(
         .basePipelineIndex   = 0
     };
 
-    VULKAN_DEATH_CHECK(vkCreateGraphicsPipelines(_device->get_handle(), VK_NULL_HANDLE, 1, &create_info, nullptr, &_vk_pipeline), "Failed to create graphics pipeline");
+    if(vkCreateGraphicsPipelines(_context->get_device()->get_handle(), VK_NULL_HANDLE, 1, &create_info, nullptr, &_vk_pipeline) != VK_SUCCESS)
+        return false;
+
+    _pipeline_settings = *settings;
+
+    return true;
 }
 
 Pipeline::~Pipeline(void)
 {
-    vkDestroyPipeline(_device->get_handle(), _vk_pipeline, nullptr);
+    vkDestroyPipeline(_context->get_device()->get_handle(), _vk_pipeline, nullptr);
 }
 
 VkPipeline Pipeline::get_handle(void) const
 {
     return _vk_pipeline;
+}
+
+const PipelineSettings& Pipeline::settings(void) const
+{
+    return _pipeline_settings;
 }

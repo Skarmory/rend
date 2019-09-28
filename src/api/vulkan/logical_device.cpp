@@ -192,22 +192,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-Pipeline* LogicalDevice::create_pipeline(PipelineSettings* settings)
-{
-    Pipeline* pipeline = new Pipeline(this, settings);
-
-    return pipeline;
-}
-
-void LogicalDevice::destroy_pipeline(Pipeline** pipeline)
-{
-    if(pipeline && *pipeline)
-    {
-        delete (*pipeline);
-        *pipeline = nullptr;
-    }
-}
-
 Shader* LogicalDevice::create_shader(const void* data, uint32_t size_bytes, ShaderType type)
 {
     Shader* shader = new Shader(this, data, size_bytes, type);

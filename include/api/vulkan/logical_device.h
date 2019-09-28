@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    Pipeline*             create_pipeline(PipelineSettings* settings);
-    void                  destroy_pipeline(Pipeline** pipeline);
-
     Shader*               create_shader(const void* data, uint32_t size_bytes, ShaderType type);
     void                  destroy_shader(Shader** shader);
 
