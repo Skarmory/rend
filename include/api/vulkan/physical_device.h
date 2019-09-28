@@ -33,9 +33,9 @@ public:
     bool has_queues(VkQueueFlags queue_flags) const;
 
 private:
-    void _find_queue_families(VkSurfaceKHR surface);
-    void _find_surface_formats(VkSurfaceKHR surface);
-    void _find_surface_present_modes(VkSurfaceKHR surface);
+    bool _find_queue_families(VkSurfaceKHR surface);
+    bool _find_surface_formats(VkSurfaceKHR surface);
+    bool _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
     DeviceContext*                   _context;

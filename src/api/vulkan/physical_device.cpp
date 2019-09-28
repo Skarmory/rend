@@ -2,9 +2,6 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
-
-#include <iostream>
 
 using namespace rend;
 
@@ -21,11 +18,14 @@ PhysicalDevice::~PhysicalDevice(void)
     delete _logical_device;
 }
 
-void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
+bool PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
 {
     uint32_t count;
     std::vector<VkQueueFamilyProperties> queue_family_properties;
     vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, nullptr);
+
+    if(count == 0)
+        return false;
 
     _queue_families.reserve(count);
     queue_family_properties.resize(count);
@@ -45,30 +45,36 @@ void PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
         if(queue_family->supports_present_queue())
             _present_queue_families.push_back(queue_family);
     }
+
+    return true;
 }
 
-void PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
+bool PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, nullptr);
 
     if(count == 0)
-        return;
+        return false;;
 
    _vk_surface_formats.resize(count);
     vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, _vk_surface_formats.data());
+
+    return true;
 }
 
-void PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
+bool PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, nullptr);
 
     if(count == 0)
-        return;
+        return false;
 
     _vk_present_modes.resize(count);
     vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
+
+    return true;
 }
 
 bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device)
@@ -84,9 +90,14 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
     VkSurfaceKHR surface = _context->get_surface();
-    _find_queue_families(surface);
-    _find_surface_formats(surface);
-    _find_surface_present_modes(surface);
+    if(!_find_queue_families(surface))
+        return false;
+
+    if(!_find_surface_formats(surface))
+        return false;
+
+    if(!_find_surface_present_modes(surface))
+        return false;
 
     return true;
 }
@@ -94,22 +105,21 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
 bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
 {
     if(_logical_device)
-    {
-        // TODO Logging
-        std::cerr << "Attempted to create logical device when one already exists" << std::endl;
         return false;
-    }
 
     QueueFamily* graphics_family = nullptr;
     QueueFamily* present_family = nullptr;
 
     if(queue_flags & VK_QUEUE_GRAPHICS_BIT)
     {
-        DEATH_CHECK(_graphics_queue_families.size() == 0, "Physical device does not support a graphics queue family");
+        // Not much of a gfx library if there're no useful queues
+        if(_graphics_queue_families.size() == 0)
+            return false;
 
         graphics_family = _graphics_queue_families[0];
 
-        DEATH_CHECK(_present_queue_families.size() == 0, "Physical device does not support a present queue family");
+        if(_present_queue_families.size() == 0)
+            return false;
 
         present_family = _present_queue_families[0];
     }
@@ -148,7 +158,7 @@ const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(v
 VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
 {
     VkSurfaceCapabilitiesKHR caps;
-    VULKAN_DEATH_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context->get_surface(), &caps), "Failed to get surface capabilities");
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context->get_surface(), &caps);
 
     return caps;
 }
