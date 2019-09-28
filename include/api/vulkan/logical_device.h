@@ -1,5 +1,5 @@
-#ifndef LOGICAL_DEVICE_H
-#define LOGICAL_DEVICE_H
+#ifndef REND_LOGICAL_DEVICE_H
+#define REND_LOGICAL_DEVICE_H
 
 #include "queue_family.h"
 
@@ -10,32 +10,18 @@ namespace rend
 {
 
 class CommandBuffer;
-class CommandPool;
-class DescriptorPool;
-class DescriptorSetLayout;
 class DeviceContext;
-class Event;
 class Fence;
-class Framebuffer;
-class GPUBuffer;
-class Image;
 class PhysicalDevice;
-class Pipeline;
-class PipelineLayout;
-class RenderPass;
 class Semaphore;
-class Shader;
-class Swapchain;
-
 struct PipelineSettings;
-
 enum class ShaderType;
 
 class LogicalDevice
 {
 
 public:
-    LogicalDevice(const DeviceContext* device_context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
+    LogicalDevice(const DeviceContext* device_context);
     ~LogicalDevice(void);
 
     LogicalDevice(const LogicalDevice&) = delete;
@@ -44,7 +30,7 @@ public:
     LogicalDevice& operator=(const LogicalDevice&) = delete;
     LogicalDevice& operator=(LogicalDevice&&) = delete;
 
-    bool create_logical_device(void);
+    bool create_logical_device(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
 
     // Retrieval
     const DeviceContext&  get_device_context(void) const;
@@ -58,14 +44,14 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
 private:
-    VkDevice _vk_device;
-    VkQueue  _vk_graphics_queue;
-    VkQueue  _vk_transfer_queue;
-
     const DeviceContext*  _context;
     const PhysicalDevice* _physical_device;
     const QueueFamily*    _graphics_family;
     const QueueFamily*    _transfer_family;
+
+    VkDevice _vk_device;
+    VkQueue  _vk_graphics_queue;
+    VkQueue  _vk_transfer_queue;
 };
 
 }

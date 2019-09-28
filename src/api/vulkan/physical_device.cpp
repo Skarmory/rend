@@ -114,8 +114,8 @@ bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
         present_family = _present_queue_families[0];
     }
 
-    _logical_device = new LogicalDevice(_context, this, graphics_family, present_family);
-    _logical_device->create_logical_device();
+    _logical_device = new LogicalDevice(_context);
+    _logical_device->create_logical_device(this, graphics_family, present_family);
 
     return true;
 }

@@ -1,42 +1,27 @@
 #include "logical_device.h"
 
 #include "physical_device.h"
-#include "command_pool.h"
 #include "command_buffer.h"
-#include "descriptor_pool.h"
-#include "descriptor_set_layout.h"
-#include "event.h"
 #include "fence.h"
-#include "framebuffer.h"
-#include "image.h"
-#include "pipeline.h"
-#include "pipeline_layout.h"
-#include "render_pass.h"
 #include "semaphore.h"
-#include "shader.h"
-#include "swapchain.h"
-#include "utils.h"
 
-#include <algorithm>
 #include <array>
-#include <iostream>
-#include <stdexcept>
 #include <set>
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(const DeviceContext* context, const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
-    : _vk_device(VK_NULL_HANDLE),
+LogicalDevice::LogicalDevice(const DeviceContext* context)
+    : _context(context),
+      _physical_device(nullptr),
+      _graphics_family(nullptr),
+      _transfer_family(nullptr),
+      _vk_device(VK_NULL_HANDLE),
       _vk_graphics_queue(VK_NULL_HANDLE),
-      _vk_transfer_queue(VK_NULL_HANDLE),
-      _context(context),
-      _physical_device(physical_device),
-      _graphics_family(graphics_family),
-      _transfer_family(transfer_family)
+      _vk_transfer_queue(VK_NULL_HANDLE)
 {
 }
 
-bool LogicalDevice::create_logical_device(void)
+bool LogicalDevice::create_logical_device(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
 {
     if(_vk_device != VK_NULL_HANDLE)
         return false;
@@ -45,10 +30,10 @@ bool LogicalDevice::create_logical_device(void)
     float priority = 1.0f;
 
     std::set<uint32_t> unique_queue_families;
-    if(_graphics_family)
+    if(graphics_family)
     {
-        unique_queue_families.emplace(_graphics_family->get_index());
-        unique_queue_families.emplace(_transfer_family->get_index());
+        unique_queue_families.emplace(graphics_family->get_index());
+        unique_queue_families.emplace(transfer_family->get_index());
     }
 
     std::vector<VkDeviceQueueCreateInfo> device_queue_create_infos;
@@ -82,14 +67,19 @@ bool LogicalDevice::create_logical_device(void)
         .pEnabledFeatures = nullptr
     };
 
-    VULKAN_DEATH_CHECK(vkCreateDevice(_physical_device->get_handle(), &device_create_info, nullptr, &_vk_device), "Failed to create logical device");
+    if(vkCreateDevice(physical_device->get_handle(), &device_create_info, nullptr, &_vk_device) != VK_SUCCESS)
+        return false;
 
     // Step 3: Get queue handles
-    if(_graphics_family)
+    if(graphics_family)
     {
-        vkGetDeviceQueue(_vk_device, _graphics_family->get_index(), 0, &_vk_graphics_queue);
-        vkGetDeviceQueue(_vk_device, _transfer_family->get_index(), 0, &_vk_transfer_queue);
+        vkGetDeviceQueue(_vk_device, graphics_family->get_index(), 0, &_vk_graphics_queue);
+        vkGetDeviceQueue(_vk_device, transfer_family->get_index(), 0, &_vk_transfer_queue);
     }
+
+    _physical_device = physical_device;
+    _graphics_family = graphics_family;
+    _transfer_family = transfer_family;
 
     return true;
 }
@@ -146,9 +136,14 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
     vk_wait_sems.reserve(wait_sems.size());
     vk_sig_sems.reserve(signal_sems.size());
 
-    std::for_each(command_buffers.begin(), command_buffers.end(), [&vk_command_buffers](CommandBuffer* buf){ vk_command_buffers.push_back(buf->get_handle());  });
-    std::for_each(wait_sems.begin(), wait_sems.end(), [&vk_wait_sems](Semaphore* s){ vk_wait_sems.push_back(s->get_handle());  });
-    std::for_each(signal_sems.begin(), signal_sems.end(), [&vk_sig_sems](Semaphore* s){ vk_sig_sems.push_back(s->get_handle());  });
+    for(CommandBuffer* buf : command_buffers)
+        vk_command_buffers.push_back(buf->get_handle());
+
+    for(Semaphore* sem : wait_sems)
+        vk_wait_sems.push_back(sem->get_handle());
+
+    for(Semaphore* sem : signal_sems)
+        vk_sig_sems.push_back(sem->get_handle());
 
     VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -166,7 +161,8 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
 
     VkQueue queue = get_queue(type);
 
-    VULKAN_DEATH_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence->get_handle()), "Failed to submit queue");
+    if(vkQueueSubmit(queue, 1, &submit_info, fence->get_handle()) != VK_SUCCESS)
+        return false;
 
     return true;
 }
