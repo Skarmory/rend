@@ -12,15 +12,18 @@
 using namespace rend;
 
 CommandPool::CommandPool(DeviceContext* context)
-    : _vk_command_pool(VK_NULL_HANDLE),
-      _context(context),
+    : _context(context),
       _queue_family(nullptr),
-      _can_reset(false)
+      _can_reset(false),
+      _vk_command_pool(VK_NULL_HANDLE)
 {
 }
 
 CommandPool::~CommandPool(void)
 {
+    //free_all();
+    free_command_buffers(_command_buffers);
+
     vkDestroyCommandPool(_context->get_device()->get_handle(), _vk_command_pool, nullptr);
 }
 
@@ -47,7 +50,8 @@ bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_
 
 std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count, bool primary)
 {
-    DEATH_CHECK(count == 0, "Allocate command buffer called with count 0");
+    if(count == 0)
+        return {};
 
     VkCommandBufferAllocateInfo alloc_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -63,13 +67,14 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
     std::vector<CommandBuffer*> buffers;
     buffers.reserve(count);
 
-    VULKAN_DEATH_CHECK(vkAllocateCommandBuffers(_context->get_device()->get_handle(), &alloc_info, vk_buffers.data()), "Failed to allocate command buffers");
+    if(vkAllocateCommandBuffers(_context->get_device()->get_handle(), &alloc_info, vk_buffers.data()) != VK_SUCCESS)
+        return {};
 
     _command_buffers.reserve(_command_buffers.size() + count);
 
     for(size_t i = 0; i < count; i++)
     {
-        _command_buffers.push_back(new CommandBuffer(vk_buffers[i], _command_buffers.size() + i));
+        _command_buffers.push_back(new CommandBuffer(vk_buffers[i]));
         buffers.push_back(_command_buffers.back());
     }
 
@@ -83,31 +88,23 @@ CommandBuffer* CommandPool::allocate_command_buffer(bool primary)
 
 void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& command_buffers)
 {
-    size_t swap_count = command_buffers.size();
+    std::vector<CommandBuffer*>::iterator it;
 
     std::vector<VkCommandBuffer> vk_buffers;
-    vk_buffers.reserve(swap_count);
+    vk_buffers.reserve(command_buffers.size());
 
-    for(size_t count = swap_count; count > 0; count--)
+    for(CommandBuffer* buf : command_buffers)
     {
-        size_t index_from = command_buffers[count - 1]->_index;
-        size_t index_to = _command_buffers.size() - count;
+        if((it = std::find(_command_buffers.begin(), _command_buffers.end(), buf)) == _command_buffers.end())
+            continue;
 
-        vk_buffers.push_back(_command_buffers[index_from]->_vk_command_buffer);
-
-        if(index_from != index_to)
-        {
-           // Set index of element being swapped with
-            _command_buffers[index_to]->_index = index_from;
-
-            std::swap(_command_buffers[index_from], _command_buffers[index_to]);
-        }
-
+        vk_buffers.push_back(buf->get_handle());
+        _command_buffers.erase(std::remove(_command_buffers.begin(), _command_buffers.end(), buf));
+        delete buf;
     }
 
-    vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, swap_count, vk_buffers.data());
-
-    _command_buffers.erase(_command_buffers.end() - swap_count, _command_buffers.end());
+    if(vk_buffers.size() > 0)
+        vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
 }
 
 void CommandPool::free_command_buffer(CommandBuffer* command_buffer)
@@ -122,7 +119,7 @@ void CommandPool::free_all(void)
 
     for(CommandBuffer* buffer : _command_buffers)
     {
-        vk_buffers.push_back(buffer->_vk_command_buffer);
+        vk_buffers.push_back(buffer->get_handle());
         delete buffer;
     }
 

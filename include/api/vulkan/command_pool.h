@@ -39,12 +39,12 @@ public:
     CommandBuffer* allocate_command_buffer(bool primary=true);
 
     /*
-     * Efficiently free and destroy all the command buffers specified.
+     * Free and destroy all the command buffers specified.
      */
     void free_command_buffers(const std::vector<CommandBuffer*>& command_buffers);
 
     /*
-     * Efficiently free and destroy the command buffer specified.
+     * Free and destroy the command buffer specified.
      */
     void free_command_buffer(CommandBuffer* command_buffer);
 
@@ -54,11 +54,11 @@ public:
     void free_all(void);
 
 private:
-    VkCommandPool  _vk_command_pool;
     DeviceContext* _context;
-
     const QueueFamily* _queue_family;
     bool               _can_reset;
+
+    VkCommandPool  _vk_command_pool;
 
     std::vector<CommandBuffer*> _command_buffers;
 };

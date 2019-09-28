@@ -17,8 +17,10 @@
 
 using namespace rend;
 
-CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index)
-    : _vk_command_buffer(vk_command_buffer), _index(index), _recording(false), _recorded(false)
+CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer)
+    : _recording(false),
+      _recorded(false),
+      _vk_command_buffer(vk_command_buffer)
 {
 }
 

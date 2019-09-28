@@ -1,5 +1,5 @@
-#ifndef COMMAND_BUFFER_H
-#define COMMAND_BUFFER_H
+#ifndef REND_COMMAND_BUFFER_H
+#define REND_COMMAND_BUFFER_H
 
 #include <vulkan.h>
 #include <vector>
@@ -7,7 +7,6 @@
 namespace rend
 {
 
-class CommandPool;
 class DescriptorSet;
 class Framebuffer;
 class GPUBuffer;
@@ -19,12 +18,11 @@ class RenderPass;
 
 class CommandBuffer
 {
-    friend class CommandPool;
-
 public:
-
-    CommandBuffer(const CommandBuffer&) = delete;
-    CommandBuffer(CommandBuffer&&)      = delete;
+    CommandBuffer(VkCommandBuffer vk_command_buffer);
+    ~CommandBuffer(void);
+    CommandBuffer(const CommandBuffer&)            = delete;
+    CommandBuffer(CommandBuffer&&)                 = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;
     CommandBuffer& operator=(CommandBuffer&&)      = delete;
 
@@ -58,15 +56,9 @@ public:
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 
 private:
-
-    CommandBuffer(VkCommandBuffer vk_command_buffer, uint32_t index);
-    ~CommandBuffer(void);
-
-private:
-    VkCommandBuffer _vk_command_buffer;
-    uint32_t        _index;
     bool            _recording;
     bool            _recorded;
+    VkCommandBuffer _vk_command_buffer;
 };
 
 }
