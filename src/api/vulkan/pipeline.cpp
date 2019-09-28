@@ -198,7 +198,7 @@ VkPipeline Pipeline::get_handle(void) const
     return _vk_pipeline;
 }
 
-const PipelineSettings& Pipeline::settings(void) const
+const PipelineSettings& Pipeline::get_settings(void) const
 {
     return _pipeline_settings;
 }

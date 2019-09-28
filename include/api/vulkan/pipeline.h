@@ -92,7 +92,7 @@ public:
     bool create_pipeline(PipelineSettings* settings);
 
     VkPipeline get_handle(void) const;
-    const PipelineSettings& settings(void) const;
+    const PipelineSettings& get_settings(void) const;
 
 private:
     DeviceContext* _context;
