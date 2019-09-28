@@ -58,9 +58,6 @@ public:
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
     // Creational
-    PipelineLayout*       create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
-    void                  destroy_pipeline_layout(PipelineLayout** layout);
-
     Pipeline*             create_pipeline(PipelineSettings* settings);
     void                  destroy_pipeline(Pipeline** pipeline);
 

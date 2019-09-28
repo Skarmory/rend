@@ -1,19 +1,34 @@
 #include "pipeline_layout.h"
 
+#include "device_context.h"
 #include "logical_device.h"
 #include "descriptor_set_layout.h"
-#include "utils.h"
 
 #include <algorithm>
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(LogicalDevice* device, const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges) : _device(device)
+PipelineLayout::PipelineLayout(DeviceContext* context)
+    : _context(context),
+      _vk_layout(VK_NULL_HANDLE)
 {
+}
+
+PipelineLayout::~PipelineLayout(void)
+{
+    vkDestroyPipelineLayout(_context->get_device()->get_handle(), _vk_layout, nullptr);
+}
+
+bool PipelineLayout::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
+{
+    if(_vk_layout != VK_NULL_HANDLE)
+        return false;
+
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(desc_set_layouts.size());
 
-    std::for_each(desc_set_layouts.begin(), desc_set_layouts.end(), [&vk_layouts](DescriptorSetLayout* l){ vk_layouts.push_back(l->get_handle()); });
+    for(DescriptorSetLayout* layout : desc_set_layouts)
+        vk_layouts.push_back(layout->get_handle());
 
     VkPipelineLayoutCreateInfo create_info =
     {
@@ -26,12 +41,10 @@ PipelineLayout::PipelineLayout(LogicalDevice* device, const std::vector<Descript
         .pPushConstantRanges    = push_constant_ranges.data()
     };
 
-    VULKAN_DEATH_CHECK(vkCreatePipelineLayout(_device->get_handle(), &create_info, nullptr, &_vk_layout), "Failed to create pipeline layout");
-}
+    if(vkCreatePipelineLayout(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
+        return false;
 
-PipelineLayout::~PipelineLayout(void)
-{
-    vkDestroyPipelineLayout(_device->get_handle(), _vk_layout, nullptr);
+    return true;
 }
 
 VkPipelineLayout PipelineLayout::get_handle(void) const

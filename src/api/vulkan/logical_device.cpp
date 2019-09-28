@@ -192,22 +192,6 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-PipelineLayout* LogicalDevice::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
-{
-    PipelineLayout* layout = new PipelineLayout(this, desc_set_layouts, push_constant_ranges);
-
-    return layout;
-}
-
-void LogicalDevice::destroy_pipeline_layout(PipelineLayout** layout)
-{
-    if(layout && *layout)
-    {
-        delete (*layout);
-        *layout = nullptr;
-    }
-}
-
 Pipeline* LogicalDevice::create_pipeline(PipelineSettings* settings)
 {
     Pipeline* pipeline = new Pipeline(this, settings);

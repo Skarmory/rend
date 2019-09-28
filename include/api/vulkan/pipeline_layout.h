@@ -1,5 +1,5 @@
-#ifndef PIPELINE_LAYOUT_H
-#define PIPELINE_LAYOUT_H
+#ifndef REND_PIPELINE_LAYOUT_H
+#define REND_PIPELINE_LAYOUT_H
 
 #include <vulkan.h>
 #include <vector>
@@ -8,28 +8,26 @@ namespace rend
 {
 
 class DescriptorSetLayout;
-class LogicalDevice;
+class DeviceContext;
 
 class PipelineLayout
 {
-    friend class LogicalDevice;
-
 public:
-    PipelineLayout(const PipelineLayout&) = delete;
-    PipelineLayout(PipelineLayout&&)      = delete;
+    PipelineLayout(DeviceContext* context);
+    ~PipelineLayout(void);
+    PipelineLayout(const PipelineLayout&)            = delete;
+    PipelineLayout(PipelineLayout&&)                 = delete;
     PipelineLayout& operator=(const PipelineLayout&) = delete;
     PipelineLayout& operator=(PipelineLayout&&)      = delete;
+
+    bool create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
 
     VkPipelineLayout get_handle(void) const;
 
 private:
-    PipelineLayout(LogicalDevice* device, const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges);
-    ~PipelineLayout(void);
+    DeviceContext* _context;
 
-private:
     VkPipelineLayout _vk_layout;
-
-    LogicalDevice* _device;
 };
 
 }
