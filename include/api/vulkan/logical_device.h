@@ -66,8 +66,6 @@ private:
     const PhysicalDevice* _physical_device;
     const QueueFamily*    _graphics_family;
     const QueueFamily*    _transfer_family;
-
-    std::vector<CommandPool*> _command_pools;
 };
 
 }

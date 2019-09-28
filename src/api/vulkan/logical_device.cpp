@@ -96,11 +96,6 @@ bool LogicalDevice::create_logical_device(void)
 
 LogicalDevice::~LogicalDevice(void)
 {
-    for(CommandPool* pool : _command_pools)
-    {
-        delete pool;
-    }
-
     vkDestroyDevice(_vk_device, nullptr);
 }
 
