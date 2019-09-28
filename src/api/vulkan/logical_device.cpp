@@ -191,19 +191,3 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
 
     return std::numeric_limits<uint32_t>::max();
 }
-
-Shader* LogicalDevice::create_shader(const void* data, uint32_t size_bytes, ShaderType type)
-{
-    Shader* shader = new Shader(this, data, size_bytes, type);
-
-    return shader;
-}
-
-void LogicalDevice::destroy_shader(Shader** shader)
-{
-    if(shader && *shader)
-    {
-        delete (*shader);
-        *shader = nullptr;
-    }
-}

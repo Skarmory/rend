@@ -1,13 +1,22 @@
 #include "shader.h"
 
+#include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
 
 using namespace rend;
 
-Shader::Shader(LogicalDevice* device, const void* code, uint32_t size_bytes, ShaderType type)
-    : _device(device), _type(type)
+Shader::Shader(DeviceContext* context)
+    : _context(context),
+      _type(ShaderType::UNKNOWN),
+      _vk_module(VK_NULL_HANDLE)
 {
+}
+
+bool Shader::create_shader(const void* code, uint32_t size_bytes, ShaderType type)
+{
+    if(_vk_module != VK_NULL_HANDLE)
+        return false;
+
     VkShaderModuleCreateInfo info =
     {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -17,12 +26,17 @@ Shader::Shader(LogicalDevice* device, const void* code, uint32_t size_bytes, Sha
         .pCode = static_cast<const uint32_t*>(code)
     };
 
-    VULKAN_DEATH_CHECK(vkCreateShaderModule(_device->get_handle(), &info, nullptr, &_vk_module), "Failed to create shader");
+    if(vkCreateShaderModule(_context->get_device()->get_handle(), &info, nullptr, &_vk_module) != VK_SUCCESS)
+        return false;
+
+    _type = type;
+
+    return true;
 }
 
 Shader::~Shader(void)
 {
-    vkDestroyShaderModule(_device->get_handle(), _vk_module, nullptr);
+    vkDestroyShaderModule(_context->get_device()->get_handle(), _vk_module, nullptr);
 }
 
 VkShaderModule Shader::get_handle(void) const

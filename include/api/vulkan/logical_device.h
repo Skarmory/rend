@@ -57,10 +57,6 @@ public:
     bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
-    // Creational
-    Shader*               create_shader(const void* data, uint32_t size_bytes, ShaderType type);
-    void                  destroy_shader(Shader** shader);
-
 private:
     VkDevice _vk_device;
     VkQueue  _vk_graphics_queue;

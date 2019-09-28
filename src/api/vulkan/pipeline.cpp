@@ -18,6 +18,11 @@ Pipeline::Pipeline(DeviceContext* context)
 {
 }
 
+Pipeline::~Pipeline(void)
+{
+    vkDestroyPipeline(_context->get_device()->get_handle(), _vk_pipeline, nullptr);
+}
+
 bool Pipeline::create_pipeline(PipelineSettings* settings)
 {
     if(_vk_pipeline != VK_NULL_HANDLE)
@@ -34,6 +39,8 @@ bool Pipeline::create_pipeline(PipelineSettings* settings)
 
             case ShaderType::FRAGMENT:
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
+            case ShaderType::UNKNOWN:
+                return false;
         }
 
         shader_stage_infos[idx] =
@@ -185,10 +192,6 @@ bool Pipeline::create_pipeline(PipelineSettings* settings)
     return true;
 }
 
-Pipeline::~Pipeline(void)
-{
-    vkDestroyPipeline(_context->get_device()->get_handle(), _vk_pipeline, nullptr);
-}
 
 VkPipeline Pipeline::get_handle(void) const
 {
