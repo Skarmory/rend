@@ -7,6 +7,7 @@
 namespace rend
 {
 
+class CommandPool;
 class DescriptorSet;
 class Framebuffer;
 class GPUBuffer;
@@ -19,13 +20,14 @@ class RenderPass;
 class CommandBuffer
 {
 public:
-    CommandBuffer(VkCommandBuffer vk_command_buffer);
+    CommandBuffer(CommandPool* pool, VkCommandBuffer vk_command_buffer);
     ~CommandBuffer(void);
     CommandBuffer(const CommandBuffer&)            = delete;
     CommandBuffer(CommandBuffer&&)                 = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;
     CommandBuffer& operator=(CommandBuffer&&)      = delete;
 
+    CommandPool&    get_pool(void) const;
     VkCommandBuffer get_handle(void) const;
 
     void begin(void);
@@ -56,6 +58,7 @@ public:
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 
 private:
+    CommandPool*    _pool;
     bool            _recording;
     bool            _recorded;
     VkCommandBuffer _vk_command_buffer;

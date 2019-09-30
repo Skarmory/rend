@@ -17,8 +17,9 @@
 
 using namespace rend;
 
-CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer)
-    : _recording(false),
+CommandBuffer::CommandBuffer(CommandPool* pool, VkCommandBuffer vk_command_buffer)
+    : _pool(pool),
+      _recording(false),
       _recorded(false),
       _vk_command_buffer(vk_command_buffer)
 {
@@ -26,6 +27,11 @@ CommandBuffer::CommandBuffer(VkCommandBuffer vk_command_buffer)
 
 CommandBuffer::~CommandBuffer(void)
 {
+}
+
+CommandPool& CommandBuffer::get_pool(void) const
+{
+    return *_pool;
 }
 
 VkCommandBuffer CommandBuffer::get_handle(void) const

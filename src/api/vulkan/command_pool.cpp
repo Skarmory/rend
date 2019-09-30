@@ -21,8 +21,7 @@ CommandPool::CommandPool(DeviceContext* context)
 
 CommandPool::~CommandPool(void)
 {
-    //free_all();
-    free_command_buffers(_command_buffers);
+    free_all();
 
     vkDestroyCommandPool(_context->get_device()->get_handle(), _vk_command_pool, nullptr);
 }
@@ -74,7 +73,7 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
 
     for(size_t i = 0; i < count; i++)
     {
-        _command_buffers.push_back(new CommandBuffer(vk_buffers[i]));
+        _command_buffers.push_back(new CommandBuffer(this, vk_buffers[i]));
         buffers.push_back(_command_buffers.back());
     }
 
@@ -88,19 +87,18 @@ CommandBuffer* CommandPool::allocate_command_buffer(bool primary)
 
 void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& command_buffers)
 {
-    std::vector<CommandBuffer*>::iterator it;
-
     std::vector<VkCommandBuffer> vk_buffers;
     vk_buffers.reserve(command_buffers.size());
 
     for(CommandBuffer* buf : command_buffers)
     {
-        if((it = std::find(_command_buffers.begin(), _command_buffers.end(), buf)) == _command_buffers.end())
-            continue;
-
-        vk_buffers.push_back(buf->get_handle());
-        _command_buffers.erase(std::remove(_command_buffers.begin(), _command_buffers.end(), buf));
-        delete buf;
+        auto it = std::remove(_command_buffers.begin(), _command_buffers.end(), buf);
+        if(it != _command_buffers.end())
+        {
+            _command_buffers.erase(it);
+            vk_buffers.push_back(buf->get_handle());
+            delete buf;
+        }
     }
 
     if(vk_buffers.size() > 0)
