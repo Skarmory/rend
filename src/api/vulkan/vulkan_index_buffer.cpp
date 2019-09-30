@@ -8,7 +8,8 @@
 using namespace rend;
 
 VulkanIndexBuffer::VulkanIndexBuffer(DeviceContext* context)
-    : _context(context), _buffer(nullptr)
+    : _context(context),
+      _buffer(nullptr)
 {
 }
 

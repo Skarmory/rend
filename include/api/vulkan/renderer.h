@@ -49,7 +49,7 @@ struct FrameResources
 struct Task
 {
     virtual ~Task(void) = default;
-    virtual void execute(DeviceContext* context, FrameResources* resources) = 0;
+    virtual void execute(DeviceContext& context, FrameResources& resources) = 0;
 };
 
 struct LoadTask : public Task
@@ -60,7 +60,7 @@ struct LoadTask : public Task
     size_t       size_bytes;
 
     LoadTask(void* resource, ResourceType type, void* data, size_t bytes) : resource(resource), resource_type(type), data(data), size_bytes(bytes) {}
-    virtual void execute(DeviceContext* context, FrameResources* resources) override;
+    virtual void execute(DeviceContext& context, FrameResources& resources) override;
 };
 
 struct ImageTransitionTask : public Task
@@ -71,7 +71,7 @@ struct ImageTransitionTask : public Task
     VkImageLayout        final_layout;
 
     ImageTransitionTask(Texture2D* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
-    virtual void execute(DeviceContext* context, FrameResources* resources) override;
+    virtual void execute(DeviceContext& context, FrameResources& resources) override;
 };
 
 class Renderer
@@ -103,15 +103,15 @@ public:
     void transition(Texture2D* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions
-    FrameResources* start_frame(void);
-    void end_frame(FrameResources* frame_res);
-    void begin_render_pass(FrameResources* frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area={ 0, 0, 0, 0 });
-    void end_render_pass(FrameResources* frame_res);
+    FrameResources& start_frame(void);
+    void end_frame(FrameResources& frame_res);
+    void begin_render_pass(FrameResources& frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area={ 0, 0, 0, 0 });
+    void end_render_pass(FrameResources& frame_res);
     void resize_resources(void);
 
 private:
     // Tasking
-    void _process_task_queue(FrameResources* resources);
+    void _process_task_queue(FrameResources& resources);
 
     void _create_default_renderpass(void);
     void _create_default_framebuffers(bool recreate);

@@ -30,13 +30,13 @@ public:
     CommandPool&    get_pool(void) const;
     VkCommandBuffer get_handle(void) const;
 
-    void begin(void);
-    void end(void);
-    void reset(void);
+    bool begin(void);
+    bool end(void);
+    bool reset(void);
     bool recording(void) const;
     bool recorded(void) const;
 
-    void begin_render_pass(const RenderPass& render_pass, Framebuffer* framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
+    void begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values);
     void end_render_pass(void);
 
     void set_viewport(const VkViewport& viewport);
@@ -44,7 +44,7 @@ public:
 
     void bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline& pipeline);
     void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
-    void bind_index_buffer(IndexBuffer* buffer, VkDeviceSize offset, VkIndexType index_type);
+    void bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize offset, VkIndexType index_type);
     void bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
 
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);
@@ -52,8 +52,8 @@ public:
 
     void push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data);
 
-    void copy_buffer_to_image(GPUBuffer* buffer, Image* image);
-    void copy_buffer_to_buffer(GPUBuffer* src, GPUBuffer* dst);
+    void copy_buffer_to_image(const GPUBuffer& buffer, const Image& image);
+    void copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer& dst);
 
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 

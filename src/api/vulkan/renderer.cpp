@@ -119,43 +119,43 @@ void Renderer::transition(Texture2D* texture, VkPipelineStageFlags src, VkPipeli
     _task_queue.push(task);
 }
 
-FrameResources* Renderer::start_frame(void)
+FrameResources& Renderer::start_frame(void)
 {
-    FrameResources* frame_res = &_frame_resources[_frame_counter % _FRAMES_IN_FLIGHT];
+    FrameResources& frame_res = _frame_resources[_frame_counter % _FRAMES_IN_FLIGHT];
     _frame_counter++;
 
-    frame_res->submit_fen->wait();
-    frame_res->submit_fen->reset();
-    frame_res->command_buffer->reset();
+    frame_res.submit_fen->wait();
+    frame_res.submit_fen->reset();
+    frame_res.command_buffer->reset();
 
     do
     {
-        if((frame_res->swapchain_idx = _swapchain->acquire(frame_res->acquire_sem, nullptr)) == SWAPCHAIN_OUT_OF_DATE)
+        if((frame_res.swapchain_idx = _swapchain->acquire(frame_res.acquire_sem, nullptr)) == SWAPCHAIN_OUT_OF_DATE)
             resize_resources();
     }
-    while(frame_res->swapchain_idx == SWAPCHAIN_OUT_OF_DATE);
+    while(frame_res.swapchain_idx == SWAPCHAIN_OUT_OF_DATE);
 
     _process_task_queue(frame_res);
 
     return frame_res;
 }
 
-void Renderer::end_frame(FrameResources* frame_res)
+void Renderer::end_frame(FrameResources& frame_res)
 {
-    _swapchain->present(QueueType::GRAPHICS, { frame_res->present_sem });
+    _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
-void Renderer::begin_render_pass(FrameResources* frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area)
+void Renderer::begin_render_pass(FrameResources& frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area)
 {
     if(render_area.extent.width == 0 && render_area.extent.height == 0)
         render_area.extent = _swapchain->get_extent();
 
-    frame_res->command_buffer->begin_render_pass(*_default_render_pass, _default_framebuffers[frame_res->swapchain_idx], render_area, clear_values);
+    frame_res.command_buffer->begin_render_pass(*_default_render_pass, *_default_framebuffers[frame_res.swapchain_idx], render_area, clear_values);
 }
 
-void Renderer::end_render_pass(FrameResources* frame_res)
+void Renderer::end_render_pass(FrameResources& frame_res)
 {
-    frame_res->command_buffer->end_render_pass();
+    frame_res.command_buffer->end_render_pass();
 }
 
 void Renderer::resize_resources(void)
@@ -164,7 +164,7 @@ void Renderer::resize_resources(void)
     _create_default_framebuffers(true);
 }
 
-void Renderer::_process_task_queue(FrameResources* resources)
+void Renderer::_process_task_queue(FrameResources& resources)
 {
     if(_task_queue.empty())
         return;
@@ -172,36 +172,36 @@ void Renderer::_process_task_queue(FrameResources* resources)
     Fence* load_fence = new Fence(_context);
     load_fence->create_fence(false);
 
-    resources->command_buffer->begin();
+    resources.command_buffer->begin();
 
     while(!_task_queue.empty())
     {
         Task* task = _task_queue.front();
         _task_queue.pop();
-        task->execute(_context, resources);
+        task->execute(*_context, resources);
         delete task;
     }
 
-    resources->command_buffer->end();
+    resources.command_buffer->end();
 
-    if(resources->command_buffer->recorded())
+    if(resources.command_buffer->recorded())
     {
-        _context->get_device()->queue_submit({ resources->command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
+        _context->get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
         load_fence->wait();
     }
 
-    resources->command_buffer->reset();
+    resources.command_buffer->reset();
     delete load_fence;
 
-    for(auto staging_buffer : resources->staging_buffers)
+    for(auto staging_buffer : resources.staging_buffers)
     {
         delete staging_buffer;
     }
 
-    resources->staging_buffers.clear();
+    resources.staging_buffers.clear();
 }
 
-void LoadTask::execute(DeviceContext* context, FrameResources* resources)
+void LoadTask::execute(DeviceContext& context, FrameResources& resources)
 {
     bool is_device_local = false;
     switch(resource_type)
@@ -223,30 +223,30 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
 
     if(is_device_local)
     {
-        GPUBuffer* staging_buffer = new GPUBuffer(context);
+        GPUBuffer* staging_buffer = new GPUBuffer(&context);
         staging_buffer->create(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
-        resources->staging_buffers.push_back(staging_buffer);
+        resources.staging_buffers.push_back(staging_buffer);
 
         memory = staging_buffer->get_memory();
 
-        vkMapMemory(context->get_device()->get_handle(), memory, 0, staging_buffer->get_size(), 0, &mapped);
+        vkMapMemory(context.get_device()->get_handle(), memory, 0, staging_buffer->get_size(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        vkUnmapMemory(context->get_device()->get_handle(), memory);
+        vkUnmapMemory(context.get_device()->get_handle(), memory);
 
         switch(resource_type)
         {
             case ResourceType::VERTEX_BUFFER:
-                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<VertexBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VertexBuffer*>(resource)->gpu_buffer());
                 break;
             case ResourceType::INDEX_BUFFER:
-                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<IndexBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<IndexBuffer*>(resource)->gpu_buffer());
                 break;
             case ResourceType::UNIFORM_BUFFER:
-                resources->command_buffer->copy_buffer_to_buffer(staging_buffer, static_cast<UniformBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<UniformBuffer*>(resource)->gpu_buffer());
                 break;
             case ResourceType::TEXTURE2D:
-                resources->command_buffer->copy_buffer_to_image(staging_buffer, static_cast<Texture2D*>(resource)->get_image());
+                resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<Texture2D*>(resource)->get_image());
                 break;
         }
     }
@@ -268,13 +268,13 @@ void LoadTask::execute(DeviceContext* context, FrameResources* resources)
                 break;
         }
 
-        vkMapMemory(context->get_device()->get_handle(), memory, 0, size_bytes, 0, &mapped);
+        vkMapMemory(context.get_device()->get_handle(), memory, 0, size_bytes, 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        vkUnmapMemory(context->get_device()->get_handle(), memory);
+        vkUnmapMemory(context.get_device()->get_handle(), memory);
     }
 }
 
-void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resources)
+void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resources)
 {
     UU(context);
 
@@ -362,7 +362,7 @@ void ImageTransitionTask::execute(DeviceContext* context, FrameResources* resour
             return;
     }
 
-    resources->command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
+    resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
     image->get_image()->transition(final_layout);
 }
