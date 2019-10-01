@@ -31,10 +31,17 @@ bool DescriptorSetLayout::create_descriptor_set_layout(const std::vector<VkDescr
     if(vkCreateDescriptorSetLayout(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
         return false;
 
+    _bindings = bindings;
+
     return true;
 }
 
 VkDescriptorSetLayout DescriptorSetLayout::get_handle(void) const
 {
     return _vk_layout;
+}
+
+const std::vector<VkDescriptorSetLayoutBinding>& DescriptorSetLayout::get_layout_bindings(void) const
+{
+    return _bindings;
 }

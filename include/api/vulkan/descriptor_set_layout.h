@@ -21,10 +21,12 @@ public:
 
     bool create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
 
-    VkDescriptorSetLayout get_handle(void) const;
+    VkDescriptorSetLayout                            get_handle(void) const;
+    const std::vector<VkDescriptorSetLayoutBinding>& get_layout_bindings(void) const;
 
 private:
     DeviceContext* _context;
+    std::vector<VkDescriptorSetLayoutBinding> _bindings;
 
     VkDescriptorSetLayout _vk_layout;
 };
