@@ -3,9 +3,6 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "descriptor_set_layout.h"
-#include "utils.h"
-
-#include <algorithm>
 
 using namespace rend;
 
@@ -104,8 +101,9 @@ DescriptorPool::DescriptorPool(DeviceContext* context)
 
 DescriptorPool::~DescriptorPool(void)
 {
-    for(auto dset : _sets)
+    for(DescriptorSet* dset : _sets)
         delete dset;
+
     vkDestroyDescriptorPool(_context->get_device()->get_handle(), _vk_pool, nullptr);
 }
 
@@ -162,7 +160,7 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
     if((result = vkAllocateDescriptorSets(_context->get_device()->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
         return result;
 
-    for(auto vk_set : vk_sets)
+    for(VkDescriptorSet vk_set : vk_sets)
     {
         DescriptorSet* dset = new DescriptorSet(_context, vk_set);
         _sets.push_back(dset);
