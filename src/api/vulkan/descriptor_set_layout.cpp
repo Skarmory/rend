@@ -19,6 +19,9 @@ DescriptorSetLayout::~DescriptorSetLayout(void)
 
 bool DescriptorSetLayout::create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
 {
+    if(_vk_layout != VK_NULL_HANDLE)
+        return false;
+
     VkDescriptorSetLayoutCreateInfo create_info =
     {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
