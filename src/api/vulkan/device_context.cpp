@@ -2,10 +2,8 @@
 
 #include "physical_device.h"
 #include "window.h"
-#include "utils.h"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
 
 using namespace rend;
 
@@ -68,7 +66,8 @@ bool DeviceContext::create_device_context(const char** extensions, uint32_t exte
         .ppEnabledExtensionNames = extensions 
     };
 
-    VULKAN_DEATH_CHECK(vkCreateInstance(&instance_create_info, nullptr, &_vk_instance), "Failed to create Vulkan instance");
+    if(vkCreateInstance(&instance_create_info, nullptr, &_vk_instance) != VK_SUCCESS)
+        return false;
 
     // Step 2: Create surface
     _window->_create_surface_private(_vk_instance);
