@@ -23,9 +23,8 @@ public:
     VkEvent get_handle(void) const;
 
 private:
-    VkEvent _vk_event;
-
     DeviceContext* _context;
+    VkEvent        _vk_event;
 };
 
 }

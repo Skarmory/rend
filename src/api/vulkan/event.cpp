@@ -2,11 +2,12 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
 
 using namespace rend;
 
-Event::Event(DeviceContext* context) : _vk_event(VK_NULL_HANDLE), _context(context)
+Event::Event(DeviceContext* context)
+    : _context(context),
+      _vk_event(VK_NULL_HANDLE)
 {
 }
 
@@ -28,10 +29,7 @@ bool Event::create_event(void)
     };
 
     if(vkCreateEvent(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_event) != VK_SUCCESS)
-    {
-        std::cerr << "Failed to create event" << std::endl;
         return false;
-    }
 
     return true;
 }
