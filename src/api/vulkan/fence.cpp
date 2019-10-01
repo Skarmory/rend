@@ -4,8 +4,6 @@
 #include "logical_device.h"
 #include "utils.h"
 
-#include <iostream>
-
 using namespace rend;
 
 Fence::Fence(DeviceContext* context)
@@ -32,10 +30,7 @@ bool Fence::create_fence(bool start_signalled)
     };
 
     if(vkCreateFence(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_fence) != VK_SUCCESS)
-    {
-        std::cerr << "Failed to create fence" << std::endl;
         return false;
-    }
 
     return true;
 }
