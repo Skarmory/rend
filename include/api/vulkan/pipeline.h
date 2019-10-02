@@ -95,10 +95,9 @@ public:
     const PipelineSettings& get_settings(void) const;
 
 private:
-    DeviceContext* _context;
+    DeviceContext*   _context;
     PipelineSettings _pipeline_settings;
-
-    VkPipeline _vk_pipeline;
+    VkPipeline       _vk_pipeline;
 };
 
 }

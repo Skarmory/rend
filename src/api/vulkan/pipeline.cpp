@@ -36,7 +36,6 @@ bool Pipeline::create_pipeline(PipelineSettings* settings)
         {
             case ShaderType::VERTEX:
                 stage = VK_SHADER_STAGE_VERTEX_BIT; break;
-
             case ShaderType::FRAGMENT:
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
             case ShaderType::UNKNOWN:
