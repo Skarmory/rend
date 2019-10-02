@@ -4,8 +4,6 @@
 #include "logical_device.h"
 #include "descriptor_set_layout.h"
 
-#include <algorithm>
-
 using namespace rend;
 
 PipelineLayout::PipelineLayout(DeviceContext* context)
