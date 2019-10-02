@@ -25,7 +25,7 @@ Swapchain::Swapchain(DeviceContext& context)
 Swapchain::~Swapchain(void)
 {
     _destroy_image_views();
-    vkDestroySwapchainKHR(_context.get_device()->get_handle(), _vk_swapchain, nullptr);
+    _context.get_device()->destroy_swapchain(_vk_swapchain);
 }
 
 VkFormat Swapchain::get_format(void) const
@@ -141,32 +141,19 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
-    VkSwapchainCreateInfoKHR create_info = {
-        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .surface               = _context.get_surface(),
-        .minImageCount         = _image_count,
-        .imageFormat           = _surface_format.format,
-        .imageColorSpace       = _surface_format.colorSpace,
-        .imageExtent           = surface_caps.currentExtent,
-        .imageArrayLayers      = 1,
-        .imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices   = nullptr,
-        .preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
-        .compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode           = _present_mode,
-        .clipped               = VK_TRUE,
-        .oldSwapchain          = old_swapchain
-    };
+    _vk_swapchain = _context.get_device()->create_swapchain(
+        _context.get_surface(), _image_count, _surface_format.format,
+        _surface_format.colorSpace, surface_caps.currentExtent, 1,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
+        nullptr, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        _present_mode, VK_TRUE, old_swapchain
+    );
 
-    if(vkCreateSwapchainKHR(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
+    if(_vk_swapchain == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 
     if(old_swapchain != VK_NULL_HANDLE)
-        vkDestroySwapchainKHR(_context.get_device()->get_handle(), old_swapchain, nullptr);
+        _context.get_device()->destroy_swapchain(old_swapchain);
 
     return _get_images();
 }

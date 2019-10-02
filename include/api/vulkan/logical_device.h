@@ -21,7 +21,7 @@ class LogicalDevice
 {
 
 public:
-    LogicalDevice(const DeviceContext* device_context);
+    LogicalDevice(const DeviceContext& device_context);
     ~LogicalDevice(void);
 
     LogicalDevice(const LogicalDevice&) = delete;
@@ -43,8 +43,18 @@ public:
     bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
 
+    VkSwapchainKHR create_swapchain(
+        VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
+        VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
+        VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count,
+        const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha,
+        VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain
+    );
+
+    void destroy_swapchain(VkSwapchainKHR swapchain);
+
 private:
-    const DeviceContext*  _context;
+    const DeviceContext&  _context;
     const PhysicalDevice* _physical_device;
     const QueueFamily*    _graphics_family;
     const QueueFamily*    _transfer_family;

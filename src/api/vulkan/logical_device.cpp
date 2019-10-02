@@ -10,7 +10,7 @@
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(const DeviceContext* context)
+LogicalDevice::LogicalDevice(const DeviceContext& context)
     : _context(context),
       _physical_device(nullptr),
       _graphics_family(nullptr),
@@ -118,7 +118,7 @@ const QueueFamily* LogicalDevice::get_queue_family(QueueType type) const
 
 const DeviceContext& LogicalDevice::get_device_context(void) const
 {
-    return *_context;
+    return _context;
 }
 
 const PhysicalDevice& LogicalDevice::get_physical_device(void) const
@@ -181,4 +181,44 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     }
 
     return std::numeric_limits<uint32_t>::max();
+}
+
+VkSwapchainKHR LogicalDevice::create_swapchain(
+        VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
+        VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
+        VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count,
+        const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha,
+        VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain
+    )
+{
+    VkSwapchainCreateInfoKHR create_info = {
+        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext                 = nullptr,
+        .flags                 = 0,
+        .surface               = surface,
+        .minImageCount         = min_image_count,
+        .imageFormat           = format,
+        .imageColorSpace       = colour_space,
+        .imageExtent           = extent,
+        .imageArrayLayers      = array_layers,
+        .imageUsage            = image_usage,
+        .imageSharingMode      = sharing_mode,
+        .queueFamilyIndexCount = queue_family_index_count,
+        .pQueueFamilyIndices   = queue_family_indices,
+        .preTransform          = pre_transform,
+        .compositeAlpha        = composite_alpha,
+        .presentMode           = present_mode,
+        .clipped               = clipped,
+        .oldSwapchain          = old_swapchain
+    };
+
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+    vkCreateSwapchainKHR(_vk_device, &create_info, nullptr, &swapchain);
+
+    return swapchain;
+}
+
+void LogicalDevice::destroy_swapchain(VkSwapchainKHR swapchain)
+{
+    vkDestroySwapchainKHR(_vk_device, swapchain, nullptr);
 }
