@@ -3,6 +3,23 @@
 
 #define UU(x) ((void)x)
 
-const uint32_t SWAPCHAIN_OUT_OF_DATE = std::numeric_limits<uint32_t>::max();
+namespace rend
+{
+
+enum class StatusCode
+{
+    // Generic
+    SUCCESS,
+    FAILURE,
+    ALREADY_CREATED,
+
+    // Swapchain
+    SWAPCHAIN_OUT_OF_DATE,
+    SWAPCHAIN_ACQUIRE_ERROR,
+    SWAPCHAIN_NO_SURFACE_FORMATS_FOUND,
+    SWAPCHAIN_NO_SURFACE_PRESENT_MODES_FOUND
+};
+
+}
 
 #endif

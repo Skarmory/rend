@@ -4,15 +4,14 @@
 #include "fence.h"
 #include "physical_device.h"
 #include "logical_device.h"
+#include "rend_defs.h"
 #include "semaphore.h"
-#include "utils.h"
 
-#include <algorithm>
 #include <limits>
 
 using namespace rend;
 
-Swapchain::Swapchain(DeviceContext* context)
+Swapchain::Swapchain(DeviceContext& context)
     : _context(context),
       _image_count(0),
       _current_image_idx(0),
@@ -26,7 +25,7 @@ Swapchain::Swapchain(DeviceContext* context)
 Swapchain::~Swapchain(void)
 {
     _destroy_image_views();
-    vkDestroySwapchainKHR(_context->get_device()->get_handle(), _vk_swapchain, nullptr);
+    vkDestroySwapchainKHR(_context.get_device()->get_handle(), _vk_swapchain, nullptr);
 }
 
 VkFormat Swapchain::get_format(void) const
@@ -54,26 +53,30 @@ VkSwapchainKHR Swapchain::get_handle(void) const
     return _vk_swapchain;
 }
 
-bool Swapchain::create_swapchain(uint32_t desired_images)
+uint32_t Swapchain::get_current_image_index(void) const
+{
+    return _current_image_idx;
+}
+
+StatusCode Swapchain::create_swapchain(uint32_t desired_images)
 {
     if(_vk_swapchain != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
     return _create_swapchain(desired_images);
 }
 
-
-void Swapchain::recreate(void)
+StatusCode Swapchain::recreate(void)
 {
-    vkDeviceWaitIdle(_context->get_device()->get_handle());
+    vkDeviceWaitIdle(_context.get_device()->get_handle());
     _destroy_image_views();
-    _create_swapchain(_image_count);
+    return _create_swapchain(_image_count);
 }
 
-uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
+StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
     VkResult result = vkAcquireNextImageKHR(
-        _context->get_device()->get_handle(),
+        _context.get_device()->get_handle(),
         _vk_swapchain,
         std::numeric_limits<uint64_t>::max(),
         signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
@@ -84,19 +87,15 @@ uint32_t Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
     if(result != VK_SUCCESS)
     {
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
-        {
-            return SWAPCHAIN_OUT_OF_DATE;
-        }
+            return StatusCode::SWAPCHAIN_OUT_OF_DATE;
         else
-        {
-            DEATH_CHECK(false, "Failed to acquire next swapchain image");
-        }
+            return StatusCode::SWAPCHAIN_ACQUIRE_ERROR;
     }
 
-    return _current_image_idx;
+    return StatusCode::SUCCESS;
 }
 
-bool Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
+StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
     std::vector<VkSemaphore> vk_sems;
     vk_sems.reserve(wait_sems.size());
@@ -116,21 +115,27 @@ bool Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems
         .pResults = nullptr
     };
 
-    if(vkQueuePresentKHR(_context->get_device()->get_queue(type), &present_info) != VK_SUCCESS)
-        return false;
+    if(vkQueuePresentKHR(_context.get_device()->get_queue(type), &present_info) != VK_SUCCESS)
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
-bool Swapchain::_create_swapchain(uint32_t desired_images)
+StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 {
-    const PhysicalDevice& physical_device = _context->get_device()->get_physical_device();
+    const PhysicalDevice& physical_device = _context.get_device()->get_physical_device();
 
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
 
+    if(physical_device.get_surface_formats().empty())
+        return StatusCode::SWAPCHAIN_NO_SURFACE_FORMATS_FOUND;
+
+    if(physical_device.get_surface_present_modes().empty())
+        return StatusCode::SWAPCHAIN_NO_SURFACE_PRESENT_MODES_FOUND;
+
     _surface_format = _find_surface_format(physical_device.get_surface_formats());
-    _present_mode = _find_present_mode(physical_device.get_surface_present_modes());
-    _image_count = _find_image_count(desired_images, surface_caps);
+    _present_mode   = _find_present_mode(physical_device.get_surface_present_modes());
+    _image_count    = _find_image_count(desired_images, surface_caps);
 
     _vk_extent = surface_caps.currentExtent;
 
@@ -140,7 +145,7 @@ bool Swapchain::_create_swapchain(uint32_t desired_images)
         .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext                 = nullptr,
         .flags                 = 0,
-        .surface               = _context->get_surface(),
+        .surface               = _context.get_surface(),
         .minImageCount         = _image_count,
         .imageFormat           = _surface_format.format,
         .imageColorSpace       = _surface_format.colorSpace,
@@ -157,30 +162,28 @@ bool Swapchain::_create_swapchain(uint32_t desired_images)
         .oldSwapchain          = old_swapchain
     };
 
-    if(vkCreateSwapchainKHR(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
-        return false;
+    if(vkCreateSwapchainKHR(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_swapchain) != VK_SUCCESS)
+        return StatusCode::FAILURE;
 
     if(old_swapchain != VK_NULL_HANDLE)
-        vkDestroySwapchainKHR(_context->get_device()->get_handle(), old_swapchain, nullptr);
+        vkDestroySwapchainKHR(_context.get_device()->get_handle(), old_swapchain, nullptr);
 
-    _get_images();
-
-    return true;
+    return _get_images();
 }
 
 void Swapchain::_destroy_image_views(void)
 {
     for(size_t idx = 0; idx < _image_count; idx++)
-        vkDestroyImageView(_context->get_device()->get_handle(), _vk_image_views[idx], nullptr);
+        vkDestroyImageView(_context.get_device()->get_handle(), _vk_image_views[idx], nullptr);
 }
 
-void Swapchain::_get_images(void)
+StatusCode Swapchain::_get_images(void)
 {
-    vkGetSwapchainImagesKHR(_context->get_device()->get_handle(), _vk_swapchain, &_image_count, nullptr);
+    vkGetSwapchainImagesKHR(_context.get_device()->get_handle(), _vk_swapchain, &_image_count, nullptr);
 
     _vk_images.resize(_image_count);
 
-    vkGetSwapchainImagesKHR(_context->get_device()->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
+    vkGetSwapchainImagesKHR(_context.get_device()->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
 
     _vk_image_views.resize(_image_count);
 
@@ -197,14 +200,15 @@ void Swapchain::_get_images(void)
     for(size_t idx = 0; idx < _vk_images.size(); idx++)
     {
         image_view_create_info.image = _vk_images[idx];
-        VULKAN_DEATH_CHECK(vkCreateImageView(_context->get_device()->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]), "Failed to create swapchain image image view");
+        if(vkCreateImageView(_context.get_device()->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]) != VK_SUCCESS)
+            return StatusCode::FAILURE;
     }
+
+    return StatusCode::SUCCESS;
 }
 
 VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats)
 {
-    DEATH_CHECK(surface_formats.size() == 0, "No surface formats found");
-
     if(surface_formats.size() == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED)
         return VkSurfaceFormatKHR{ .format=VK_FORMAT_B8G8R8A8_UNORM, .colorSpace=VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
 
@@ -219,8 +223,6 @@ VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFo
 
 VkPresentModeKHR Swapchain::_find_present_mode(const std::vector<VkPresentModeKHR>& present_modes)
 {
-    DEATH_CHECK(present_modes.size() == 0, "No present modes found");
-
     VkPresentModeKHR chosen = VK_PRESENT_MODE_FIFO_KHR;
     for(VkPresentModeKHR present_mode : present_modes)
     {

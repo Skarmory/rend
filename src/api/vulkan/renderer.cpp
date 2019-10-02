@@ -30,7 +30,7 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
     _context->create_device_context(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
     _context->create_device(desired_features, desired_queues);
 
-    _swapchain = new Swapchain(_context);
+    _swapchain = new Swapchain(*_context);
     _swapchain->create_swapchain(3);
 
     _command_pool = new CommandPool(_context);
@@ -128,12 +128,20 @@ FrameResources& Renderer::start_frame(void)
     frame_res.submit_fen->reset();
     frame_res.command_buffer->reset();
 
-    do
+    StatusCode code = StatusCode::SUCCESS;
+    while((code = _swapchain->acquire(frame_res.acquire_sem, nullptr)) != StatusCode::SUCCESS)
     {
-        if((frame_res.swapchain_idx = _swapchain->acquire(frame_res.acquire_sem, nullptr)) == SWAPCHAIN_OUT_OF_DATE)
+        if(code == StatusCode::SWAPCHAIN_ACQUIRE_ERROR)
+        {
+            std::cerr << "Failed to acquire swapchain image" << std::endl;
+            std::abort();
+        }
+
+        if(code == StatusCode::SWAPCHAIN_OUT_OF_DATE)
             resize_resources();
     }
-    while(frame_res.swapchain_idx == SWAPCHAIN_OUT_OF_DATE);
+
+    frame_res.swapchain_idx = _swapchain->get_current_image_index();
 
     _process_task_queue(frame_res);
 
