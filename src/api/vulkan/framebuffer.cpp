@@ -54,7 +54,7 @@ VkFramebuffer Framebuffer::get_handle(void) const
     return _vk_framebuffer;
 }
 
-const VkFramebufferCreateInfo& get_vk_create_info(void) const
+const VkFramebufferCreateInfo& Framebuffer::get_vk_create_info(void) const
 {
     return _vk_create_info;
 }
