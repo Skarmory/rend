@@ -23,8 +23,9 @@ public:
     bool create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
     bool recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
 
-    VkFramebuffer       get_handle(void) const;
-    const RenderPass*   get_render_pass(void) const;
+    VkFramebuffer                  get_handle(void) const;
+    const VkFramebufferCreateInfo& get_vk_create_info(void) const;
+    const RenderPass*              get_render_pass(void) const;
 
 private:
     bool _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);

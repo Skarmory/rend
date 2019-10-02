@@ -3,7 +3,6 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "render_pass.h"
-#include "utils.h"
 
 using namespace rend;
 
@@ -41,16 +40,6 @@ bool Framebuffer::create_framebuffer(const RenderPass& render_pass, const std::v
     return _create(attachments, dimensions);
 }
 
-VkFramebuffer Framebuffer::get_handle(void) const
-{
-    return _vk_framebuffer;
-}
-
-const RenderPass* Framebuffer::get_render_pass(void) const
-{
-    return _render_pass;
-}
-
 bool Framebuffer::recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
 {
     if(_vk_framebuffer == VK_NULL_HANDLE)
@@ -58,6 +47,21 @@ bool Framebuffer::recreate(const std::vector<VkImageView>& attachments, VkExtent
 
     _destroy();
     return _create(attachments, dimensions);
+}
+
+VkFramebuffer Framebuffer::get_handle(void) const
+{
+    return _vk_framebuffer;
+}
+
+const VkFramebufferCreateInfo& get_vk_create_info(void) const
+{
+    return _vk_create_info;
+}
+
+const RenderPass* Framebuffer::get_render_pass(void) const
+{
+    return _render_pass;
 }
 
 bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
