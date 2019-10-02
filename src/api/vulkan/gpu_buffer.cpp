@@ -2,17 +2,16 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
-
-#include <cstring>
 
 using namespace rend;
 
 GPUBuffer::GPUBuffer(DeviceContext* context)
-    : _context(context), _vk_buffer(VK_NULL_HANDLE), _vk_memory(VK_NULL_HANDLE),
-      _vk_memory_properties(static_cast<VkMemoryPropertyFlags>(0)),
-      _vk_buffer_usage(static_cast<VkBufferUsageFlags>(0)),
-      _capacity(static_cast<size_t>(0))
+    : _context(context),
+      _capacity(0),
+      _vk_buffer(VK_NULL_HANDLE),
+      _vk_buffer_usage(0),
+      _vk_memory(VK_NULL_HANDLE),
+      _vk_memory_properties(0)
 {
 }
 
