@@ -68,20 +68,15 @@ StatusCode Swapchain::create_swapchain(uint32_t desired_images)
 
 StatusCode Swapchain::recreate(void)
 {
-    vkDeviceWaitIdle(_context.get_device()->get_handle());
+    _context.get_device()->wait_idle();
     _destroy_image_views();
     return _create_swapchain(_image_count);
 }
 
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    VkResult result = vkAcquireNextImageKHR(
-        _context.get_device()->get_handle(),
-        _vk_swapchain,
-        std::numeric_limits<uint64_t>::max(),
-        signal_sem ? signal_sem->get_handle() : VK_NULL_HANDLE,
-        acquire_fence ? acquire_fence->get_handle() : VK_NULL_HANDLE,
-        &_current_image_idx
+    VkResult result = _context.get_device()->acquire_next_image(
+        this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
     );
 
     if(result != VK_SUCCESS)
@@ -97,25 +92,11 @@ StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 
 StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
-    std::vector<VkSemaphore> vk_sems;
-    vk_sems.reserve(wait_sems.size());
+    std::vector<VkResult> results(1);
+    if(_context.get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+        return StatusCode::FAILURE;
 
-    for(Semaphore* sem : wait_sems)
-        vk_sems.push_back(sem->get_handle());
-
-    VkPresentInfoKHR present_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .pNext = nullptr,
-        .waitSemaphoreCount = static_cast<uint32_t>(wait_sems.size()),
-        .pWaitSemaphores = vk_sems.data(),
-        .swapchainCount = 1,
-        .pSwapchains = &_vk_swapchain,
-        .pImageIndices = &_current_image_idx,
-        .pResults = nullptr
-    };
-
-    if(vkQueuePresentKHR(_context.get_device()->get_queue(type), &present_info) != VK_SUCCESS)
+    if(results[0] != VK_SUCCESS)
         return StatusCode::FAILURE;
 
     return StatusCode::SUCCESS;
@@ -161,33 +142,24 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 void Swapchain::_destroy_image_views(void)
 {
     for(size_t idx = 0; idx < _image_count; idx++)
-        vkDestroyImageView(_context.get_device()->get_handle(), _vk_image_views[idx], nullptr);
+        _context.get_device()->destroy_image_view(_vk_image_views[idx]);
 }
 
 StatusCode Swapchain::_get_images(void)
 {
-    vkGetSwapchainImagesKHR(_context.get_device()->get_handle(), _vk_swapchain, &_image_count, nullptr);
-
-    _vk_images.resize(_image_count);
-
-    vkGetSwapchainImagesKHR(_context.get_device()->get_handle(), _vk_swapchain, &_image_count, _vk_images.data());
-
+    _context.get_device()->get_swapchain_images(this, _vk_images);
+    _image_count = _vk_images.size();
     _vk_image_views.resize(_image_count);
-
-    VkImageViewCreateInfo image_view_create_info = {};
-    image_view_create_info.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    image_view_create_info.format                          = _surface_format.format;
-    image_view_create_info.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-    image_view_create_info.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    image_view_create_info.subresourceRange.baseMipLevel   = 0;
-    image_view_create_info.subresourceRange.levelCount     = 1;
-    image_view_create_info.subresourceRange.baseArrayLayer = 0;
-    image_view_create_info.subresourceRange.layerCount     = 1;
 
     for(size_t idx = 0; idx < _vk_images.size(); idx++)
     {
-        image_view_create_info.image = _vk_images[idx];
-        if(vkCreateImageView(_context.get_device()->get_handle(), &image_view_create_info, nullptr, &_vk_image_views[idx]) != VK_SUCCESS)
+        _vk_image_views[idx] = _context.get_device()->create_image_view(
+            _vk_images[idx], VK_IMAGE_VIEW_TYPE_2D, _surface_format.format,
+            VkComponentMapping{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
+            VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
+        );
+
+        if(_vk_image_views[idx] == VK_NULL_HANDLE)
             return StatusCode::FAILURE;
     }
 

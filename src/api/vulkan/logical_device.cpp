@@ -4,6 +4,7 @@
 #include "command_buffer.h"
 #include "fence.h"
 #include "semaphore.h"
+#include "swapchain.h"
 
 #include <array>
 #include <set>
@@ -183,6 +184,59 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
+void LogicalDevice::wait_idle(void)
+{
+    vkDeviceWaitIdle(_vk_device);
+}
+
+VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index)
+{
+    return vkAcquireNextImageKHR(
+        _vk_device,
+        swapchain->get_handle(),
+        timeout,
+        semaphore ? semaphore->get_handle() : VK_NULL_HANDLE,
+        fence ? fence->get_handle() : VK_NULL_HANDLE,
+        image_index
+    );
+}
+
+VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results)
+{
+    std::vector<VkSwapchainKHR> vk_swapchains;
+    std::vector<VkSemaphore> vk_sems;
+
+    for(Swapchain* swapchain : swapchains)
+        vk_swapchains.push_back(swapchain->get_handle());
+
+    for(Semaphore* sem : wait_sems)
+        vk_sems.push_back(sem->get_handle());
+
+    VkPresentInfoKHR present_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = static_cast<uint32_t>(vk_sems.size()),
+        .pWaitSemaphores = vk_sems.data(),
+        .swapchainCount = static_cast<uint32_t>(vk_swapchains.size()),
+        .pSwapchains = vk_swapchains.data(),
+        .pImageIndices = image_indices.data(),
+        .pResults = !results.empty() ? results.data() : nullptr
+    };
+
+    return vkQueuePresentKHR(get_queue(type), &present_info);
+}
+
+VkResult LogicalDevice::get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images)
+{
+    uint32_t count = 0;
+    vkGetSwapchainImagesKHR(_vk_device, swapchain->get_handle(), &count, nullptr);
+
+    images.resize(count);
+
+    return vkGetSwapchainImagesKHR(_vk_device, swapchain->get_handle(), &count, images.data());
+}
+
 VkSwapchainKHR LogicalDevice::create_swapchain(
         VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
         VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
@@ -221,4 +275,30 @@ VkSwapchainKHR LogicalDevice::create_swapchain(
 void LogicalDevice::destroy_swapchain(VkSwapchainKHR swapchain)
 {
     vkDestroySwapchainKHR(_vk_device, swapchain, nullptr);
+}
+
+VkImageView LogicalDevice::create_image_view(
+    VkImage image, VkImageViewType view_type, VkFormat format,
+    VkComponentMapping components, VkImageSubresourceRange subresource_range
+)
+{
+    VkImageViewCreateInfo image_view_create_info = {};
+    image_view_create_info.sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    image_view_create_info.pNext            = nullptr;
+    image_view_create_info.flags            = 0;
+    image_view_create_info.format           = format;
+    image_view_create_info.image            = image;
+    image_view_create_info.viewType         = view_type;
+    image_view_create_info.components       = components;
+    image_view_create_info.subresourceRange = subresource_range;
+
+    VkImageView image_view = VK_NULL_HANDLE;
+    vkCreateImageView(_vk_device, &image_view_create_info, nullptr, &image_view);
+
+    return image_view;
+}
+
+void LogicalDevice::destroy_image_view(VkImageView image_view)
+{
+    vkDestroyImageView(_vk_device, image_view, nullptr);
 }

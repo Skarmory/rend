@@ -14,6 +14,7 @@ class DeviceContext;
 class Fence;
 class PhysicalDevice;
 class Semaphore;
+class Swapchain;
 struct PipelineSettings;
 enum class ShaderType;
 
@@ -42,6 +43,11 @@ public:
     // Commands
     bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
     uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
+    void                  wait_idle(void);
+    VkResult              acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index);
+    VkResult              queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results);
+    VkResult              get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images);
+
 
     VkSwapchainKHR create_swapchain(
         VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
@@ -52,6 +58,13 @@ public:
     );
 
     void destroy_swapchain(VkSwapchainKHR swapchain);
+
+    VkImageView create_image_view(
+        VkImage image, VkImageViewType viewType, VkFormat format,
+        VkComponentMapping components, VkImageSubresourceRange subresourceRange
+    );
+
+    void destroy_image_view(VkImageView image_view);
 
 private:
     const DeviceContext&  _context;
