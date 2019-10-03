@@ -11,7 +11,7 @@ namespace rend
 {
 
 class DeviceContext;
-class GPUBuffer;
+class VulkanGPUBuffer;
 
 class VulkanVertexBuffer : public VertexBufferBase
 {
@@ -24,14 +24,14 @@ public:
     const VulkanVertexBuffer& operator=(const VulkanVertexBuffer&) = delete;
     const VulkanVertexBuffer& operator=(VulkanVertexBuffer&&) = delete;
 
-    GPUBuffer* gpu_buffer(void) const;
+    VulkanGPUBuffer* gpu_buffer(void) const;
 
 protected:
     bool create_vertex_buffer_api(uint32_t vertices_count, size_t vertex_size);
 
 private:
-    DeviceContext* _context;
-    GPUBuffer*     _buffer;
+    DeviceContext*   _context;
+    VulkanGPUBuffer* _buffer;
 };
 
 }

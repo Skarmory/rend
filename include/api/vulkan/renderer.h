@@ -17,7 +17,7 @@ class CommandBuffer;
 class DeviceContext;
 class Fence;
 class Framebuffer;
-class GPUBuffer;
+class VulkanGPUBuffer;
 class Image;
 class RenderPass;
 class Semaphore;
@@ -38,12 +38,12 @@ enum class ResourceType
 
 struct FrameResources
 {
-    std::vector<GPUBuffer*> staging_buffers;
-    uint32_t                swapchain_idx;
-    CommandBuffer*          command_buffer;
-    Semaphore*              acquire_sem;
-    Semaphore*              present_sem;
-    Fence*                  submit_fen;
+    std::vector<VulkanGPUBuffer*> staging_buffers;
+    uint32_t                      swapchain_idx;
+    CommandBuffer*                command_buffer;
+    Semaphore*                    acquire_sem;
+    Semaphore*                    present_sem;
+    Fence*                        submit_fen;
 };
 
 struct Task

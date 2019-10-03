@@ -7,7 +7,7 @@ namespace rend
 {
 
 class DeviceContext;
-class GPUBuffer;
+class VulkanGPUBuffer;
 
 class VulkanUniformBuffer : public UniformBufferBase
 {
@@ -15,20 +15,19 @@ public:
     VulkanUniformBuffer(DeviceContext* context);
     virtual ~VulkanUniformBuffer(void);
 
-    VulkanUniformBuffer(const VulkanUniformBuffer&) = delete;
-    VulkanUniformBuffer(VulkanUniformBuffer&&) = delete;
+    VulkanUniformBuffer(const VulkanUniformBuffer&)            = delete;
+    VulkanUniformBuffer(VulkanUniformBuffer&&)                 = delete;
+    VulkanUniformBuffer& operator=(const VulkanUniformBuffer&) = delete;
+    VulkanUniformBuffer& operator=(VulkanUniformBuffer&&)      = delete;
 
-    const VulkanUniformBuffer& operator=(const VulkanUniformBuffer&) = delete;
-    const VulkanUniformBuffer& operator=(VulkanUniformBuffer&&) = delete;
-
-    GPUBuffer* gpu_buffer(void) const;
+    VulkanGPUBuffer* gpu_buffer(void) const;
 
 protected:
     bool create_uniform_buffer_api(size_t bytes);
 
 private:
     DeviceContext* _context;
-    GPUBuffer* _buffer;
+    VulkanGPUBuffer* _buffer;
 };
 
 }

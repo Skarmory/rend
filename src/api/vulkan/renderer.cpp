@@ -5,7 +5,7 @@
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
-#include "gpu_buffer.h"
+#include "vulkan_gpu_buffer.h"
 #include "image.h"
 #include "index_buffer.h"
 #include "logical_device.h"
@@ -231,14 +231,14 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
 
     if(is_device_local)
     {
-        GPUBuffer* staging_buffer = new GPUBuffer(&context);
-        staging_buffer->create(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+        VulkanGPUBuffer* staging_buffer = new VulkanGPUBuffer(&context);
+        staging_buffer->create_buffer(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
         resources.staging_buffers.push_back(staging_buffer);
 
         memory = staging_buffer->get_memory();
 
-        vkMapMemory(context.get_device()->get_handle(), memory, 0, staging_buffer->get_size(), 0, &mapped);
+        vkMapMemory(context.get_device()->get_handle(), memory, 0, staging_buffer->bytes(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
         vkUnmapMemory(context.get_device()->get_handle(), memory);
 

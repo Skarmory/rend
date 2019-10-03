@@ -2,7 +2,7 @@
 
 #include "descriptor_pool.h"
 #include "framebuffer.h"
-#include "gpu_buffer.h"
+#include "vulkan_gpu_buffer.h"
 #include "image.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
@@ -163,14 +163,14 @@ void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize of
     vkCmdBindIndexBuffer(_vk_command_buffer, static_cast<const VulkanIndexBuffer&>(buffer).gpu_buffer()->get_handle(), offset, index_type);
 }
 
-void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VulkanGPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
     _recorded = true;
 
     std::vector<VkBuffer> vk_buffers;
     vk_buffers.reserve(buffers.size());
 
-    for(GPUBuffer* buf : buffers)
+    for(VulkanGPUBuffer* buf : buffers)
         vk_buffers.push_back(buf->get_handle());
 
     vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
@@ -183,7 +183,7 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
 
-void CommandBuffer::copy_buffer_to_image(const GPUBuffer& buffer, const Image& image)
+void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const Image& image)
 {
     _recorded = true;
 
@@ -206,7 +206,7 @@ void CommandBuffer::copy_buffer_to_image(const GPUBuffer& buffer, const Image& i
     vkCmdCopyBufferToImage(_vk_command_buffer, buffer.get_handle(), image.get_handle(), image.get_layout(), 1, &copy);
 }
 
-void CommandBuffer::copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer& dst)
+void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VulkanGPUBuffer& dst)
 {
     _recorded = true;
 
@@ -214,7 +214,7 @@ void CommandBuffer::copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer&
     {
         .srcOffset = 0,
         .dstOffset = 0,
-        .size      = src.get_size()
+        .size      = src.bytes()
     };
 
     vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst.get_handle(), 1, &copy);

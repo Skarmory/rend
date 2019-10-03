@@ -11,7 +11,7 @@ namespace rend
 {
 
 class DeviceContext;
-class GPUBuffer;
+class VulkanGPUBuffer;
 
 class VulkanIndexBuffer : public IndexBufferBase
 {
@@ -24,14 +24,14 @@ public:
     VulkanIndexBuffer& operator=(const VulkanIndexBuffer&) = delete;
     VulkanIndexBuffer& operator=(VulkanIndexBuffer&&) = delete;
 
-    GPUBuffer* gpu_buffer(void) const;
+    VulkanGPUBuffer* gpu_buffer(void) const;
 
 protected:
     bool create_index_buffer_api(uint32_t indices_count, size_t index_size);
 
 private:
-    DeviceContext* _context;
-    GPUBuffer*     _buffer;
+    DeviceContext*   _context;
+    VulkanGPUBuffer* _buffer;
 };
 
 }
