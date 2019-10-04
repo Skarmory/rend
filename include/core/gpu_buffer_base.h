@@ -1,5 +1,5 @@
-#ifndef REND_GPU_BUFFER_H
-#define REND_GPU_BUFFER_H
+#ifndef REND_GPU_BUFFER_BASE_H
+#define REND_GPU_BUFFER_BASE_H
 
 #include <cstddef>
 #include <cstdint>
