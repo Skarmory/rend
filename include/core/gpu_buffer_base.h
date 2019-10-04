@@ -1,13 +1,15 @@
 #ifndef REND_GPU_BUFFER_BASE_H
 #define REND_GPU_BUFFER_BASE_H
 
+#include "gpu_resource.h"
+
 #include <cstddef>
 #include <cstdint>
 
 namespace rend
 {
 
-class GPUBufferBase
+class GPUBufferBase : public GPUResource
 {
 public:
     GPUBufferBase(void);
@@ -17,11 +19,6 @@ public:
     GPUBufferBase(GPUBufferBase&&)                 = delete;
     GPUBufferBase& operator=(const GPUBufferBase&) = delete;
     GPUBufferBase& operator=(GPUBufferBase&&)      = delete;
-
-    size_t bytes(void) const;
-
-protected:
-    size_t _bytes;
 };
 
 }
