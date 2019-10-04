@@ -237,6 +237,40 @@ VkResult LogicalDevice::get_swapchain_images(Swapchain* swapchain, std::vector<V
     return vkGetSwapchainImagesKHR(_vk_device, swapchain->get_handle(), &count, images.data());
 }
 
+VkMemoryRequirements LogicalDevice::get_buffer_memory_reqs(VkBuffer buffer)
+{
+    VkMemoryRequirements memory_reqs = {};
+    vkGetBufferMemoryRequirements(_vk_device, buffer, &memory_reqs);
+
+    return memory_reqs;
+}
+
+VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory)
+{
+    return vkBindBufferMemory(_vk_device, buffer, memory, 0);
+}
+
+VkDeviceMemory LogicalDevice::allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props)
+{
+    VkMemoryAllocateInfo alloc_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = size_bytes,
+        .memoryTypeIndex = find_memory_type(reqs.memoryTypeBits, props)
+    };
+
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    vkAllocateMemory(_vk_device, &alloc_info, nullptr, &memory);
+
+    return memory;
+}
+
+void LogicalDevice::free_memory(VkDeviceMemory memory)
+{
+    vkFreeMemory(_vk_device, memory, nullptr);
+}
+
 VkSwapchainKHR LogicalDevice::create_swapchain(
         VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
         VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
@@ -301,4 +335,32 @@ VkImageView LogicalDevice::create_image_view(
 void LogicalDevice::destroy_image_view(VkImageView image_view)
 {
     vkDestroyImageView(_vk_device, image_view, nullptr);
+}
+
+VkBuffer LogicalDevice::create_buffer(
+    VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode,
+    uint32_t queue_family_index_count, uint32_t* queue_family_indices
+)
+{
+    VkBufferCreateInfo create_info =
+    {
+        .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext                 = nullptr,
+        .flags                 = 0,
+        .size                  = size_bytes,
+        .usage                 = usage,
+        .sharingMode           = sharing_mode,
+        .queueFamilyIndexCount = queue_family_index_count,
+        .pQueueFamilyIndices   = queue_family_indices
+    };
+
+    VkBuffer buffer = VK_NULL_HANDLE;
+    vkCreateBuffer(_vk_device, &create_info, nullptr, &buffer);
+
+    return buffer;
+}
+
+void LogicalDevice::destroy_buffer(VkBuffer buffer)
+{
+    vkDestroyBuffer(_vk_device, buffer, nullptr);
 }

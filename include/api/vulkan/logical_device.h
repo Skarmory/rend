@@ -47,7 +47,11 @@ public:
     VkResult              acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index);
     VkResult              queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results);
     VkResult              get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images);
+    VkMemoryRequirements  get_buffer_memory_reqs(VkBuffer buffer);
+    VkResult              bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
 
+    VkDeviceMemory allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props);
+    void           free_memory(VkDeviceMemory memory);
 
     VkSwapchainKHR create_swapchain(
         VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
@@ -65,6 +69,13 @@ public:
     );
 
     void destroy_image_view(VkImageView image_view);
+
+    VkBuffer create_buffer(
+        VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode,
+        uint32_t queue_family_index_count, uint32_t* queue_family_indices
+    );
+
+    void destroy_buffer(VkBuffer buffer);
 
 private:
     const DeviceContext&  _context;
