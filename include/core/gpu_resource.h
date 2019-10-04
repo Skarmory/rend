@@ -11,7 +11,7 @@ public:
 
     size_t bytes(void) const;
 
-private:
+protected:
     size_t _bytes;
 };
 
