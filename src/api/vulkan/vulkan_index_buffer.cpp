@@ -6,26 +6,23 @@
 
 using namespace rend;
 
-VulkanIndexBuffer::VulkanIndexBuffer(DeviceContext* context)
-    : _context(context),
-      _buffer(nullptr)
+VulkanIndexBuffer::VulkanIndexBuffer(DeviceContext& context)
+    : VulkanGPUBuffer(context)
 {
 }
 
 VulkanIndexBuffer::~VulkanIndexBuffer(void)
 {
-    delete _buffer;
 }
 
-VulkanGPUBuffer* VulkanIndexBuffer::gpu_buffer(void) const
+StatusCode VulkanIndexBuffer::create_index_buffer_api(uint32_t indices_count, size_t index_size)
 {
-    return _buffer;
-}
+    StatusCode code = create_buffer(indices_count * index_size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
-bool VulkanIndexBuffer::create_index_buffer_api(uint32_t indices_count, size_t index_size)
-{
-    _count = indices_count;
-    _bytes = indices_count * index_size;
-    _buffer = new VulkanGPUBuffer(_context);
-    return _buffer->create_buffer(_bytes, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    if(code == StatusCode::SUCCESS)
+    {
+        _count = indices_count;
+    }
+
+    return code;
 }

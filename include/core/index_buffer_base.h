@@ -19,11 +19,9 @@ public:
     IndexBufferBase& operator=(IndexBufferBase&&) = delete;
 
     uint32_t count(void) const;
-    size_t   bytes(void) const;
 
 protected:
     uint32_t _count;
-    size_t   _bytes;
 };
 
 }

@@ -219,7 +219,7 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
             is_device_local = true;
             break;
         case ResourceType::UNIFORM_BUFFER:
-            is_device_local = static_cast<UniformBuffer*>(resource)->gpu_buffer()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            is_device_local = static_cast<UniformBuffer*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
         case ResourceType::TEXTURE2D:
             is_device_local = static_cast<Texture2D*>(resource)->get_image()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -231,8 +231,8 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
 
     if(is_device_local)
     {
-        VulkanGPUBuffer* staging_buffer = new VulkanGPUBuffer(&context);
-        staging_buffer->create_buffer(size_bytes, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+        UniformBuffer* staging_buffer = new UniformBuffer(context);
+        staging_buffer->create_uniform_buffer(size_bytes);
 
         resources.staging_buffers.push_back(staging_buffer);
 
@@ -245,13 +245,13 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
         switch(resource_type)
         {
             case ResourceType::VERTEX_BUFFER:
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VertexBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
                 break;
             case ResourceType::INDEX_BUFFER:
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<IndexBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
                 break;
             case ResourceType::UNIFORM_BUFFER:
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<UniformBuffer*>(resource)->gpu_buffer());
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
                 break;
             case ResourceType::TEXTURE2D:
                 resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<Texture2D*>(resource)->get_image());
@@ -263,13 +263,13 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
         switch(resource_type)
         {
             case ResourceType::VERTEX_BUFFER:
-                memory = static_cast<VertexBuffer*>(resource)->gpu_buffer()->get_memory();
+                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
                 break;
             case ResourceType::INDEX_BUFFER:
-                memory = static_cast<IndexBuffer*>(resource)->gpu_buffer()->get_memory();
+                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
                 break;
             case ResourceType::UNIFORM_BUFFER:
-                memory = static_cast<UniformBuffer*>(resource)->gpu_buffer()->get_memory();
+                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
                 break;
             case ResourceType::TEXTURE2D:
                 memory = static_cast<Texture2D*>(resource)->get_image()->get_memory();

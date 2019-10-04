@@ -160,7 +160,7 @@ void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize of
 {
     _recorded = true;
 
-    vkCmdBindIndexBuffer(_vk_command_buffer, static_cast<const VulkanIndexBuffer&>(buffer).gpu_buffer()->get_handle(), offset, index_type);
+    vkCmdBindIndexBuffer(_vk_command_buffer, buffer.get_handle(), offset, index_type);
 }
 
 void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VulkanGPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)

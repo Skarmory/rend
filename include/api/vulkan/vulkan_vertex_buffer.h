@@ -3,6 +3,8 @@
 #define REND_VULKAN_VERTEX_BUFFER_H
 
 #include "vertex_buffer_base.h"
+#include "vulkan_gpu_buffer.h"
+#include "rend_defs.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -11,12 +13,11 @@ namespace rend
 {
 
 class DeviceContext;
-class VulkanGPUBuffer;
 
-class VulkanVertexBuffer : public VertexBufferBase
+class VulkanVertexBuffer : public VulkanGPUBuffer, public VertexBufferBase
 {
 public:
-    VulkanVertexBuffer(DeviceContext* context);
+    VulkanVertexBuffer(DeviceContext& context);
     virtual ~VulkanVertexBuffer(void);
 
     VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
@@ -24,14 +25,8 @@ public:
     const VulkanVertexBuffer& operator=(const VulkanVertexBuffer&) = delete;
     const VulkanVertexBuffer& operator=(VulkanVertexBuffer&&) = delete;
 
-    VulkanGPUBuffer* gpu_buffer(void) const;
-
 protected:
-    bool create_vertex_buffer_api(uint32_t vertices_count, size_t vertex_size);
-
-private:
-    DeviceContext*   _context;
-    VulkanGPUBuffer* _buffer;
+    StatusCode create_vertex_buffer_api(uint32_t vertices_count, size_t vertex_size);
 };
 
 }

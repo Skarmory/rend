@@ -19,12 +19,10 @@ public:
     const VertexBufferBase& operator=(VertexBufferBase&&) = delete;
 
     uint32_t count(void) const;
-    size_t   bytes(void) const;
     size_t   vertex_bytes(void) const;
 
 protected:
     uint32_t _count;
-    size_t   _bytes;
     size_t   _vertex_bytes;
 };
 

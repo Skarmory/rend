@@ -3,6 +3,8 @@
 #define REND_VULKAN_INDEX_BUFFER_H
 
 #include "index_buffer_base.h"
+#include "vulkan_gpu_buffer.h"
+#include "rend_defs.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -11,12 +13,11 @@ namespace rend
 {
 
 class DeviceContext;
-class VulkanGPUBuffer;
 
-class VulkanIndexBuffer : public IndexBufferBase
+class VulkanIndexBuffer : public VulkanGPUBuffer, public IndexBufferBase
 {
 public:
-    VulkanIndexBuffer(DeviceContext* context);
+    VulkanIndexBuffer(DeviceContext& context);
     virtual ~VulkanIndexBuffer(void);
 
     VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
@@ -24,14 +25,8 @@ public:
     VulkanIndexBuffer& operator=(const VulkanIndexBuffer&) = delete;
     VulkanIndexBuffer& operator=(VulkanIndexBuffer&&) = delete;
 
-    VulkanGPUBuffer* gpu_buffer(void) const;
-
 protected:
-    bool create_index_buffer_api(uint32_t indices_count, size_t index_size);
-
-private:
-    DeviceContext*   _context;
-    VulkanGPUBuffer* _buffer;
+    StatusCode create_index_buffer_api(uint32_t indices_count, size_t index_size);
 };
 
 }

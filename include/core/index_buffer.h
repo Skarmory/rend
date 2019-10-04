@@ -20,7 +20,7 @@ class IndexBuffer
 #endif
 {
 public:
-    IndexBuffer(DeviceContext* context);
+    IndexBuffer(DeviceContext& context);
     ~IndexBuffer(void);
 
     IndexBuffer(const IndexBuffer&) = delete;

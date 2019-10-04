@@ -5,7 +5,7 @@
 
 using namespace rend;
 
-VulkanGPUBuffer::VulkanGPUBuffer(DeviceContext* context)
+VulkanGPUBuffer::VulkanGPUBuffer(DeviceContext& context)
     : _context(context),
       _vk_buffer(VK_NULL_HANDLE),
       _vk_buffer_usage(0),
@@ -16,53 +16,8 @@ VulkanGPUBuffer::VulkanGPUBuffer(DeviceContext* context)
 
 VulkanGPUBuffer::~VulkanGPUBuffer(void)
 {
-    LogicalDevice* dev = _context->get_device();
-    vkFreeMemory(dev->get_handle(), _vk_memory, nullptr);
-    vkDestroyBuffer(dev->get_handle(), _vk_buffer, nullptr);
-}
-
-bool VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
-{
-    LogicalDevice* dev = _context->get_device();
-    uint32_t queue_family_index = dev->get_queue_family(QueueType::GRAPHICS)->get_index();
-
-    VkBufferCreateInfo create_info =
-    {
-        .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .size                  = static_cast<VkDeviceSize>(size_bytes),
-        .usage                 = buffer_usage,
-        .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 1,
-        .pQueueFamilyIndices   = &queue_family_index
-    };
-
-    if(vkCreateBuffer(dev->get_handle(), &create_info, nullptr, &_vk_buffer) != VK_SUCCESS)
-        return false;
-
-    VkMemoryRequirements memory_reqs = {};
-    vkGetBufferMemoryRequirements(dev->get_handle(), _vk_buffer, &memory_reqs);
-
-    VkMemoryAllocateInfo alloc_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .allocationSize = static_cast<VkDeviceSize>(size_bytes),
-        .memoryTypeIndex = dev->find_memory_type(memory_reqs.memoryTypeBits, memory_properties)
-    };
-
-    if(vkAllocateMemory(dev->get_handle(), &alloc_info, nullptr, &_vk_memory) != VK_SUCCESS)
-        return false;
-
-    if(vkBindBufferMemory(dev->get_handle(), _vk_buffer, _vk_memory, 0) != VK_SUCCESS)
-        return false;
-
-    _bytes = size_bytes;
-    _vk_memory_properties = memory_properties;
-    _vk_buffer_usage = buffer_usage;
-
-    return true;
+    _context.get_device()->free_memory(_vk_memory);
+    _context.get_device()->destroy_buffer(_vk_buffer);
 }
 
 VkBuffer VulkanGPUBuffer::get_handle(void) const
@@ -83,4 +38,26 @@ VkDeviceMemory VulkanGPUBuffer::get_memory(void) const
 VkMemoryPropertyFlags VulkanGPUBuffer::get_memory_properties(void) const
 {
     return _vk_memory_properties;
+}
+
+StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
+{
+    uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
+
+    if((_vk_buffer = _context.get_device()->create_buffer(size_bytes, buffer_usage, VK_SHARING_MODE_EXCLUSIVE, 1, &queue_family_index)) == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
+
+    VkMemoryRequirements memory_reqs = _context.get_device()->get_buffer_memory_reqs(_vk_buffer);
+
+    if((_vk_memory = _context.get_device()->allocate_memory(size_bytes, memory_reqs, memory_properties)) == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
+
+    if(_context.get_device()->bind_buffer_memory(_vk_buffer, _vk_memory) != VK_SUCCESS)
+        return StatusCode::FAILURE;
+
+    _bytes = size_bytes;
+    _vk_memory_properties = memory_properties;
+    _vk_buffer_usage = buffer_usage;
+
+    return StatusCode::SUCCESS;
 }

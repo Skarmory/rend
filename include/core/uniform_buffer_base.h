@@ -17,11 +17,6 @@ public:
     UniformBufferBase(UniformBufferBase&&) = delete;
     const UniformBufferBase& operator=(const UniformBufferBase&) = delete;
     const UniformBufferBase& operator=(UniformBufferBase&&) = delete;
-
-    size_t bytes(void) const;
-
-protected:
-    size_t _bytes;
 };
 
 }
