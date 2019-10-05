@@ -11,7 +11,7 @@ class CommandPool;
 class DescriptorSet;
 class Framebuffer;
 class VulkanGPUBuffer;
-class Image;
+class VulkanGPUTexture;
 class IndexBuffer;
 class Pipeline;
 class PipelineLayout;
@@ -52,7 +52,7 @@ public:
 
     void push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data);
 
-    void copy_buffer_to_image(const VulkanGPUBuffer& buffer, const Image& image);
+    void copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image);
     void copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VulkanGPUBuffer& dst);
 
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);

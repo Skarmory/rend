@@ -3,9 +3,6 @@
 
 #include "gpu_resource.h"
 
-#include <cstddef>
-#include <cstdint>
-
 namespace rend
 {
 

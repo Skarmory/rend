@@ -3,7 +3,7 @@
 #include "descriptor_pool.h"
 #include "framebuffer.h"
 #include "vulkan_gpu_buffer.h"
-#include "image.h"
+#include "vulkan_gpu_texture.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
@@ -183,7 +183,7 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
 
-void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const Image& image)
+void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image)
 {
     _recorded = true;
 

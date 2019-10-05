@@ -11,18 +11,17 @@
 namespace rend
 {
 
-class Buffer;
 class CommandPool;
 class CommandBuffer;
 class DeviceContext;
 class Fence;
 class Framebuffer;
+class DepthBuffer;
 class VulkanGPUBuffer;
-class Image;
+class VulkanGPUTexture;
 class RenderPass;
 class Semaphore;
 class Swapchain;
-class Texture2D;
 class Window;
 
 class IndexBuffer;
@@ -65,12 +64,12 @@ struct LoadTask : public Task
 
 struct ImageTransitionTask : public Task
 {
-    Texture2D*           image;
+    VulkanGPUTexture*    image;
     VkPipelineStageFlags src;
     VkPipelineStageFlags dst;
     VkImageLayout        final_layout;
 
-    ImageTransitionTask(Texture2D* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
+    ImageTransitionTask(VulkanGPUTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
     virtual void execute(DeviceContext& context, FrameResources& resources) override;
 };
 
@@ -94,13 +93,9 @@ public:
     Swapchain*     get_swapchain(void) const;
     RenderPass*    get_default_render_pass(void) const;
 
-    // Creational
-    Texture2D* create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels);
-    Texture2D* create_depth_buffer(uint32_t width, uint32_t height);
-
     // Resource functions
     void load(void* resource, ResourceType type, void* data, size_t bytes);
-    void transition(Texture2D* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
+    void transition(VulkanGPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions
     FrameResources& start_frame(void);
@@ -122,7 +117,7 @@ private:
     CommandPool*   _command_pool;
 
     std::vector<Framebuffer*> _default_framebuffers;
-    Image* _default_depth_buffer;
+    DepthBuffer* _default_depth_buffer;
     RenderPass* _default_render_pass;
 
     std::queue<Task*>       _task_queue;

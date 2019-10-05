@@ -6,15 +6,15 @@
 #include "fence.h"
 #include "framebuffer.h"
 #include "vulkan_gpu_buffer.h"
-#include "image.h"
+#include "vulkan_gpu_texture.h"
 #include "index_buffer.h"
 #include "logical_device.h"
 #include "render_pass.h"
 #include "semaphore.h"
 #include "swapchain.h"
-#include "texture2D.h"
 #include "uniform_buffer.h"
 #include "vertex_buffer.h"
+#include "depth_buffer.h"
 
 #include <assert.h>
 #include <cstring>
@@ -97,23 +97,13 @@ RenderPass* Renderer::get_default_render_pass(void) const
     return _default_render_pass;
 }
 
-Texture2D* Renderer::create_diffuse(uint32_t width, uint32_t height, uint32_t mip_levels)
-{
-    return new Texture2D(_context, width, height, mip_levels, TextureType::DIFFUSE);
-}
-
-Texture2D* Renderer::create_depth_buffer(uint32_t width, uint32_t height)
-{
-    return new Texture2D(_context, width, height, 1, TextureType::DEPTH_BUFFER);
-}
-
 void Renderer::load(void* resource, ResourceType type, void* data, size_t bytes)
 {
     LoadTask* task = new LoadTask(resource, type, data, bytes);
     _task_queue.push(task);
 }
 
-void Renderer::transition(Texture2D* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
+void Renderer::transition(VulkanGPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
 {
     ImageTransitionTask* task = new ImageTransitionTask(texture, src, dst, final_layout);
     _task_queue.push(task);
@@ -222,7 +212,7 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
             is_device_local = static_cast<UniformBuffer*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
         case ResourceType::TEXTURE2D:
-            is_device_local = static_cast<Texture2D*>(resource)->get_image()->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            is_device_local = static_cast<VulkanGPUTexture*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
     }
 
@@ -254,7 +244,7 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
                 resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
                 break;
             case ResourceType::TEXTURE2D:
-                resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<Texture2D*>(resource)->get_image());
+                resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<VulkanGPUTexture*>(resource));
                 break;
         }
     }
@@ -272,7 +262,7 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
                 memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
                 break;
             case ResourceType::TEXTURE2D:
-                memory = static_cast<Texture2D*>(resource)->get_image()->get_memory();
+                memory = static_cast<VulkanGPUTexture*>(resource)->get_memory();
                 break;
         }
 
@@ -295,11 +285,11 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
         .pNext               = nullptr,
         .srcAccessMask       = 0,
         .dstAccessMask       = 0,
-        .oldLayout           = image->get_image()->get_layout(),
+        .oldLayout           = image->get_layout(),
         .newLayout           = final_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image               = image->get_image()->get_handle(),
+        .image               = image->get_handle(),
         .subresourceRange    =
         {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -310,7 +300,7 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
         }
     };
 
-    switch(image->get_image()->get_layout())
+    switch(image->get_layout())
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             barrier->srcAccessMask = 0; break;
@@ -372,7 +362,7 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
 
     resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
-    image->get_image()->transition(final_layout);
+    image->transition(final_layout);
 }
 
 void Renderer::_create_default_renderpass(void)
@@ -435,8 +425,8 @@ void Renderer::_create_default_framebuffers(bool recreate)
     if(recreate)
     {
         delete _default_depth_buffer;
-        _default_depth_buffer = new Image(_context);
-        _default_depth_buffer->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        _default_depth_buffer = new DepthBuffer(*_context);
+        _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
@@ -445,8 +435,8 @@ void Renderer::_create_default_framebuffers(bool recreate)
     }
     else
     {
-        _default_depth_buffer = new Image(_context);
-        _default_depth_buffer->create_image(framebuffer_dims, VK_IMAGE_TYPE_2D, VK_FORMAT_D24_UNORM_S8_UINT, 1, 1, VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_TILING_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+        _default_depth_buffer = new DepthBuffer(*_context);
+        _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
         _default_framebuffers.resize(views.size());
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
