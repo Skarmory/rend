@@ -27,3 +27,8 @@ uint32_t GPUTextureBase::depth(void) const
 {
     return _depth;
 }
+
+TextureFormat GPUTextureBase::format(void) const
+{
+    return _format;
+}

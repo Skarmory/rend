@@ -9,8 +9,6 @@
 namespace rend
 {
 
-VkImageType find_image_type(VkExtent3D extent);
-
 class DeviceContext;
 
 class VulkanGPUTexture : public GPUTextureBase
@@ -22,7 +20,6 @@ public:
     VulkanGPUTexture(VulkanGPUTexture&&)                 = delete;
     VulkanGPUTexture& operator=(const VulkanGPUTexture&) = delete;
     VulkanGPUTexture& operator=(VulkanGPUTexture&&)      = delete;
-
 
     VkImage       get_handle(void) const;
     VkImageView   get_view(void) const;

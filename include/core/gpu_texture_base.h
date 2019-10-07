@@ -21,9 +21,10 @@ public:
     GPUTextureBase& operator=(const GPUTextureBase&) = delete;
     GPUTextureBase& operator=(GPUTextureBase&&)      = delete;
 
-    uint32_t width(void) const;
-    uint32_t height(void) const;
-    uint32_t depth(void) const;
+    uint32_t      width(void) const;
+    uint32_t      height(void) const;
+    uint32_t      depth(void) const;
+    TextureFormat format(void) const;
 
 protected:
     uint32_t      _width;

@@ -22,5 +22,7 @@ bool SampledTexture::create_sampled_texture(uint32_t width, uint32_t height, uin
         return false;
     }
 
+    _format = format;
+
     return true;
 }
