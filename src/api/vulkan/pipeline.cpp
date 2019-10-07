@@ -32,14 +32,12 @@ bool Pipeline::create_pipeline(PipelineSettings* settings)
     for(size_t idx = 0; idx < shader_stage_infos.size(); idx++)
     {
         VkShaderStageFlagBits stage;
-        switch(settings->shader_stage_shaders[idx]->get_shader_type())
+        switch(settings->shader_stage_shaders[idx]->shader_type())
         {
             case ShaderType::VERTEX:
                 stage = VK_SHADER_STAGE_VERTEX_BIT; break;
             case ShaderType::FRAGMENT:
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
-            case ShaderType::UNKNOWN:
-                return false;
         }
 
         shader_stage_infos[idx] =

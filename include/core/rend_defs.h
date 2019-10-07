@@ -34,6 +34,12 @@ enum class TextureFormat
     R8G8B8A8
 };
 
+enum class ShaderType
+{
+    VERTEX,
+    FRAGMENT
+};
+
 }
 
 #endif
