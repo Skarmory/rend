@@ -11,7 +11,7 @@ class DeviceContext;
 class Semaphore
 {
 public:
-    Semaphore(DeviceContext* context);
+    explicit Semaphore(DeviceContext& context);
     ~Semaphore(void);
     Semaphore(const Semaphore&) = delete;
     Semaphore(Semaphore&&)      = delete;
@@ -23,9 +23,8 @@ public:
     VkSemaphore get_handle(void) const;
 
 private:
-    VkSemaphore _vk_semaphore;
-
-    DeviceContext* _context;
+    DeviceContext& _context;
+    VkSemaphore    _vk_semaphore;
 };
 
 }

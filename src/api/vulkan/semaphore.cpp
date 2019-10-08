@@ -2,19 +2,18 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
 
 using namespace rend;
 
-Semaphore::Semaphore(DeviceContext* context)
-    : _vk_semaphore(VK_NULL_HANDLE),
-      _context(context)
+Semaphore::Semaphore(DeviceContext& context)
+    : _context(context),
+      _vk_semaphore(VK_NULL_HANDLE)
 {
 }
 
 Semaphore::~Semaphore(void)
 {
-    vkDestroySemaphore(_context->get_device()->get_handle(), _vk_semaphore, nullptr);
+    vkDestroySemaphore(_context.get_device()->get_handle(), _vk_semaphore, nullptr);
 }
 
 bool Semaphore::create_semaphore(void)
@@ -29,7 +28,7 @@ bool Semaphore::create_semaphore(void)
         .flags = 0
     };
 
-    if(vkCreateSemaphore(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_semaphore) != VK_SUCCESS)
+    if(vkCreateSemaphore(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_semaphore) != VK_SUCCESS)
         return false;
 
     return true;

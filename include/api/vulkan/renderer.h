@@ -17,11 +17,12 @@ class DeviceContext;
 class Fence;
 class Framebuffer;
 class DepthBuffer;
-class VulkanGPUBuffer;
 class VulkanGPUTexture;
 class RenderPass;
 class Semaphore;
 class Swapchain;
+class UniformBuffer;
+class VulkanInstance;
 class Window;
 
 class IndexBuffer;
@@ -37,12 +38,12 @@ enum class ResourceType
 
 struct FrameResources
 {
-    std::vector<VulkanGPUBuffer*> staging_buffers;
-    uint32_t                      swapchain_idx;
-    CommandBuffer*                command_buffer;
-    Semaphore*                    acquire_sem;
-    Semaphore*                    present_sem;
-    Fence*                        submit_fen;
+    std::vector<UniformBuffer*> staging_buffers;
+    uint32_t                    swapchain_idx;
+    CommandBuffer*              command_buffer;
+    Semaphore*                  acquire_sem;
+    Semaphore*                  present_sem;
+    Fence*                      submit_fen;
 };
 
 struct Task
@@ -76,12 +77,7 @@ struct ImageTransitionTask : public Task
 class Renderer
 {
 public:
-    Renderer(
-        Window* window, 
-        const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues,
-        std::vector<const char*> extensions, std::vector<const char*> layers
-    );
-
+    Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
     ~Renderer(void);
 
     Renderer(const Renderer&)            = delete;
@@ -89,7 +85,6 @@ public:
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&)      = delete;
 
-    DeviceContext* get_device_context(void) const;
     Swapchain*     get_swapchain(void) const;
     RenderPass*    get_default_render_pass(void) const;
 
@@ -112,9 +107,9 @@ private:
     void _create_default_framebuffers(bool recreate);
 
 private:
-    DeviceContext* _context;
-    Swapchain*     _swapchain;
-    CommandPool*   _command_pool;
+    DeviceContext&  _context;
+    Swapchain*      _swapchain;
+    CommandPool*    _command_pool;
 
     std::vector<Framebuffer*> _default_framebuffers;
     DepthBuffer* _default_depth_buffer;

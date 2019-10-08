@@ -12,8 +12,9 @@ class DeviceContext;
 class RenderPass
 {
 public:
-    RenderPass(DeviceContext* device);
+    explicit RenderPass(DeviceContext& device);
     ~RenderPass(void);
+
     RenderPass(const RenderPass&)            = delete;
     RenderPass(RenderPass&&)                 = delete;
     RenderPass& operator=(const RenderPass&) = delete;
@@ -24,9 +25,8 @@ public:
     VkRenderPass get_handle(void) const;
 
 private:
+    DeviceContext& _context;
     VkRenderPass _vk_render_pass;
-
-    DeviceContext* _context;
 };
 
 }

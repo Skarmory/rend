@@ -12,7 +12,7 @@ class DeviceContext;
 class Fence
 {
 public:
-    Fence(DeviceContext* context);
+    explicit Fence(DeviceContext& context);
     ~Fence(void);
     Fence(const Fence&) = delete;
     Fence(Fence&&)      = delete;
@@ -26,7 +26,7 @@ public:
     VkResult wait(uint64_t timeout=std::numeric_limits<uint64_t>::max()) const;
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
     VkFence _vk_fence;
 };
 

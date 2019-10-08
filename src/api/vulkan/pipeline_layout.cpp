@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(DeviceContext* context)
+PipelineLayout::PipelineLayout(DeviceContext& context)
     : _context(context),
       _vk_layout(VK_NULL_HANDLE)
 {
@@ -14,7 +14,7 @@ PipelineLayout::PipelineLayout(DeviceContext* context)
 
 PipelineLayout::~PipelineLayout(void)
 {
-    vkDestroyPipelineLayout(_context->get_device()->get_handle(), _vk_layout, nullptr);
+    vkDestroyPipelineLayout(_context.get_device()->get_handle(), _vk_layout, nullptr);
 }
 
 bool PipelineLayout::create_pipeline_layout(const std::vector<DescriptorSetLayout*>& desc_set_layouts, std::vector<VkPushConstantRange>& push_constant_ranges)
@@ -39,7 +39,7 @@ bool PipelineLayout::create_pipeline_layout(const std::vector<DescriptorSetLayou
         .pPushConstantRanges    = push_constant_ranges.data()
     };
 
-    if(vkCreatePipelineLayout(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
+    if(vkCreatePipelineLayout(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
         return false;
 
     return true;

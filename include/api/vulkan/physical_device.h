@@ -15,7 +15,7 @@ class LogicalDevice;
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(DeviceContext* context);
+    explicit PhysicalDevice(DeviceContext& context);
     ~PhysicalDevice(void);
 
     bool create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device);
@@ -38,7 +38,7 @@ private:
     bool _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
-    DeviceContext*                   _context;
+    DeviceContext&                   _context;
     LogicalDevice*                   _logical_device;
 
     uint32_t                         _physical_device_index;
@@ -58,4 +58,3 @@ private:
 }
 
 #endif
-

@@ -11,7 +11,7 @@
 
 using namespace rend;
 
-CommandPool::CommandPool(DeviceContext* context)
+CommandPool::CommandPool(DeviceContext& context)
     : _context(context),
       _queue_family(nullptr),
       _can_reset(false),
@@ -23,7 +23,7 @@ CommandPool::~CommandPool(void)
 {
     free_all();
 
-    vkDestroyCommandPool(_context->get_device()->get_handle(), _vk_command_pool, nullptr);
+    vkDestroyCommandPool(_context.get_device()->get_handle(), _vk_command_pool, nullptr);
 }
 
 bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_reset)
@@ -38,7 +38,7 @@ bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_
         .queueFamilyIndex = queue_family->get_index()
     };
 
-    if(vkCreateCommandPool(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_command_pool) != VK_SUCCESS)
+    if(vkCreateCommandPool(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_command_pool) != VK_SUCCESS)
         return false;
 
     _queue_family = queue_family;
@@ -66,7 +66,7 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
     std::vector<CommandBuffer*> buffers;
     buffers.reserve(count);
 
-    if(vkAllocateCommandBuffers(_context->get_device()->get_handle(), &alloc_info, vk_buffers.data()) != VK_SUCCESS)
+    if(vkAllocateCommandBuffers(_context.get_device()->get_handle(), &alloc_info, vk_buffers.data()) != VK_SUCCESS)
         return {};
 
     _command_buffers.reserve(_command_buffers.size() + count);
@@ -102,7 +102,7 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
     }
 
     if(vk_buffers.size() > 0)
-        vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
+        vkFreeCommandBuffers(_context.get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
 }
 
 void CommandPool::free_command_buffer(CommandBuffer* command_buffer)
@@ -121,7 +121,7 @@ void CommandPool::free_all(void)
         delete buffer;
     }
 
-    vkFreeCommandBuffers(_context->get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
+    vkFreeCommandBuffers(_context.get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
 
     _command_buffers.clear();
 }

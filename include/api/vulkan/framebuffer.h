@@ -13,8 +13,9 @@ class RenderPass;
 class Framebuffer
 {
 public:
-    Framebuffer(DeviceContext* device);
+    explicit Framebuffer(DeviceContext& device);
     ~Framebuffer(void);
+
     Framebuffer(const Framebuffer&)            = delete;
     Framebuffer(Framebuffer&&)                 = delete;
     Framebuffer& operator=(const Framebuffer&) = delete;
@@ -32,7 +33,7 @@ private:
     void _destroy(void);
 
 private:
-    DeviceContext*          _context;
+    DeviceContext&          _context;
     const RenderPass*       _render_pass;
 
     VkFramebufferCreateInfo _vk_create_info;

@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-DescriptorSetLayout::DescriptorSetLayout(DeviceContext* context)
+DescriptorSetLayout::DescriptorSetLayout(DeviceContext& context)
     : _context(context),
       _vk_layout(VK_NULL_HANDLE)
 {
@@ -14,7 +14,7 @@ DescriptorSetLayout::DescriptorSetLayout(DeviceContext* context)
 
 DescriptorSetLayout::~DescriptorSetLayout(void)
 {
-    vkDestroyDescriptorSetLayout(_context->get_device()->get_handle(), _vk_layout, nullptr);
+    vkDestroyDescriptorSetLayout(_context.get_device()->get_handle(), _vk_layout, nullptr);
 }
 
 bool DescriptorSetLayout::create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings)
@@ -31,7 +31,7 @@ bool DescriptorSetLayout::create_descriptor_set_layout(const std::vector<VkDescr
         .pBindings = bindings.data()
     };
 
-    if(vkCreateDescriptorSetLayout(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
+    if(vkCreateDescriptorSetLayout(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
         return false;
 
     _bindings = bindings;

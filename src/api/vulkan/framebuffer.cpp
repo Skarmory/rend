@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-Framebuffer::Framebuffer(DeviceContext* context)
+Framebuffer::Framebuffer(DeviceContext& context)
     : _context(context),
       _render_pass(nullptr),
       _vk_create_info({}),
@@ -72,7 +72,7 @@ bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3
     _vk_create_info.height = dimensions.height;
     _vk_create_info.layers = dimensions.depth;
 
-    if(vkCreateFramebuffer(_context->get_device()->get_handle(), &_vk_create_info, nullptr, &_vk_framebuffer) != VK_SUCCESS)
+    if(vkCreateFramebuffer(_context.get_device()->get_handle(), &_vk_create_info, nullptr, &_vk_framebuffer) != VK_SUCCESS)
         return false;
 
     return true;
@@ -80,5 +80,5 @@ bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3
 
 void Framebuffer::_destroy(void)
 {
-    vkDestroyFramebuffer(_context->get_device()->get_handle(), _vk_framebuffer, nullptr);
+    vkDestroyFramebuffer(_context.get_device()->get_handle(), _vk_framebuffer, nullptr);
 }

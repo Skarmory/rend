@@ -5,13 +5,12 @@
 #include "pipeline_layout.h"
 #include "render_pass.h"
 #include "shader.h"
-#include "utils.h"
 
 #include <cstring>
 
 using namespace rend;
 
-Pipeline::Pipeline(DeviceContext* context)
+Pipeline::Pipeline(DeviceContext& context)
     : _context(context),
       _pipeline_settings({}),
       _vk_pipeline(VK_NULL_HANDLE)
@@ -20,7 +19,7 @@ Pipeline::Pipeline(DeviceContext* context)
 
 Pipeline::~Pipeline(void)
 {
-    vkDestroyPipeline(_context->get_device()->get_handle(), _vk_pipeline, nullptr);
+    vkDestroyPipeline(_context.get_device()->get_handle(), _vk_pipeline, nullptr);
 }
 
 bool Pipeline::create_pipeline(PipelineSettings* settings)
@@ -181,7 +180,7 @@ bool Pipeline::create_pipeline(PipelineSettings* settings)
         .basePipelineIndex   = 0
     };
 
-    if(vkCreateGraphicsPipelines(_context->get_device()->get_handle(), VK_NULL_HANDLE, 1, &create_info, nullptr, &_vk_pipeline) != VK_SUCCESS)
+    if(vkCreateGraphicsPipelines(_context.get_device()->get_handle(), VK_NULL_HANDLE, 1, &create_info, nullptr, &_vk_pipeline) != VK_SUCCESS)
         return false;
 
     _pipeline_settings = *settings;

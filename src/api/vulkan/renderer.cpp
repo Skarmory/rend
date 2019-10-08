@@ -5,7 +5,6 @@
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
-#include "vulkan_gpu_buffer.h"
 #include "vulkan_gpu_texture.h"
 #include "index_buffer.h"
 #include "logical_device.h"
@@ -14,6 +13,7 @@
 #include "swapchain.h"
 #include "uniform_buffer.h"
 #include "vertex_buffer.h"
+#include "vulkan_instance.h"
 #include "depth_buffer.h"
 
 #include <assert.h>
@@ -22,19 +22,21 @@
 
 using namespace rend;
 
-Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues, std::vector<const char*> extensions, std::vector<const char*> layers)
-    : _context(nullptr), _swapchain(nullptr), _command_pool(nullptr),
-      _default_depth_buffer(nullptr), _default_render_pass(nullptr), _frame_counter(0)
+Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
+    : _context(context),
+      _swapchain(nullptr),
+      _command_pool(nullptr),
+      _default_depth_buffer(nullptr),
+      _default_render_pass(nullptr),
+      _frame_counter(0)
 {
-    _context = new DeviceContext;
-    _context->create_device_context(extensions.data(), extensions.size(), layers.data(), layers.size(), window);
-    _context->create_device(desired_features, desired_queues);
+    _context.create_device(desired_features, desired_queues);
 
-    _swapchain = new Swapchain(*_context);
+    _swapchain = new Swapchain(_context);
     _swapchain->create_swapchain(3);
 
     _command_pool = new CommandPool(_context);
-    _command_pool->create_command_pool(_context->get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    _command_pool->create_command_pool(_context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
@@ -55,7 +57,7 @@ Renderer::Renderer(Window* window, const VkPhysicalDeviceFeatures& desired_featu
 
 Renderer::~Renderer(void)
 {
-    vkDeviceWaitIdle(_context->get_device()->get_handle());
+    vkDeviceWaitIdle(_context.get_device()->get_handle());
 
     while(!_task_queue.empty())
     {
@@ -79,12 +81,6 @@ Renderer::~Renderer(void)
 
     delete _command_pool;
     delete _swapchain;
-    delete _context;
-}
-
-DeviceContext* Renderer::get_device_context(void) const
-{
-    return _context;
 }
 
 Swapchain* Renderer::get_swapchain(void) const
@@ -176,7 +172,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     {
         Task* task = _task_queue.front();
         _task_queue.pop();
-        task->execute(*_context, resources);
+        task->execute(_context, resources);
         delete task;
     }
 
@@ -184,7 +180,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
 
     if(resources.command_buffer->recorded())
     {
-        _context->get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
+        _context.get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
         load_fence->wait();
     }
 
@@ -425,7 +421,7 @@ void Renderer::_create_default_framebuffers(bool recreate)
     if(recreate)
     {
         delete _default_depth_buffer;
-        _default_depth_buffer = new DepthBuffer(*_context);
+        _default_depth_buffer = new DepthBuffer(_context);
         _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
@@ -435,7 +431,7 @@ void Renderer::_create_default_framebuffers(bool recreate)
     }
     else
     {
-        _default_depth_buffer = new DepthBuffer(*_context);
+        _default_depth_buffer = new DepthBuffer(_context);
         _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
         _default_framebuffers.resize(views.size());

@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-Fence::Fence(DeviceContext* context)
+Fence::Fence(DeviceContext& context)
     : _context(context),
       _vk_fence(VK_NULL_HANDLE)
 {
@@ -14,7 +14,7 @@ Fence::Fence(DeviceContext* context)
 
 Fence::~Fence(void)
 {
-    vkDestroyFence(_context->get_device()->get_handle(), _vk_fence, nullptr);
+    vkDestroyFence(_context.get_device()->get_handle(), _vk_fence, nullptr);
 }
 
 bool Fence::create_fence(bool start_signalled)
@@ -29,7 +29,7 @@ bool Fence::create_fence(bool start_signalled)
         .flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0)
     };
 
-    if(vkCreateFence(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_fence) != VK_SUCCESS)
+    if(vkCreateFence(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_fence) != VK_SUCCESS)
         return false;
 
     return true;
@@ -42,10 +42,10 @@ VkFence Fence::get_handle(void) const
 
 void Fence::reset(void) const
 {
-    vkResetFences(_context->get_device()->get_handle(), 1, &_vk_fence);
+    vkResetFences(_context.get_device()->get_handle(), 1, &_vk_fence);
 }
 
 VkResult Fence::wait(uint64_t timeout) const
 {
-    return vkWaitForFences(_context->get_device()->get_handle(), 1, &_vk_fence, false, timeout);
+    return vkWaitForFences(_context.get_device()->get_handle(), 1, &_vk_fence, false, timeout);
 }

@@ -14,8 +14,9 @@ class DescriptorSetLayout;
 class DescriptorSet
 {
 public:
-    DescriptorSet(DeviceContext* device, VkDescriptorSet set);
+    DescriptorSet(DeviceContext& device, VkDescriptorSet set);
     ~DescriptorSet(void) = default;
+
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
@@ -38,7 +39,7 @@ public:
 
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
 
     VkDescriptorSet _vk_set;
     std::vector<VkWriteDescriptorSet> _vk_write_descs;
@@ -47,7 +48,7 @@ private:
 class DescriptorPool
 {
 public:
-    DescriptorPool(DeviceContext* context);
+    DescriptorPool(DeviceContext& context);
     ~DescriptorPool(void);
     DescriptorPool(const DescriptorPool&)            = delete;
     DescriptorPool(DescriptorPool&&)                 = delete;
@@ -60,7 +61,7 @@ public:
 
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
     uint32_t _max_sets;
     VkDescriptorPool _vk_pool;
 

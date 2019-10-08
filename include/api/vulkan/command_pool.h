@@ -21,10 +21,13 @@ class CommandBuffer;
 class CommandPool
 {
 public:
-    CommandPool(DeviceContext* context);
+    explicit CommandPool(DeviceContext& context);
     ~CommandPool(void);
-    CommandPool(const CommandPool&) = delete;
+
+    CommandPool(const CommandPool&)            = delete;
+    CommandPool(CommandPool&&)                 = delete;
     CommandPool& operator=(const CommandPool&) = delete;
+    CommandPool& operator=(CommandPool&&)      = delete;
 
     bool create_command_pool(const QueueFamily* queue_family, bool can_reset);
 
@@ -54,7 +57,7 @@ public:
     void free_all(void);
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
     const QueueFamily* _queue_family;
     bool               _can_reset;
 

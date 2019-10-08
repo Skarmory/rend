@@ -2,18 +2,18 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
 
 using namespace rend;
 
-RenderPass::RenderPass(DeviceContext* context)
-    : _vk_render_pass(VK_NULL_HANDLE), _context(context)
+RenderPass::RenderPass(DeviceContext& context)
+    : _context(context),
+      _vk_render_pass(VK_NULL_HANDLE)
 {
 }
 
 RenderPass::~RenderPass(void)
 {
-    vkDestroyRenderPass(_context->get_device()->get_handle(), _vk_render_pass, nullptr);
+    vkDestroyRenderPass(_context.get_device()->get_handle(), _vk_render_pass, nullptr);
 }
 
 bool RenderPass::create_render_pass(const std::vector<VkAttachmentDescription>& attachment_descs, const std::vector<VkSubpassDescription>& subpass_descs, const std::vector<VkSubpassDependency>& subpass_deps)
@@ -34,7 +34,7 @@ bool RenderPass::create_render_pass(const std::vector<VkAttachmentDescription>& 
         .pDependencies   = subpass_deps.data()
     };
 
-    if(vkCreateRenderPass(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_render_pass) != VK_SUCCESS)
+    if(vkCreateRenderPass(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_render_pass) != VK_SUCCESS)
         return false;
 
     return true;

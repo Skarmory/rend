@@ -12,8 +12,9 @@ class DeviceContext;
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(DeviceContext* device);
+    explicit DescriptorSetLayout(DeviceContext& device);
     ~DescriptorSetLayout(void);
+
     DescriptorSetLayout(const DescriptorSetLayout&)            = delete;
     DescriptorSetLayout(DescriptorSetLayout&&)                 = delete;
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
@@ -25,7 +26,7 @@ public:
     const std::vector<VkDescriptorSetLayoutBinding>& get_layout_bindings(void) const;
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
     std::vector<VkDescriptorSetLayoutBinding> _bindings;
 
     VkDescriptorSetLayout _vk_layout;

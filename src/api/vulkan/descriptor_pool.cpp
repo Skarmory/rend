@@ -8,7 +8,7 @@ using namespace rend;
 
 /* ----- Descriptor Set ----- */
 
-DescriptorSet::DescriptorSet(DeviceContext* context, VkDescriptorSet set)
+DescriptorSet::DescriptorSet(DeviceContext& context, VkDescriptorSet set)
     : _context(context),
       _vk_set(set)
 {
@@ -85,14 +85,14 @@ void DescriptorSet::describe(uint32_t binding, uint32_t array_elem, VkDescriptor
 
 void DescriptorSet::update(void)
 {
-    vkUpdateDescriptorSets(_context->get_device()->get_handle(), _vk_write_descs.size(), _vk_write_descs.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_context.get_device()->get_handle(), _vk_write_descs.size(), _vk_write_descs.data(), 0, nullptr);
 
     _vk_write_descs.clear();
 }
 
 /* ----- Descriptor Pool ----- */
 
-DescriptorPool::DescriptorPool(DeviceContext* context)
+DescriptorPool::DescriptorPool(DeviceContext& context)
     : _context(context),
       _max_sets(0),
       _vk_pool(VK_NULL_HANDLE)
@@ -104,7 +104,7 @@ DescriptorPool::~DescriptorPool(void)
     for(DescriptorSet* dset : _sets)
         delete dset;
 
-    vkDestroyDescriptorPool(_context->get_device()->get_handle(), _vk_pool, nullptr);
+    vkDestroyDescriptorPool(_context.get_device()->get_handle(), _vk_pool, nullptr);
 }
 
 bool DescriptorPool::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
@@ -124,7 +124,7 @@ bool DescriptorPool::create_descriptor_pool(uint32_t max_sets, const std::vector
         .pPoolSizes    = pool_sizes.data()
     };
 
-    if(vkCreateDescriptorPool(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_pool) != VK_SUCCESS)
+    if(vkCreateDescriptorPool(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_pool) != VK_SUCCESS)
         return false;
 
     _max_sets = max_sets;
@@ -157,7 +157,7 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
     };
 
     VkResult result = VK_SUCCESS;
-    if((result = vkAllocateDescriptorSets(_context->get_device()->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
+    if((result = vkAllocateDescriptorSets(_context.get_device()->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
         return result;
 
     for(VkDescriptorSet vk_set : vk_sets)

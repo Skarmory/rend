@@ -6,6 +6,7 @@
 #include "logical_device.h"
 #include "rend_defs.h"
 #include "semaphore.h"
+#include "window.h"
 
 #include <limits>
 
@@ -123,7 +124,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     _vk_swapchain = _context.get_device()->create_swapchain(
-        _context.get_surface(), _image_count, _surface_format.format,
+        _context.get_window()->get_handle(), _image_count, _surface_format.format,
         _surface_format.colorSpace, surface_caps.currentExtent, 1,
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
         nullptr, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,

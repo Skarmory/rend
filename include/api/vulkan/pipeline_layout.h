@@ -13,8 +13,9 @@ class DeviceContext;
 class PipelineLayout
 {
 public:
-    PipelineLayout(DeviceContext* context);
+    explicit PipelineLayout(DeviceContext& context);
     ~PipelineLayout(void);
+
     PipelineLayout(const PipelineLayout&)            = delete;
     PipelineLayout(PipelineLayout&&)                 = delete;
     PipelineLayout& operator=(const PipelineLayout&) = delete;
@@ -25,7 +26,7 @@ public:
     VkPipelineLayout get_handle(void) const;
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
 
     VkPipelineLayout _vk_layout;
 };

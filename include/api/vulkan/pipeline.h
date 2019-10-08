@@ -82,8 +82,9 @@ struct PipelineSettings
 class Pipeline
 {
 public:
-    Pipeline(DeviceContext* device);
+    explicit Pipeline(DeviceContext& device);
     ~Pipeline(void);
+
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&)      = delete;
     Pipeline& operator=(const Pipeline&) = delete;
@@ -95,7 +96,7 @@ public:
     const PipelineSettings& get_settings(void) const;
 
 private:
-    DeviceContext*   _context;
+    DeviceContext&   _context;
     PipelineSettings _pipeline_settings;
     VkPipeline       _vk_pipeline;
 };
