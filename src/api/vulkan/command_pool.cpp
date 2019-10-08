@@ -4,7 +4,6 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "queue_family.h"
-#include "utils.h"
 
 #include <utility>
 #include <iostream>

@@ -2,7 +2,6 @@
 
 #include "device_context.h"
 #include "logical_device.h"
-#include "utils.h"
 
 using namespace rend;
 
