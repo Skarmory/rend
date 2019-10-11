@@ -43,6 +43,8 @@ protected:
         VkImageViewType view_type, VkImageAspectFlags aspects
     );
 
+    void destroy_texture_api(void);
+
 private:
     bool _create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkImageUsageFlags usage);
     bool _alloc_vk_memory(VkMemoryPropertyFlags memory_properties);

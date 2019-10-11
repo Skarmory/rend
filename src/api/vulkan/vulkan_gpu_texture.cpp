@@ -28,10 +28,7 @@ VulkanGPUTexture::VulkanGPUTexture(DeviceContext& context)
 
 VulkanGPUTexture::~VulkanGPUTexture(void)
 {
-    vkDestroySampler(_context.get_device()->get_handle(), _vk_sampler, nullptr);
-    vkDestroyImageView(_context.get_device()->get_handle(), _vk_image_view, nullptr);
-    vkFreeMemory(_context.get_device()->get_handle(), _vk_memory, nullptr);
-    vkDestroyImage(_context.get_device()->get_handle(), _vk_image, nullptr);
+    destroy_texture_api();
 }
 
 StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
@@ -81,6 +78,19 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
     return StatusCode::SUCCESS;
 }
 
+void VulkanGPUTexture::destroy_texture_api(void)
+{
+    vkDestroySampler(_context.get_device()->get_handle(), _vk_sampler, nullptr);
+    vkDestroyImageView(_context.get_device()->get_handle(), _vk_image_view, nullptr);
+    vkFreeMemory(_context.get_device()->get_handle(), _vk_memory, nullptr);
+    vkDestroyImage(_context.get_device()->get_handle(), _vk_image, nullptr);
+
+    _vk_sampler = VK_NULL_HANDLE;
+    _vk_image_view = VK_NULL_HANDLE;
+    _vk_memory = VK_NULL_HANDLE;
+    _vk_image = VK_NULL_HANDLE;
+}
+
 VkImage VulkanGPUTexture::get_handle(void) const
 {
     return _vk_image;
@@ -104,6 +114,11 @@ VkImageLayout VulkanGPUTexture::get_layout(void) const
 VkExtent3D VulkanGPUTexture::get_extent(void) const
 {
     return VkExtent3D{ _width, _height, _depth };
+}
+
+VkFormat VulkanGPUTexture::get_vk_format(void) const
+{
+    return _vk_format;
 }
 
 uint32_t VulkanGPUTexture::get_array_layers(void) const

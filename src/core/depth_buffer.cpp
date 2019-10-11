@@ -24,3 +24,8 @@ bool DepthBuffer::create_depth_buffer(uint32_t width, uint32_t height)
     return true;
 
 }
+
+void DepthBuffer::destroy_depth_buffer(void)
+{
+    destroy_texture_api();
+}

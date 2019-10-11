@@ -16,7 +16,7 @@ class DepthBuffer : public VulkanDepthBuffer
 {
 public:
     explicit DepthBuffer(DeviceContext& context);
-    virtual ~DepthBuffer(void);
+    ~DepthBuffer(void);
 
     DepthBuffer(const DeviceContext&)            = delete;
     DepthBuffer(DeviceContext&&)                 = delete;
@@ -24,6 +24,7 @@ public:
     DepthBuffer& operator=(DeviceContext&&)      = delete;
 
     bool create_depth_buffer(uint32_t width, uint32_t height);
+    void destroy_depth_buffer(void);
 };
 
 }
