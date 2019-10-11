@@ -26,6 +26,7 @@ public:
 
     // Describe binding for given image(s) to given binding point at given array elem
     void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorImageInfo>& descriptor_infos);
+    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const VkDescriptorImageInfo* data, uint32_t count);
 
     // Describe binding for given buffer(s) to given binding point at given array elem
     void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorBufferInfo>& descriptor_infos);
@@ -58,7 +59,6 @@ public:
     bool create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
 
     VkResult allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets);
-
 
 private:
     DeviceContext& _context;

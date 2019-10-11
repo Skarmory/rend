@@ -35,6 +35,22 @@ void DescriptorSet::describe(uint32_t binding, uint32_t array_elem, VkDescriptor
     });
 }
 
+void DescriptorSet::describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const VkDescriptorImageInfo* data, uint32_t count)
+{
+    _vk_write_descs.push_back({
+        .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext            = nullptr,
+        .dstSet           = _vk_set,
+        .dstBinding       = binding,
+        .dstArrayElement  = array_elem,
+        .descriptorCount  = count,
+        .descriptorType   = type,
+        .pImageInfo       = data,
+        .pBufferInfo      = nullptr,
+        .pTexelBufferView = nullptr
+    });
+}
+
 void DescriptorSet::describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorBufferInfo>& descriptor_infos)
 {
     _vk_write_descs.push_back({
