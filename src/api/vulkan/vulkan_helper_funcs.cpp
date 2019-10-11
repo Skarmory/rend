@@ -85,6 +85,9 @@ VkFormat vulkan_helpers::convert_texture_format(TextureFormat format)
     switch(format)
     {
         case TextureFormat::R8G8B8A8: return VK_FORMAT_R8G8B8A8_UNORM;
+        case TextureFormat::R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case TextureFormat::R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
+        case TextureFormat::R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
     }
 
     return VK_FORMAT_MAX_ENUM;
