@@ -31,7 +31,10 @@ enum class StatusCode
 
 enum class TextureFormat
 {
-    R8G8B8A8
+    R8G8B8A8,
+    R16G16B16A16_SFLOAT,
+    R32G32B32_SFLOAT,
+    R32G32_SFLOAT
 };
 
 enum class ShaderType
