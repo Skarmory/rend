@@ -26,6 +26,7 @@ public:
     VkSampler     get_sampler(void) const;
     VkImageLayout get_layout(void) const;
     VkExtent3D    get_extent(void) const;
+    VkFormat      get_vk_format(void) const;
     uint32_t      get_array_layers(void) const;
     uint32_t      get_mip_levels(void) const;
 
