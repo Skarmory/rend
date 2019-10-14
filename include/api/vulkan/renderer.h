@@ -44,6 +44,7 @@ struct FrameResources
     Semaphore*                  acquire_sem;
     Semaphore*                  present_sem;
     Fence*                      submit_fen;
+    Framebuffer*                framebuffer;
 };
 
 struct Task
@@ -95,8 +96,6 @@ public:
     // Functions
     FrameResources& start_frame(void);
     void end_frame(FrameResources& frame_res);
-    void begin_render_pass(FrameResources& frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area={ 0, 0, 0, 0 });
-    void end_render_pass(FrameResources& frame_res);
     void resize_resources(void);
 
 private:

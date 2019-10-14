@@ -38,6 +38,9 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
     _command_pool = new CommandPool(_context);
     _command_pool->create_command_pool(_context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
+    _create_default_renderpass();
+    _create_default_framebuffers(false);
+
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
         _frame_resources[idx].swapchain_idx = 0xdeadbeef;
@@ -50,9 +53,6 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
         _frame_resources[idx].submit_fen->create_fence(true);
         _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
-
-    _create_default_renderpass();
-    _create_default_framebuffers(false);
 }
 
 Renderer::~Renderer(void)
@@ -128,6 +128,7 @@ FrameResources& Renderer::start_frame(void)
     }
 
     frame_res.swapchain_idx = _swapchain->get_current_image_index();
+    frame_res.framebuffer = _default_framebuffers[frame_res.swapchain_idx];
 
     _process_task_queue(frame_res);
 
@@ -137,19 +138,6 @@ FrameResources& Renderer::start_frame(void)
 void Renderer::end_frame(FrameResources& frame_res)
 {
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
-}
-
-void Renderer::begin_render_pass(FrameResources& frame_res, std::vector<VkClearValue>& clear_values, VkRect2D render_area)
-{
-    if(render_area.extent.width == 0 && render_area.extent.height == 0)
-        render_area.extent = _swapchain->get_extent();
-
-    frame_res.command_buffer->begin_render_pass(*_default_render_pass, *_default_framebuffers[frame_res.swapchain_idx], render_area, clear_values);
-}
-
-void Renderer::end_render_pass(FrameResources& frame_res)
-{
-    frame_res.command_buffer->end_render_pass();
 }
 
 void Renderer::resize_resources(void)
