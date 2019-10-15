@@ -1,6 +1,7 @@
 #ifndef REND_DESCRIPTOR_POOL_H
 #define REND_DESCRIPTOR_POOL_H
 
+#include <variant>
 #include <vulkan.h>
 #include <vector>
 
@@ -10,9 +11,14 @@ namespace rend
 class DeviceContext;
 class DescriptorPool;
 class DescriptorSetLayout;
+class VulkanGPUBuffer;
+class VulkanGPUTexture;
+class VulkanUniformBuffer;
 
 class DescriptorSet
 {
+    struct Binding;
+
 public:
     DescriptorSet(DeviceContext& device, VkDescriptorSet set);
     ~DescriptorSet(void) = default;
@@ -25,25 +31,32 @@ public:
     VkDescriptorSet get_handle(void) const;
 
     // Describe binding for given image(s) to given binding point at given array elem
-    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorImageInfo>& descriptor_infos);
-    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const VkDescriptorImageInfo* data, uint32_t count);
+    void describe(uint32_t binding, VulkanGPUTexture* texture);
 
     // Describe binding for given buffer(s) to given binding point at given array elem
-    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkDescriptorBufferInfo>& descriptor_infos);
-    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const VkDescriptorBufferInfo* data, uint32_t count);
+    void describe(uint32_t binding, VulkanUniformBuffer* buffer);
 
     // Describe binding for given texel buffer(s) to given binding point at given array elem
-    void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
+    //void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
 
     // Update the descriptor set bindings. Call this when done describing the descriptor set
     void update(void);
 
+private:
+    Binding* _find_binding(uint32_t slot);
 
 private:
+    struct Binding
+    {
+        uint32_t slot;
+        VkDescriptorType type;
+        std::variant<VulkanGPUTexture*, VulkanGPUBuffer*> bound_resource;
+    };
+
     DeviceContext& _context;
+    std::vector<Binding> _bindings;
 
     VkDescriptorSet _vk_set;
-    std::vector<VkWriteDescriptorSet> _vk_write_descs;
 };
 
 class DescriptorPool
