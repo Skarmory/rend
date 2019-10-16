@@ -10,6 +10,17 @@ using namespace rend;
 DescriptorPool::DescriptorPool(DeviceContext& context)
     : _context(context),
       _max_sets(0),
+      _sampler_count(0),
+      _combined_image_sampler_count(0),
+      _sampled_image_count(0),
+      _storage_image_count(0),
+      _uniform_texel_buffer_count(0),
+      _storage_texel_buffer_count(0),
+      _uniform_buffer_count(0),
+      _storage_buffer_count(0),
+      _dynamic_uniform_buffer_count(0),
+      _dynamic_storage_buffer_count(0),
+      _input_attachment_count(0),
       _vk_pool(VK_NULL_HANDLE)
 {
 }
@@ -22,10 +33,35 @@ DescriptorPool::~DescriptorPool(void)
     vkDestroyDescriptorPool(_context.get_device()->get_handle(), _vk_pool, nullptr);
 }
 
-bool DescriptorPool::create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes)
+bool DescriptorPool::create_descriptor_pool(uint32_t max_sets)
 {
     if(_vk_pool != VK_NULL_HANDLE)
         return false;
+
+    std::vector<VkDescriptorPoolSize> pool_sizes;
+
+    if(_sampler_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_SAMPLER, _sampler_count });
+    if(_combined_image_sampler_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, _combined_image_sampler_count });
+    if(_sampled_image_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, _sampled_image_count });
+    if(_storage_image_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, _storage_image_count });
+    if(_uniform_texel_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, _uniform_texel_buffer_count});
+    if(_storage_texel_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, _storage_texel_buffer_count});
+    if(_uniform_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, _uniform_buffer_count});
+    if(_storage_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, _storage_buffer_count});
+    if(_dynamic_uniform_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, _dynamic_uniform_buffer_count});
+    if(_dynamic_storage_buffer_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, _dynamic_storage_buffer_count});
+    if(_input_attachment_count > 0)
+        pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, _input_attachment_count});
 
     _sets.reserve(_max_sets);
 
@@ -45,6 +81,61 @@ bool DescriptorPool::create_descriptor_pool(uint32_t max_sets, const std::vector
     _max_sets = max_sets;
 
     return true;
+}
+
+void DescriptorPool::set_sampler_count(uint32_t count)
+{
+    _sampler_count = count;
+}
+
+void DescriptorPool::set_combined_image_sampler_count(uint32_t count)
+{
+    _combined_image_sampler_count = count;
+}
+
+void DescriptorPool::set_sampled_image_count(uint32_t count)
+{
+    _sampled_image_count = count;
+}
+
+void DescriptorPool::set_storage_image_count(uint32_t count)
+{
+    _storage_image_count = count;
+}
+
+void DescriptorPool::set_uniform_texel_buffer_count(uint32_t count)
+{
+    _uniform_texel_buffer_count = count;
+}
+
+void DescriptorPool::set_storage_texel_buffer_count(uint32_t count)
+{
+    _storage_texel_buffer_count = count;
+}
+
+void DescriptorPool::set_uniform_buffer_count(uint32_t count)
+{
+    _uniform_buffer_count = count;
+}
+
+void DescriptorPool::set_storage_buffer_count(uint32_t count)
+{
+    _storage_buffer_count = count;
+}
+
+void DescriptorPool::set_dynamic_uniform_buffer_count(uint32_t count)
+{
+    _dynamic_uniform_buffer_count = count;
+}
+
+void DescriptorPool::set_dynamic_storage_buffer_count(uint32_t count)
+{
+    _dynamic_storage_buffer_count = count;
+}
+
+void DescriptorPool::set_input_attachment_count(uint32_t count)
+{
+    _input_attachment_count = count;
 }
 
 VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets)

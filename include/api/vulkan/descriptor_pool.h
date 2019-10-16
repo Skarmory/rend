@@ -21,7 +21,19 @@ public:
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool& operator=(DescriptorPool&&)      = delete;
 
-    bool create_descriptor_pool(uint32_t max_sets, const std::vector<VkDescriptorPoolSize>& pool_sizes);
+    bool create_descriptor_pool(uint32_t max_sets);
+
+    void set_sampler_count(uint32_t count);
+    void set_combined_image_sampler_count(uint32_t count);
+    void set_sampled_image_count(uint32_t count);
+    void set_storage_image_count(uint32_t count);
+    void set_uniform_texel_buffer_count(uint32_t count);
+    void set_storage_texel_buffer_count(uint32_t count);
+    void set_uniform_buffer_count(uint32_t count);
+    void set_storage_buffer_count(uint32_t count);
+    void set_dynamic_uniform_buffer_count(uint32_t count);
+    void set_dynamic_storage_buffer_count(uint32_t count);
+    void set_input_attachment_count(uint32_t count);
 
     VkResult allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets);
 
@@ -29,6 +41,18 @@ private:
     DeviceContext& _context;
     uint32_t _max_sets;
     std::vector<DescriptorSet*> _sets;
+
+    uint32_t _sampler_count;
+    uint32_t _combined_image_sampler_count;
+    uint32_t _sampled_image_count;
+    uint32_t _storage_image_count;
+    uint32_t _uniform_texel_buffer_count;
+    uint32_t _storage_texel_buffer_count;
+    uint32_t _uniform_buffer_count;
+    uint32_t _storage_buffer_count;
+    uint32_t _dynamic_uniform_buffer_count;
+    uint32_t _dynamic_storage_buffer_count;
+    uint32_t _input_attachment_count;
 
     VkDescriptorPool _vk_pool;
 };
