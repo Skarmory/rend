@@ -1,6 +1,6 @@
 #include "command_buffer.h"
 
-#include "descriptor_pool.h"
+#include "descriptor_set.h"
 #include "framebuffer.h"
 #include "vulkan_gpu_buffer.h"
 #include "vulkan_gpu_texture.h"
