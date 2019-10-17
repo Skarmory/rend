@@ -138,14 +138,16 @@ void DescriptorPool::set_input_attachment_count(uint32_t count)
     _input_attachment_count = count;
 }
 
-VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets)
+std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts)
 {
     if(_sets.size() >= _max_sets)
-        return VK_ERROR_OUT_OF_POOL_MEMORY;
+        return {};
+
+    std::vector<DescriptorSet*> out_sets;
+    out_sets.reserve(layouts.size());
 
     std::vector<VkDescriptorSet> vk_sets;
     vk_sets.resize(layouts.size());
-    out_sets.reserve(layouts.size());
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(layouts.size());
@@ -162,9 +164,8 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
         .pSetLayouts        = vk_layouts.data()
     };
 
-    VkResult result = VK_SUCCESS;
-    if((result = vkAllocateDescriptorSets(_context.get_device()->get_handle(), &alloc_info, vk_sets.data())) != VK_SUCCESS)
-        return result;
+    if(vkAllocateDescriptorSets(_context.get_device()->get_handle(), &alloc_info, vk_sets.data()) != VK_SUCCESS)
+        return {};
 
     for(VkDescriptorSet vk_set : vk_sets)
     {
@@ -173,5 +174,5 @@ VkResult DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layou
         out_sets.push_back(dset);
     }
 
-    return result;
+    return out_sets;
 }

@@ -14,8 +14,9 @@ class DescriptorSetLayout;
 class DescriptorPool
 {
 public:
-    DescriptorPool(DeviceContext& context);
+    explicit DescriptorPool(DeviceContext& context);
     ~DescriptorPool(void);
+
     DescriptorPool(const DescriptorPool&)            = delete;
     DescriptorPool(DescriptorPool&&)                 = delete;
     DescriptorPool& operator=(const DescriptorPool&) = delete;
@@ -35,7 +36,7 @@ public:
     void set_dynamic_storage_buffer_count(uint32_t count);
     void set_input_attachment_count(uint32_t count);
 
-    VkResult allocate(const std::vector<DescriptorSetLayout*>& layouts, std::vector<DescriptorSet*>& out_sets);
+    std::vector<DescriptorSet*> allocate(const std::vector<DescriptorSetLayout*>& layouts);
 
 private:
     DeviceContext& _context;
