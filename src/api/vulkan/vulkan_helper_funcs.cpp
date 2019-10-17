@@ -100,4 +100,6 @@ VkShaderStageFlags vulkan_helpers::convert_shader_stage(ShaderType type)
         case ShaderType::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
         case ShaderType::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
     }
+
+    return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 }
