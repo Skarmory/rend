@@ -92,3 +92,12 @@ VkFormat vulkan_helpers::convert_texture_format(TextureFormat format)
 
     return VK_FORMAT_MAX_ENUM;
 }
+
+VkShaderStageFlags vulkan_helpers::convert_shader_stage(ShaderType type)
+{
+    switch(type)
+    {
+        case ShaderType::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderType::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+    }
+}
