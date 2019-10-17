@@ -4,6 +4,8 @@
 #include <vulkan.h>
 #include <vector>
 
+#include "rend_defs.h"
+
 namespace rend
 {
 
@@ -20,7 +22,10 @@ public:
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout& operator=(DescriptorSetLayout&&)      = delete;
 
-    bool create_descriptor_set_layout(const std::vector<VkDescriptorSetLayoutBinding>& bindings);
+    bool create_descriptor_set_layout(void);
+
+    void add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage);
+    void add_combined_image_sampler_binding(uint32_t slot, ShaderType shader_stage);
 
     VkDescriptorSetLayout                            get_handle(void) const;
     const std::vector<VkDescriptorSetLayoutBinding>& get_layout_bindings(void) const;

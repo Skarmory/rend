@@ -18,7 +18,7 @@ class DescriptorSet
     struct Binding;
 
 public:
-    DescriptorSet(DeviceContext& device, VkDescriptorSet set);
+    explicit DescriptorSet(DeviceContext& device, VkDescriptorSet set);
     ~DescriptorSet(void) = default;
 
     DescriptorSet(const DescriptorSet&)            = delete;
