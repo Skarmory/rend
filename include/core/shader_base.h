@@ -11,7 +11,7 @@ class ShaderBase : public GPUResource
 {
 public:
     ShaderBase(void);
-    virtual ~ShaderBase(void);
+    ~ShaderBase(void);
 
     ShaderBase(const ShaderBase&)            = delete;
     ShaderBase(ShaderBase&&)                 = delete;

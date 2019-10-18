@@ -16,7 +16,7 @@ class Shader : public VulkanShader
 {
 public:
     Shader(DeviceContext& context);
-    virtual ~Shader(void);
+    ~Shader(void);
 
     Shader(const Shader&)            = delete;
     Shader(Shader&&)                 = delete;
