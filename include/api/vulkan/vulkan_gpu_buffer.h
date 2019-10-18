@@ -15,8 +15,9 @@ class DeviceContext;
 class VulkanGPUBuffer : public GPUBufferBase
 {
 public:
-    VulkanGPUBuffer(DeviceContext& context);
+    explicit VulkanGPUBuffer(DeviceContext& context);
     ~VulkanGPUBuffer(void);
+
     VulkanGPUBuffer(const VulkanGPUBuffer&) = delete;
     VulkanGPUBuffer(VulkanGPUBuffer&&)      = delete;
     VulkanGPUBuffer& operator=(const VulkanGPUBuffer&) = delete;

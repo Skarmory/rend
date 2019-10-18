@@ -18,7 +18,7 @@ class UniformBuffer
 #endif
 {
 public:
-    UniformBuffer(DeviceContext& context);
+    explicit UniformBuffer(DeviceContext& context);
     ~UniformBuffer(void);
 
     UniformBuffer(const UniformBuffer&) = delete;

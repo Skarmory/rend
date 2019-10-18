@@ -10,8 +10,8 @@ namespace rend
 class IndexBufferBase
 {
 public:
-    IndexBufferBase(void);
-    virtual ~IndexBufferBase(void);
+    explicit IndexBufferBase(void);
+    ~IndexBufferBase(void);
 
     IndexBufferBase(const IndexBufferBase&) = delete;
     IndexBufferBase(IndexBufferBase&&) = delete;

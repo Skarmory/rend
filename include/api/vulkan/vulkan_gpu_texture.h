@@ -14,8 +14,9 @@ class DeviceContext;
 class VulkanGPUTexture : public GPUTextureBase
 {
 public:
-    VulkanGPUTexture(DeviceContext& context);
+    explicit VulkanGPUTexture(DeviceContext& context);
     ~VulkanGPUTexture(void);
+
     VulkanGPUTexture(const VulkanGPUTexture&)            = delete;
     VulkanGPUTexture(VulkanGPUTexture&&)                 = delete;
     VulkanGPUTexture& operator=(const VulkanGPUTexture&) = delete;

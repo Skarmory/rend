@@ -14,7 +14,7 @@ class GPUTextureBase : public GPUResource
 {
 public:
     GPUTextureBase(void);
-    virtual ~GPUTextureBase(void);
+    ~GPUTextureBase(void);
 
     GPUTextureBase(const GPUTextureBase&)            = delete;
     GPUTextureBase(GPUTextureBase&&)                 = delete;

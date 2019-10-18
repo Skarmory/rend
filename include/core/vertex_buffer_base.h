@@ -10,8 +10,8 @@ namespace rend
 class VertexBufferBase
 {
 public:
-    VertexBufferBase(void);
-    virtual ~VertexBufferBase(void);
+    explicit VertexBufferBase(void);
+    ~VertexBufferBase(void);
 
     VertexBufferBase(const VertexBufferBase&) = delete;
     VertexBufferBase(VertexBufferBase&&) = delete;

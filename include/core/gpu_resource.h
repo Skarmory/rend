@@ -7,7 +7,7 @@ class GPUResource
 {
 public:
     GPUResource(void);
-    virtual ~GPUResource(void);
+    ~GPUResource(void);
 
     size_t bytes(void) const;
 

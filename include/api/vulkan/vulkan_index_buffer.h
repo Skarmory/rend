@@ -17,8 +17,8 @@ class DeviceContext;
 class VulkanIndexBuffer : public VulkanGPUBuffer, public IndexBufferBase
 {
 public:
-    VulkanIndexBuffer(DeviceContext& context);
-    virtual ~VulkanIndexBuffer(void);
+    explicit VulkanIndexBuffer(DeviceContext& context);
+    ~VulkanIndexBuffer(void);
 
     VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
     VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;

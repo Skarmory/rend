@@ -9,8 +9,8 @@ namespace rend
 class GPUBufferBase : public GPUResource
 {
 public:
-    GPUBufferBase(void);
-    virtual ~GPUBufferBase(void);
+    explicit GPUBufferBase(void);
+    ~GPUBufferBase(void);
 
     GPUBufferBase(const GPUBufferBase&)            = delete;
     GPUBufferBase(GPUBufferBase&&)                 = delete;

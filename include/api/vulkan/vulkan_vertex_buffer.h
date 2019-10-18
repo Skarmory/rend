@@ -17,8 +17,8 @@ class DeviceContext;
 class VulkanVertexBuffer : public VulkanGPUBuffer, public VertexBufferBase
 {
 public:
-    VulkanVertexBuffer(DeviceContext& context);
-    virtual ~VulkanVertexBuffer(void);
+    explicit VulkanVertexBuffer(DeviceContext& context);
+    ~VulkanVertexBuffer(void);
 
     VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
     VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;

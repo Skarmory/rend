@@ -13,8 +13,8 @@ class DeviceContext;
 class VulkanUniformBuffer : public VulkanGPUBuffer, public UniformBufferBase
 {
 public:
-    VulkanUniformBuffer(DeviceContext& context);
-    virtual ~VulkanUniformBuffer(void);
+    explicit VulkanUniformBuffer(DeviceContext& context);
+    ~VulkanUniformBuffer(void);
 
     VulkanUniformBuffer(const VulkanUniformBuffer&)            = delete;
     VulkanUniformBuffer(VulkanUniformBuffer&&)                 = delete;

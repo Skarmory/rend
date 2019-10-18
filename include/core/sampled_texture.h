@@ -16,7 +16,7 @@ class SampledTexture : public VulkanSampledTexture
 {
 public:
     explicit SampledTexture(DeviceContext& context);
-    virtual ~SampledTexture(void);
+    ~SampledTexture(void);
 
     SampledTexture(const SampledTexture&)            = delete;
     SampledTexture(SampledTexture&&)                 = delete;

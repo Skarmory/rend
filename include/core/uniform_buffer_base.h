@@ -10,8 +10,8 @@ namespace rend
 class UniformBufferBase
 {
 public:
-    UniformBufferBase(void);
-    virtual ~UniformBufferBase(void);
+    explicit UniformBufferBase(void);
+    ~UniformBufferBase(void);
 
     UniformBufferBase(const UniformBufferBase&) = delete;
     UniformBufferBase(UniformBufferBase&&) = delete;

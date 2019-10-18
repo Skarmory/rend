@@ -11,7 +11,7 @@ class VulkanSampledTexture : public VulkanGPUTexture
 {
 public:
     explicit VulkanSampledTexture(DeviceContext& context);
-    virtual ~VulkanSampledTexture(void);
+    ~VulkanSampledTexture(void);
 
     VulkanSampledTexture(const VulkanSampledTexture&)            = delete;
     VulkanSampledTexture(VulkanSampledTexture&&)                 = delete;
