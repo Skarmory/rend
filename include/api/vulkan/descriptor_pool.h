@@ -4,6 +4,8 @@
 #include <vector>
 #include <vulkan.h>
 
+#include "rend_defs.h"
+
 namespace rend
 {
 
@@ -22,7 +24,7 @@ public:
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool& operator=(DescriptorPool&&)      = delete;
 
-    bool create_descriptor_pool(uint32_t max_sets);
+    StatusCode create_descriptor_pool(uint32_t max_sets);
 
     void set_sampler_count(uint32_t count);
     void set_combined_image_sampler_count(uint32_t count);

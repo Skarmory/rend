@@ -337,6 +337,29 @@ void LogicalDevice::destroy_render_pass(VkRenderPass render_pass)
     vkDestroyRenderPass(_vk_device, render_pass, nullptr);
 }
 
+VkDescriptorPool LogicalDevice::create_descriptor_pool(uint32_t max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
+{
+    VkDescriptorPoolCreateInfo create_info =
+    {
+        .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext         = nullptr,
+        .flags         = 0,
+        .maxSets       = max_sets,
+        .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
+        .pPoolSizes    = pool_sizes.data()
+    };
+
+    VkDescriptorPool pool = VK_NULL_HANDLE;
+    vkCreateDescriptorPool(_vk_device, &create_info, nullptr, &pool);
+
+    return pool;
+}
+
+void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool)
+{
+    vkDestroyDescriptorPool(_vk_device, pool, nullptr);
+}
+
 VkImageView LogicalDevice::create_image_view(
     VkImage image, VkImageViewType view_type, VkFormat format,
     VkComponentMapping components, VkImageSubresourceRange subresource_range

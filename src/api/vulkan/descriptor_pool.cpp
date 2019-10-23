@@ -30,13 +30,13 @@ DescriptorPool::~DescriptorPool(void)
     for(DescriptorSet* dset : _sets)
         delete dset;
 
-    vkDestroyDescriptorPool(_context.get_device()->get_handle(), _vk_pool, nullptr);
+    _context.get_device()->destroy_descriptor_pool(_vk_pool);
 }
 
-bool DescriptorPool::create_descriptor_pool(uint32_t max_sets)
+StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
 {
     if(_vk_pool != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
     std::vector<VkDescriptorPoolSize> pool_sizes;
 
@@ -63,24 +63,14 @@ bool DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     if(_input_attachment_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, _input_attachment_count});
 
+    _vk_pool = _context.get_device()->create_descriptor_pool(max_sets, pool_sizes);
+    if(_vk_pool == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
+
     _sets.reserve(_max_sets);
-
-    VkDescriptorPoolCreateInfo create_info =
-    {
-        .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext         = nullptr,
-        .flags         = 0,
-        .maxSets       = max_sets,
-        .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
-        .pPoolSizes    = pool_sizes.data()
-    };
-
-    if(vkCreateDescriptorPool(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_pool) != VK_SUCCESS)
-        return false;
-
     _max_sets = max_sets;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 void DescriptorPool::set_sampler_count(uint32_t count)
