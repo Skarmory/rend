@@ -21,6 +21,10 @@ bool DepthBuffer::create_depth_buffer(uint32_t width, uint32_t height)
         return false;
     }
 
+    _width = width;
+    _height = height;
+    _format = TextureFormat::D24_S8;
+
     return true;
 
 }
