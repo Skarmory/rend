@@ -351,52 +351,27 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
 
 void Renderer::_create_default_renderpass(void)
 {
-    std::vector<VkAttachmentDescription> attach_descs(2);
-    attach_descs[0].format        = VK_FORMAT_B8G8R8A8_UNORM;
-    attach_descs[0].loadOp        = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attach_descs[0].storeOp       = VK_ATTACHMENT_STORE_OP_STORE;
-    attach_descs[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attach_descs[0].finalLayout   = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    attach_descs[0].samples       = VK_SAMPLE_COUNT_1_BIT;
-
-    attach_descs[1].format         = VK_FORMAT_D24_UNORM_S8_UINT;
-    attach_descs[1].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attach_descs[1].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    attach_descs[1].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attach_descs[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attach_descs[1].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    attach_descs[1].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    attach_descs[1].samples        = VK_SAMPLE_COUNT_1_BIT;
-
-    std::vector<VkAttachmentReference> attachment_refs(2);
-    attachment_refs[0].attachment = 0;
-    attachment_refs[0].layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    attachment_refs[1].attachment = 1;
-    attachment_refs[1].layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    std::vector<VkSubpassDescription> subpass_descs(1);
-    subpass_descs[0].pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_descs[0].colorAttachmentCount    = 1;
-    subpass_descs[0].pColorAttachments       = &attachment_refs[0];
-    subpass_descs[0].pDepthStencilAttachment = &attachment_refs[1];
-
-    std::vector<VkSubpassDependency> subpass_deps(2);
-    subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_deps[0].dstSubpass = 0;
-    subpass_deps[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    subpass_deps[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_deps[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    subpass_deps[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpass_deps[1].srcSubpass = 0;
-    subpass_deps[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_deps[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_deps[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    subpass_deps[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpass_deps[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-
     _default_render_pass = new RenderPass(_context);
-    _default_render_pass->create_render_pass(attach_descs, subpass_descs, subpass_deps);
+
+    uint32_t colour_attach = _default_render_pass->add_attachment_description(
+        TextureFormat::B8G8R8A8, 1, LoadOp::CLEAR, StoreOp::STORE,
+        LoadOp::DONT_CARE, StoreOp::DONT_CARE, ImageLayout::UNDEFINED, ImageLayout::PRESENT
+    );
+
+    uint32_t depth_attach = _default_render_pass->add_attachment_description(
+        TextureFormat::D24_S8, 1, LoadOp::CLEAR, StoreOp::STORE,
+        LoadOp::CLEAR, StoreOp::STORE, ImageLayout::UNDEFINED, ImageLayout::DEPTH_STENCIL_ATTACHMENT
+    );
+
+    _default_render_pass->add_subpass(
+        Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ },
+        Synchronisation{ PipelineStage::COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE }
+    );
+
+    _default_render_pass->add_subpass_colour_attachment_ref(colour_attach, ImageLayout::COLOUR_ATTACHMENT);
+    _default_render_pass->add_subpass_depth_stencil_attachment_ref(depth_attach, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
+
+    _default_render_pass->create_render_pass();
 }
 
 void Renderer::_create_default_framebuffers(bool recreate)
