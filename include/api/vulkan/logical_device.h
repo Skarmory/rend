@@ -72,6 +72,9 @@ public:
     VkBuffer              create_buffer(VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, uint32_t* queue_family_indices);
     void                  destroy_buffer(VkBuffer buffer);
 
+    VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);
+    void                  destroy_pipeline_layout(VkPipelineLayout layout);
+
 private:
     const DeviceContext&  _context;
     const PhysicalDevice* _physical_device;

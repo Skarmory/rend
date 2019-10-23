@@ -23,7 +23,7 @@ public:
     PipelineLayout& operator=(const PipelineLayout&) = delete;
     PipelineLayout& operator=(PipelineLayout&&)      = delete;
 
-    bool create_pipeline_layout(void);
+    StatusCode create_pipeline_layout(void);
 
     void add_push_constant_range(ShaderType type, uint32_t offset, uint32_t size_bytes);
     void add_descriptor_set_layout(DescriptorSetLayout& layout);

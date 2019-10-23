@@ -15,13 +15,13 @@ PipelineLayout::PipelineLayout(DeviceContext& context)
 
 PipelineLayout::~PipelineLayout(void)
 {
-    vkDestroyPipelineLayout(_context.get_device()->get_handle(), _vk_layout, nullptr);
+    _context.get_device()->destroy_pipeline_layout(_vk_layout);
 }
 
-bool PipelineLayout::create_pipeline_layout(void)
+StatusCode PipelineLayout::create_pipeline_layout(void)
 {
     if(_vk_layout != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(_descriptor_set_layouts.size());
@@ -29,21 +29,12 @@ bool PipelineLayout::create_pipeline_layout(void)
     for(DescriptorSetLayout* layout : _descriptor_set_layouts)
         vk_layouts.push_back(layout->get_handle());
 
-    VkPipelineLayoutCreateInfo create_info =
-    {
-        .sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext                  = nullptr,
-        .flags                  = 0,
-        .setLayoutCount         = static_cast<uint32_t>(vk_layouts.size()),
-        .pSetLayouts            = vk_layouts.data(),
-        .pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size()),
-        .pPushConstantRanges    = _push_constant_ranges.data()
-    };
+    _vk_layout = _context.get_device()->create_pipeline_layout(_push_constant_ranges, vk_layouts);
 
-    if(vkCreatePipelineLayout(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
-        return false;
+    if(_vk_layout == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 void PipelineLayout::add_push_constant_range(ShaderType type, uint32_t offset, uint32_t size_bytes)

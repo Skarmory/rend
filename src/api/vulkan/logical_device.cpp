@@ -452,3 +452,27 @@ void LogicalDevice::destroy_buffer(VkBuffer buffer)
 {
     vkDestroyBuffer(_vk_device, buffer, nullptr);
 }
+
+VkPipelineLayout LogicalDevice::create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts)
+{
+    VkPipelineLayoutCreateInfo create_info =
+    {
+        .sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext                  = nullptr,
+        .flags                  = 0,
+        .setLayoutCount         = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts            = layouts.data(),
+        .pushConstantRangeCount = static_cast<uint32_t>(push_constants.size()),
+        .pPushConstantRanges    = push_constants.data()
+    };
+
+    VkPipelineLayout layout = VK_NULL_HANDLE;
+    vkCreatePipelineLayout(_vk_device, &create_info, nullptr, &layout);
+
+    return layout;
+}
+
+void LogicalDevice::destroy_pipeline_layout(VkPipelineLayout layout)
+{
+    vkDestroyPipelineLayout(_vk_device, layout, nullptr);
+}
