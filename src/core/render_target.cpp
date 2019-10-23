@@ -21,6 +21,10 @@ bool RenderTarget::create_render_target(uint32_t width, uint32_t height, Texture
         return false;
     }
 
+    _width  = width;
+    _height = height;
+    _format = format;
+
     return true;
 }
 
