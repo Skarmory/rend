@@ -13,6 +13,14 @@ GPUTextureBase::~GPUTextureBase(void)
 {
 }
 
+bool GPUTextureBase::create_texture_base(uint32_t width, uint32_t height, uint32_t depth, TextureFormat format)
+{
+    _width  = width;
+    _height = height;
+    _depth  = depth;
+    _format = format;
+}
+
 uint32_t GPUTextureBase::width(void) const
 {
     return _width;

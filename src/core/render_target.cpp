@@ -16,14 +16,12 @@ RenderTarget::~RenderTarget(void)
 
 bool RenderTarget::create_render_target(uint32_t width, uint32_t height, TextureFormat format)
 {
+    create_texture_base(width, height, 1, format);
+
     if(create_render_target_api(width, height, format) != StatusCode::SUCCESS)
     {
         return false;
     }
-
-    _width  = width;
-    _height = height;
-    _format = format;
 
     return true;
 }

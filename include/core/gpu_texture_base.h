@@ -27,6 +27,9 @@ public:
     TextureFormat format(void) const;
 
 protected:
+    bool create_texture_base(uint32_t width, uint32_t height, uint32_t depth, TextureFormat format);
+
+private:
     uint32_t      _width;
     uint32_t      _height;
     uint32_t      _depth;

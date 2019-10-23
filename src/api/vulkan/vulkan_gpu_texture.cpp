@@ -61,9 +61,6 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
         return StatusCode::SAMPLER_CREATE_FAILURE;
     }
 
-    _width = extent.width;
-    _height = extent.height;
-    _depth = extent.depth;
     _vk_memory_properties = memory_properties;
     _vk_type = type;
     _vk_format = format;
@@ -113,7 +110,7 @@ VkImageLayout VulkanGPUTexture::get_layout(void) const
 
 VkExtent3D VulkanGPUTexture::get_extent(void) const
 {
-    return VkExtent3D{ _width, _height, _depth };
+    return VkExtent3D{ width(), height(), depth() };
 }
 
 VkFormat VulkanGPUTexture::get_vk_format(void) const
