@@ -41,14 +41,15 @@ public:
     const QueueFamily*    get_queue_family(QueueType type) const;
 
     // Commands
-    bool                  queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
-    uint32_t              find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
-    void                  wait_idle(void);
-    VkResult              acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index);
-    VkResult              queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results);
-    VkResult              get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images);
-    VkMemoryRequirements  get_buffer_memory_reqs(VkBuffer buffer);
-    VkResult              bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
+    bool                         queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
+    uint32_t                     find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
+    void                         wait_idle(void);
+    VkResult                     acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index);
+    VkResult                     queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results);
+    VkResult                     get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images);
+    VkMemoryRequirements         get_buffer_memory_reqs(VkBuffer buffer);
+    VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
+    std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
 
     VkDeviceMemory   allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props);
     void             free_memory(VkDeviceMemory memory);

@@ -19,6 +19,8 @@ bool GPUTextureBase::create_texture_base(uint32_t width, uint32_t height, uint32
     _height = height;
     _depth  = depth;
     _format = format;
+
+    return true;
 }
 
 uint32_t GPUTextureBase::width(void) const

@@ -250,6 +250,23 @@ VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memor
     return vkBindBufferMemory(_vk_device, buffer, memory, 0);
 }
 
+std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool)
+{
+    VkDescriptorSetAllocateInfo alloc_info =
+    {
+        .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .pNext              = nullptr,
+        .descriptorPool     = pool,
+        .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts        = layouts.data()
+    };
+
+    std::vector<VkDescriptorSet> sets(layouts.size());
+    vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
+
+    return sets;
+}
+
 VkDeviceMemory LogicalDevice::allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props)
 {
     VkMemoryAllocateInfo alloc_info =

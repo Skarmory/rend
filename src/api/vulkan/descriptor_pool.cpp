@@ -145,17 +145,7 @@ std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<Descripto
     for(DescriptorSetLayout* layout : layouts)
         vk_layouts.push_back(layout->get_handle());
 
-    VkDescriptorSetAllocateInfo alloc_info =
-    {
-        .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext              = nullptr,
-        .descriptorPool     = _vk_pool,
-        .descriptorSetCount = static_cast<uint32_t>(vk_layouts.size()),
-        .pSetLayouts        = vk_layouts.data()
-    };
-
-    if(vkAllocateDescriptorSets(_context.get_device()->get_handle(), &alloc_info, vk_sets.data()) != VK_SUCCESS)
-        return {};
+    vk_sets = _context.get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
 
     for(VkDescriptorSet vk_set : vk_sets)
     {
