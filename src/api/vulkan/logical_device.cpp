@@ -377,6 +377,28 @@ void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool)
     vkDestroyDescriptorPool(_vk_device, pool, nullptr);
 }
 
+VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(std::vector<VkDescriptorSetLayoutBinding>& bindings)
+{
+    VkDescriptorSetLayoutCreateInfo create_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = static_cast<uint32_t>(bindings.size()),
+        .pBindings = bindings.data()
+    };
+
+    VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+    vkCreateDescriptorSetLayout(_vk_device, &create_info, nullptr, &layout);
+
+    return layout;
+}
+
+void LogicalDevice::destroy_descriptor_set_layout(VkDescriptorSetLayout layout)
+{
+    vkDestroyDescriptorSetLayout(_vk_device, layout, nullptr);
+}
+
 VkImageView LogicalDevice::create_image_view(
     VkImage image, VkImageViewType view_type, VkFormat format,
     VkComponentMapping components, VkImageSubresourceRange subresource_range

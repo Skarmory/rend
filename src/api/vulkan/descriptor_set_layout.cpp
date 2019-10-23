@@ -14,27 +14,20 @@ DescriptorSetLayout::DescriptorSetLayout(DeviceContext& context)
 
 DescriptorSetLayout::~DescriptorSetLayout(void)
 {
-    vkDestroyDescriptorSetLayout(_context.get_device()->get_handle(), _vk_layout, nullptr);
+    _context.get_device()->destroy_descriptor_set_layout(_vk_layout);
 }
 
-bool DescriptorSetLayout::create_descriptor_set_layout(void)
+StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
 {
     if(_vk_layout != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
-    VkDescriptorSetLayoutCreateInfo create_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = static_cast<uint32_t>(_bindings.size()),
-        .pBindings = _bindings.data()
-    };
+    _vk_layout = _context.get_device()->create_descriptor_set_layout(_bindings);
 
-    if(vkCreateDescriptorSetLayout(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_layout) != VK_SUCCESS)
-        return false;
+    if(_vk_layout == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 void DescriptorSetLayout::add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage)

@@ -22,7 +22,7 @@ public:
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout& operator=(DescriptorSetLayout&&)      = delete;
 
-    bool create_descriptor_set_layout(void);
+    StatusCode create_descriptor_set_layout(void);
 
     void add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage);
     void add_combined_image_sampler_binding(uint32_t slot, ShaderType shader_stage);
