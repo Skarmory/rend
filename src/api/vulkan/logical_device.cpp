@@ -311,6 +311,32 @@ void LogicalDevice::destroy_swapchain(VkSwapchainKHR swapchain)
     vkDestroySwapchainKHR(_vk_device, swapchain, nullptr);
 }
 
+VkRenderPass LogicalDevice::create_render_pass(std::vector<VkAttachmentDescription>& attach_descs, std::vector<VkSubpassDescription>& subpass_descs, std::vector<VkSubpassDependency>& subpass_deps)
+{
+    VkRenderPassCreateInfo create_info =
+    {
+        .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext           = nullptr,
+        .flags           = 0,
+        .attachmentCount = static_cast<uint32_t>(attach_descs.size()),
+        .pAttachments    = attach_descs.data(),
+        .subpassCount    = static_cast<uint32_t>(subpass_descs.size()),
+        .pSubpasses      = subpass_descs.data(),
+        .dependencyCount = static_cast<uint32_t>(subpass_deps.size()),
+        .pDependencies   = subpass_deps.data()
+    };
+
+    VkRenderPass render_pass = VK_NULL_HANDLE;
+    vkCreateRenderPass(_vk_device, &create_info, nullptr, &render_pass);
+
+    return render_pass;
+}
+
+void LogicalDevice::destroy_render_pass(VkRenderPass render_pass)
+{
+    vkDestroyRenderPass(_vk_device, render_pass, nullptr);
+}
+
 VkImageView LogicalDevice::create_image_view(
     VkImage image, VkImageViewType view_type, VkFormat format,
     VkComponentMapping components, VkImageSubresourceRange subresource_range

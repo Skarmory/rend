@@ -14,13 +14,13 @@ RenderPass::RenderPass(DeviceContext& context)
 
 RenderPass::~RenderPass(void)
 {
-    vkDestroyRenderPass(_context.get_device()->get_handle(), _vk_render_pass, nullptr);
+    _context.get_device()->destroy_render_pass(_vk_render_pass);
 }
 
-bool RenderPass::create_render_pass(void)
+StatusCode RenderPass::create_render_pass(void)
 {
     if(_vk_render_pass != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
     std::vector<VkSubpassDescription> subpass_descs;
     std::vector<VkSubpassDependency>  subpass_deps;
@@ -57,25 +57,12 @@ bool RenderPass::create_render_pass(void)
         static_cast<VkDependencyFlags>(0)
     });
 
-    VkRenderPassCreateInfo create_info =
-    {
-        .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        .pNext           = nullptr,
-        .flags           = 0,
-        .attachmentCount = static_cast<uint32_t>(_vk_attach_descs.size()),
-        .pAttachments    = _vk_attach_descs.data(),
-        .subpassCount    = static_cast<uint32_t>(subpass_descs.size()),
-        .pSubpasses      = subpass_descs.data(),
-        .dependencyCount = static_cast<uint32_t>(subpass_deps.size()),
-        .pDependencies   = subpass_deps.data()
-    };
+    _vk_render_pass = _context.get_device()->create_render_pass(_vk_attach_descs, subpass_descs, subpass_deps);
 
-    if(vkCreateRenderPass(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_render_pass) != VK_SUCCESS)
-    {
-        return false;
-    }
+    if(_vk_render_pass == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 uint32_t RenderPass::add_attachment_description(TextureFormat format, uint32_t samples, LoadOp load_op, StoreOp store_op, LoadOp ds_load_op, StoreOp ds_store_op, ImageLayout initial, ImageLayout final)

@@ -53,29 +53,17 @@ public:
     VkDeviceMemory allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props);
     void           free_memory(VkDeviceMemory memory);
 
-    VkSwapchainKHR create_swapchain(
-        VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
-        VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
-        VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count,
-        const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha,
-        VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain
-    );
+    VkSwapchainKHR create_swapchain(VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format, VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers, VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha, VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain);
+    void           destroy_swapchain(VkSwapchainKHR swapchain);
 
-    void destroy_swapchain(VkSwapchainKHR swapchain);
+    VkRenderPass   create_render_pass(std::vector<VkAttachmentDescription>& attach_descs, std::vector<VkSubpassDescription>& subpass_descs, std::vector<VkSubpassDependency>& subpass_Deps);
+    void           destroy_render_pass(VkRenderPass render_pass);
 
-    VkImageView create_image_view(
-        VkImage image, VkImageViewType viewType, VkFormat format,
-        VkComponentMapping components, VkImageSubresourceRange subresourceRange
-    );
+    VkImageView    create_image_view(VkImage image, VkImageViewType viewType, VkFormat format, VkComponentMapping components, VkImageSubresourceRange subresourceRange);
+    void           destroy_image_view(VkImageView image_view);
 
-    void destroy_image_view(VkImageView image_view);
-
-    VkBuffer create_buffer(
-        VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode,
-        uint32_t queue_family_index_count, uint32_t* queue_family_indices
-    );
-
-    void destroy_buffer(VkBuffer buffer);
+    VkBuffer       create_buffer(VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, uint32_t* queue_family_indices);
+    void           destroy_buffer(VkBuffer buffer);
 
 private:
     const DeviceContext&  _context;

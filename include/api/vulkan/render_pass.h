@@ -22,7 +22,7 @@ public:
     RenderPass& operator=(const RenderPass&) = delete;
     RenderPass& operator=(RenderPass&&)      = delete;
 
-    bool create_render_pass(void);
+    StatusCode create_render_pass(void);
 
     uint32_t add_attachment_description(TextureFormat format, uint32_t samples, LoadOp load_op, StoreOp store_op, LoadOp ds_load_op, StoreOp ds_store_op, ImageLayout initial, ImageLayout final);
     void     add_subpass(Synchronisation src, Synchronisation dst);
