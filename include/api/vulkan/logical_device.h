@@ -60,6 +60,9 @@ public:
     VkRenderPass          create_render_pass(std::vector<VkAttachmentDescription>& attach_descs, std::vector<VkSubpassDescription>& subpass_descs, std::vector<VkSubpassDependency>& subpass_Deps);
     void                  destroy_render_pass(VkRenderPass render_pass);
 
+    VkFramebuffer         create_framebuffer(VkRenderPass render_pass, const std::vector<VkImageView>& attachments, uint32_t width, int32_t height, uint32_t layers);
+    void                  destroy_framebuffer(VkFramebuffer framebuffer);
+
     VkDescriptorPool      create_descriptor_pool(uint32_t max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes);
     void                  destroy_descriptor_pool(VkDescriptorPool pool);
 

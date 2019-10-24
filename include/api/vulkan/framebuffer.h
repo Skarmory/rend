@@ -34,7 +34,6 @@ public:
     bool set_depth_buffer(DepthBuffer& buffer);
 
     VkFramebuffer                     get_handle(void) const;
-    const VkFramebufferCreateInfo&    get_vk_create_info(void) const;
     const RenderPass*                 get_render_pass(void) const;
     const std::vector<RenderTarget*>& get_render_targets(void) const;
     const DepthBuffer*                get_depth_buffer(void) const;
@@ -44,14 +43,11 @@ private:
     void _destroy(void);
 
 private:
-    DeviceContext&          _context;
-    const RenderPass*       _render_pass;
-
+    DeviceContext&             _context;
+    const RenderPass*          _render_pass;
     std::vector<RenderTarget*> _render_targets;
     DepthBuffer*               _depth_buffer;
-
-    VkFramebufferCreateInfo _vk_create_info;
-    VkFramebuffer           _vk_framebuffer;
+    VkFramebuffer              _vk_framebuffer;
 };
 
 }
