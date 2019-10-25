@@ -40,25 +40,6 @@ bool Framebuffer::set_depth_buffer(DepthBuffer& buffer)
     return true;
 }
 
-bool Framebuffer::create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
-{
-    if(_vk_framebuffer != VK_NULL_HANDLE)
-        return false;
-
-    _render_pass = &render_pass;
-
-    return _create(attachments, dimensions);
-}
-
-bool Framebuffer::recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
-{
-    if(_vk_framebuffer == VK_NULL_HANDLE)
-        return false;
-
-    _destroy();
-    return _create(attachments, dimensions);
-}
-
 bool Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions)
 {
     if(_vk_framebuffer != VK_NULL_HANDLE)

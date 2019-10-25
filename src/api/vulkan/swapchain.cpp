@@ -4,7 +4,7 @@
 #include "fence.h"
 #include "physical_device.h"
 #include "logical_device.h"
-#include "rend_defs.h"
+#include "render_target.h"
 #include "semaphore.h"
 #include "window.h"
 
@@ -34,14 +34,9 @@ VkFormat Swapchain::get_format(void) const
     return _surface_format.format;
 }
 
-const std::vector<VkImage>& Swapchain::get_images(void) const
+const std::vector<RenderTarget*>& Swapchain::get_render_targets(void) const
 {
-    return _vk_images;
-}
-
-const std::vector<VkImageView>& Swapchain::get_image_views(void) const
-{
-    return _vk_image_views;
+    return _render_targets;
 }
 
 VkExtent2D Swapchain::get_extent(void) const
@@ -142,26 +137,40 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
 void Swapchain::_destroy_image_views(void)
 {
-    for(size_t idx = 0; idx < _image_count; idx++)
-        _context.get_device()->destroy_image_view(_vk_image_views[idx]);
+    for(size_t idx = 0; idx < _render_targets.size(); idx++)
+        _context.get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
 }
 
 StatusCode Swapchain::_get_images(void)
 {
-    _context.get_device()->get_swapchain_images(this, _vk_images);
-    _image_count = _vk_images.size();
-    _vk_image_views.resize(_image_count);
+    std::vector<VkImage> images;
+    _context.get_device()->get_swapchain_images(this, images);
+    _render_targets.resize(images.size());
 
-    for(size_t idx = 0; idx < _vk_images.size(); idx++)
+    for(size_t idx = 0; idx < images.size(); idx++)
     {
-        _vk_image_views[idx] = _context.get_device()->create_image_view(
-            _vk_images[idx], VK_IMAGE_VIEW_TYPE_2D, _surface_format.format,
+        if(!_render_targets[idx])
+            _render_targets[idx] = new RenderTarget(_context);
+
+        VkImageView view = _context.get_device()->create_image_view(
+            images[idx], VK_IMAGE_VIEW_TYPE_2D, _surface_format.format,
             VkComponentMapping{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
             VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
         );
 
-        if(_vk_image_views[idx] == VK_NULL_HANDLE)
+        if(view == VK_NULL_HANDLE)
             return StatusCode::FAILURE;
+
+        _render_targets[idx]->_vk_image      = images[idx];
+        _render_targets[idx]->_vk_image_view = view;
+        _render_targets[idx]->_vk_type       = VK_IMAGE_TYPE_2D;
+        _render_targets[idx]->_vk_format     = _surface_format.format;
+        _render_targets[idx]->_mip_levels    = 1;
+        _render_targets[idx]->_array_layers  = 1;
+        _render_targets[idx]->_vk_samples    = VK_SAMPLE_COUNT_1_BIT;
+        _render_targets[idx]->_vk_tiling     = VK_IMAGE_TILING_OPTIMAL;
+        _render_targets[idx]->_vk_usage      = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        _render_targets[idx]->_vk_layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
     return StatusCode::SUCCESS;

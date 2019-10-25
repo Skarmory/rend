@@ -376,7 +376,7 @@ void Renderer::_create_default_renderpass(void)
 
 void Renderer::_create_default_framebuffers(bool recreate)
 {
-    const std::vector<VkImageView>& views = _swapchain->get_image_views();
+    const std::vector<RenderTarget*>& targets = _swapchain->get_render_targets();
 
     VkExtent2D swapchain_extent = _swapchain->get_extent();
     VkExtent3D framebuffer_dims = { swapchain_extent.width, swapchain_extent.height, 1 };
@@ -384,24 +384,19 @@ void Renderer::_create_default_framebuffers(bool recreate)
     if(recreate)
     {
         delete _default_depth_buffer;
-        _default_depth_buffer = new DepthBuffer(_context);
-        _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
-
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
-        {
-            _default_framebuffers[idx]->recreate({ views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
-        }
+            delete _default_framebuffers[idx];
     }
-    else
-    {
-        _default_depth_buffer = new DepthBuffer(_context);
-        _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
-        _default_framebuffers.resize(views.size());
-        for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
-        {
-            _default_framebuffers[idx] = new Framebuffer(_context);
-            _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, { views[idx], _default_depth_buffer->get_view() }, framebuffer_dims);
-        }
+    _default_depth_buffer = new DepthBuffer(_context);
+    _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
+
+    _default_framebuffers.resize(targets.size());
+    for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
+    {
+        _default_framebuffers[idx] = new Framebuffer(_context);
+        _default_framebuffers[idx]->set_depth_buffer(*_default_depth_buffer);
+        _default_framebuffers[idx]->add_render_target(*targets[idx]);
+        _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, framebuffer_dims);
     }
 }

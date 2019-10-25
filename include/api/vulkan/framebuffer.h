@@ -23,10 +23,6 @@ public:
     Framebuffer& operator=(const Framebuffer&) = delete;
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
-    // These two are for internal use only right now
-    bool create_framebuffer(const RenderPass& render_pass, const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
-    bool recreate(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
-
     bool create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
     bool recreate(VkExtent3D dimensions);
 

@@ -3,6 +3,7 @@
 
 #include "gpu_texture_base.h"
 #include "rend_defs.h"
+#include "swapchain.h"
 
 #include <vulkan.h>
 
@@ -13,6 +14,8 @@ class DeviceContext;
 
 class VulkanGPUTexture : public GPUTextureBase
 {
+    friend class Swapchain;
+
 public:
     explicit VulkanGPUTexture(DeviceContext& context);
     ~VulkanGPUTexture(void);

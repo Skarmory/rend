@@ -13,12 +13,13 @@ namespace rend
 class DeviceContext;
 class Fence;
 class LogicalDevice;
+class RenderTarget;
 class Semaphore;
 
 class Swapchain
 {
 public:
-    Swapchain(DeviceContext& context);
+    explicit Swapchain(DeviceContext& context);
     ~Swapchain(void);
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
@@ -26,12 +27,11 @@ public:
     Swapchain& operator=(Swapchain&&)      = delete;
 
     // Accessors
-    VkFormat                        get_format(void) const;
-    const std::vector<VkImage>&     get_images(void) const;
-    const std::vector<VkImageView>& get_image_views(void) const;
-    VkExtent2D                      get_extent(void) const;
-    VkSwapchainKHR                  get_handle(void) const;
-    uint32_t                        get_current_image_index(void) const;
+    VkFormat                          get_format(void) const;
+    const std::vector<RenderTarget*>& get_render_targets(void) const;
+    VkExtent2D                        get_extent(void) const;
+    VkSwapchainKHR                    get_handle(void) const;
+    uint32_t                          get_current_image_index(void) const;
 
     // Mutators
     StatusCode create_swapchain(uint32_t desired_images);
@@ -56,8 +56,7 @@ private:
     VkSwapchainKHR     _vk_swapchain;
     VkExtent2D         _vk_extent;
 
-    std::vector<VkImage>       _vk_images;
-    std::vector<VkImageView>   _vk_image_views;
+    std::vector<RenderTarget*> _render_targets;
 };
 
 }
