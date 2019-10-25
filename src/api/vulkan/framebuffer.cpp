@@ -124,5 +124,5 @@ bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3
 
 void Framebuffer::_destroy(void)
 {
-    vkDestroyFramebuffer(_context.get_device()->get_handle(), _vk_framebuffer, nullptr);
+    _context.get_device()->destroy_framebuffer(_vk_framebuffer);
 }
