@@ -189,6 +189,16 @@ void LogicalDevice::wait_idle(void)
     vkDeviceWaitIdle(_vk_device);
 }
 
+VkResult LogicalDevice::wait_for_fences(std::vector<VkFence>& fences, uint64_t timeout, bool wait_all)
+{
+    return vkWaitForFences(_vk_device, fences.size(), fences.data(), wait_all, timeout);
+}
+
+void LogicalDevice::reset_fences(std::vector<VkFence>& fences)
+{
+    vkResetFences(_vk_device, fences.size(), fences.data());
+}
+
 VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index)
 {
     return vkAcquireNextImageKHR(
@@ -564,4 +574,22 @@ VkEvent LogicalDevice::create_event(void)
 void LogicalDevice::destroy_event(VkEvent event)
 {
     vkDestroyEvent(_vk_device, event, nullptr);
+}
+
+VkFence LogicalDevice::create_fence(bool start_signalled)
+{
+    VkFenceCreateInfo create_info = {};
+    create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    create_info.pNext = nullptr;
+    create_info.flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
+
+    VkFence fence = VK_NULL_HANDLE;
+    vkCreateFence(_vk_device, &create_info, nullptr, &fence);
+
+    return fence;
+}
+
+void LogicalDevice::destroy_fence(VkFence fence)
+{
+    vkDestroyFence(_vk_device, fence, nullptr);
 }

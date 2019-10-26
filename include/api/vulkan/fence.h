@@ -14,8 +14,9 @@ class Fence
 public:
     explicit Fence(DeviceContext& context);
     ~Fence(void);
-    Fence(const Fence&) = delete;
-    Fence(Fence&&)      = delete;
+
+    Fence(const Fence&)            = delete;
+    Fence(Fence&&)                 = delete;
     Fence& operator=(const Fence&) = delete;
     Fence& operator=(Fence&&)      = delete;
 
@@ -27,7 +28,7 @@ public:
 
 private:
     DeviceContext& _context;
-    VkFence _vk_fence;
+    VkFence        _vk_fence;
 };
 
 }
