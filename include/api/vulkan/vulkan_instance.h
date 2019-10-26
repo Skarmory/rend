@@ -4,6 +4,7 @@
 
 #include "rend_defs.h"
 
+#include <vector>
 #include <vulkan.h>
 
 namespace rend
@@ -21,6 +22,8 @@ public:
     VulkanInstance operator=(VulkanInstance&&)      = delete;
 
     StatusCode create_instance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
+
+    void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
 
     VkInstance get_handle(void) const;
 

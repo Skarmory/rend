@@ -36,12 +36,7 @@ bool DeviceContext::create_device_context(Window* window)
 
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
-    uint32_t physical_device_count;
-    vkEnumeratePhysicalDevices(_instance.get_handle(), &physical_device_count, nullptr);
-
-    _physical_devices.reserve(physical_device_count);
-    physical_devices.resize(physical_device_count);
-    vkEnumeratePhysicalDevices(_instance.get_handle(), &physical_device_count, physical_devices.data());
+    _instance.enumerate_physical_devices(physical_devices);
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {

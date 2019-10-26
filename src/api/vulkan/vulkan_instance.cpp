@@ -41,6 +41,15 @@ StatusCode VulkanInstance::create_instance(const char** extensions, uint32_t ext
     return StatusCode::SUCCESS;
 }
 
+void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices)
+{
+    uint32_t device_count = 0;
+    vkEnumeratePhysicalDevices(_vk_instance, &device_count, nullptr);
+
+    devices.resize(device_count);
+    vkEnumeratePhysicalDevices(_vk_instance, &device_count, devices.data());
+}
+
 VkInstance VulkanInstance::get_handle(void) const
 {
     return _vk_instance;
