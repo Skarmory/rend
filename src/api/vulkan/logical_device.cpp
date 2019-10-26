@@ -267,6 +267,29 @@ std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector
     return sets;
 }
 
+std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool)
+{
+    VkCommandBufferAllocateInfo alloc_info = {};
+    alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc_info.pNext = nullptr;
+    alloc_info.commandPool = pool;
+    alloc_info.level = level;
+    alloc_info.commandBufferCount = count;
+
+    std::vector<VkCommandBuffer> vk_buffers;
+    vk_buffers.resize(count);
+
+    if(vkAllocateCommandBuffers(_vk_device, &alloc_info, vk_buffers.data()) != VK_SUCCESS)
+        return {};
+
+    return vk_buffers;
+}
+
+void LogicalDevice::free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool)
+{
+    vkFreeCommandBuffers(_vk_device, pool, buffers.size(), buffers.data());
+}
+
 VkDeviceMemory LogicalDevice::allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props)
 {
     VkMemoryAllocateInfo alloc_info =

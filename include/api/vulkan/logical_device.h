@@ -51,6 +51,9 @@ public:
     VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
     std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
 
+    std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool);
+    void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool);
+
     VkDeviceMemory        allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props);
     void                  free_memory(VkDeviceMemory memory);
 

@@ -45,22 +45,14 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
     if(count == 0)
         return {};
 
-    VkCommandBufferAllocateInfo alloc_info = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .commandPool = _vk_command_pool,
-        .level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY,
-        .commandBufferCount = count
-    };
+    VkCommandBufferLevel level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-    std::vector<VkCommandBuffer> vk_buffers;
-    vk_buffers.reserve(count);
+    std::vector<VkCommandBuffer> vk_buffers = _context.get_device()->allocate_command_buffers(count, level, _vk_command_pool);
+    if(vk_buffers.empty())
+        return {};
 
     std::vector<CommandBuffer*> buffers;
     buffers.reserve(count);
-
-    if(vkAllocateCommandBuffers(_context.get_device()->get_handle(), &alloc_info, vk_buffers.data()) != VK_SUCCESS)
-        return {};
 
     _command_buffers.reserve(_command_buffers.size() + count);
 
@@ -95,7 +87,7 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
     }
 
     if(vk_buffers.size() > 0)
-        vkFreeCommandBuffers(_context.get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
+        _context.get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
 }
 
 void CommandPool::free_command_buffer(CommandBuffer* command_buffer)
@@ -114,7 +106,7 @@ void CommandPool::free_all(void)
         delete buffer;
     }
 
-    vkFreeCommandBuffers(_context.get_device()->get_handle(), _vk_command_pool, vk_buffers.size(), vk_buffers.data());
+    _context.get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
 
     _command_buffers.clear();
 }
