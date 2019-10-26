@@ -120,6 +120,27 @@ enum class Topology
     TRIANGLE_LIST
 };
 
+enum class PolygonMode
+{
+    FILL,
+    LINE,
+    POINT
+};
+
+enum class FrontFace
+{
+    CW,
+    CCW
+};
+
+enum class CullMode
+{
+    NONE,
+    FRONT,
+    BACK,
+    FRONT_AND_BACK
+};
+
 struct Synchronisation
 {
     PipelineStages stages;

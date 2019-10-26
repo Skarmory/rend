@@ -230,3 +230,39 @@ VkPrimitiveTopology vulkan_helpers::convert_topology(Topology topology)
 
     return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
+
+VkPolygonMode vulkan_helpers::convert_polygon_mode(PolygonMode mode)
+{
+    switch(mode)
+    {
+        case PolygonMode::FILL: return VK_POLYGON_MODE_FILL;
+        case PolygonMode::LINE: return VK_POLYGON_MODE_LINE;
+        case PolygonMode::POINT: return VK_POLYGON_MODE_POINT;
+    }
+
+    return VK_POLYGON_MODE_MAX_ENUM;
+}
+
+VkFrontFace vulkan_helpers::convert_front_face(FrontFace face)
+{
+    switch(face)
+    {
+        case FrontFace::CW:  return VK_FRONT_FACE_CLOCKWISE;
+        case FrontFace::CCW: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    }
+
+    return VK_FRONT_FACE_MAX_ENUM;
+}
+
+VkCullModeFlagBits vulkan_helpers::convert_cull_mode(CullMode mode)
+{
+    switch(mode)
+    {
+        case CullMode::NONE: return VK_CULL_MODE_NONE;
+        case CullMode::FRONT: return VK_CULL_MODE_FRONT_BIT;
+        case CullMode::BACK: return VK_CULL_MODE_BACK_BIT;
+        case CullMode::FRONT_AND_BACK: return VK_CULL_MODE_FRONT_AND_BACK;
+    }
+
+    return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+}
