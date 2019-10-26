@@ -354,12 +354,12 @@ void Renderer::_create_default_renderpass(void)
     _default_render_pass = new RenderPass(_context);
 
     uint32_t colour_attach = _default_render_pass->add_attachment_description(
-        TextureFormat::B8G8R8A8, 1, LoadOp::CLEAR, StoreOp::STORE,
+        Format::B8G8R8A8, 1, LoadOp::CLEAR, StoreOp::STORE,
         LoadOp::DONT_CARE, StoreOp::DONT_CARE, ImageLayout::UNDEFINED, ImageLayout::PRESENT
     );
 
     uint32_t depth_attach = _default_render_pass->add_attachment_description(
-        TextureFormat::D24_S8, 1, LoadOp::CLEAR, StoreOp::STORE,
+        Format::D24_S8, 1, LoadOp::CLEAR, StoreOp::STORE,
         LoadOp::CLEAR, StoreOp::STORE, ImageLayout::UNDEFINED, ImageLayout::DEPTH_STENCIL_ATTACHMENT
     );
 

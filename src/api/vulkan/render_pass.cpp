@@ -71,7 +71,7 @@ uint32_t RenderPass::add_attachment_description(Format format, uint32_t samples,
 
     VkAttachmentDescription desc;
     desc.flags          = 0;
-    desc.format         = vulkan_helpers::convert_texture_format(format);
+    desc.format         = vulkan_helpers::convert_format(format);
     desc.samples        = static_cast<VkSampleCountFlagBits>(samples);
     desc.loadOp         = vulkan_helpers::convert_load_op(load_op);
     desc.storeOp        = vulkan_helpers::convert_store_op(store_op);
