@@ -85,6 +85,9 @@ public:
     VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);
     void                  destroy_pipeline_layout(VkPipelineLayout layout);
 
+    VkEvent               create_event(void);
+    void                  destroy_event(VkEvent event);
+
 private:
     const DeviceContext&  _context;
     const PhysicalDevice* _physical_device;

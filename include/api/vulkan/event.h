@@ -11,7 +11,7 @@ class DeviceContext;
 class Event
 {
 public:
-    Event(DeviceContext* context);
+    explicit Event(DeviceContext& context);
     ~Event(void);
     Event(const Event&) = delete;
     Event(Event&&)      = delete;
@@ -23,7 +23,7 @@ public:
     VkEvent get_handle(void) const;
 
 private:
-    DeviceContext* _context;
+    DeviceContext& _context;
     VkEvent        _vk_event;
 };
 

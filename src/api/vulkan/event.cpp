@@ -5,7 +5,7 @@
 
 using namespace rend;
 
-Event::Event(DeviceContext* context)
+Event::Event(DeviceContext& context)
     : _context(context),
       _vk_event(VK_NULL_HANDLE)
 {
@@ -13,7 +13,7 @@ Event::Event(DeviceContext* context)
 
 Event::~Event(void)
 {
-    vkDestroyEvent(_context->get_device()->get_handle(), _vk_event, nullptr);
+    _context.get_device()->destroy_event(_vk_event);
 }
 
 bool Event::create_event(void)
@@ -21,14 +21,8 @@ bool Event::create_event(void)
     if(_vk_event != VK_NULL_HANDLE)
         return false;
 
-    VkEventCreateInfo create_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0
-    };
-
-    if(vkCreateEvent(_context->get_device()->get_handle(), &create_info, nullptr, &_vk_event) != VK_SUCCESS)
+    _vk_event = _context.get_device()->create_event();
+    if(_vk_event == VK_NULL_HANDLE)
         return false;
 
     return true;
