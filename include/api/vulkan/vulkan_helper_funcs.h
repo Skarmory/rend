@@ -28,6 +28,7 @@ VkPrimitiveTopology     convert_topology(Topology topology);
 VkPolygonMode           convert_polygon_mode(PolygonMode mode);
 VkFrontFace             convert_front_face(FrontFace face);
 VkCullModeFlagBits      convert_cull_mode(CullMode mode);
+VkSampleCountFlagBits   convert_sample_count(uint32_t count);
 
 }
 

@@ -266,3 +266,23 @@ VkCullModeFlagBits vulkan_helpers::convert_cull_mode(CullMode mode)
 
     return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
 }
+
+VkSampleCountFlagBits vulkan_helpers::convert_sample_count(uint32_t count)
+{
+    if(count <= 1)
+        return VK_SAMPLE_COUNT_1_BIT;
+    if(count <= 2)
+        return VK_SAMPLE_COUNT_2_BIT;
+    if(count <= 4)
+        return VK_SAMPLE_COUNT_4_BIT;
+    if(count <= 8)
+        return VK_SAMPLE_COUNT_8_BIT;
+    if(count <= 16)
+        return VK_SAMPLE_COUNT_16_BIT;
+    if(count <= 32)
+        return VK_SAMPLE_COUNT_32_BIT;
+    if(count <= 64)
+        return VK_SAMPLE_COUNT_64_BIT;
+
+    return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
+}
