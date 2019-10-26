@@ -220,3 +220,13 @@ VkPipelineStageFlags vulkan_helpers::convert_pipeline_stages(PipelineStages stag
 
     return ret_flags;
 }
+
+VkPrimitiveTopology vulkan_helpers::convert_topology(Topology topology)
+{
+    switch(topology)
+    {
+        case Topology::TRIANGLE_LIST: return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    }
+
+    return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+}

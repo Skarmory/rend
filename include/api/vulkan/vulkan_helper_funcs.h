@@ -24,6 +24,7 @@ VkAccessFlagBits        convert_memory_access(MemoryAccess access);
 VkAccessFlags           convert_memory_accesses(MemoryAccesses accesses);
 VkPipelineStageFlagBits convert_pipeline_stage(PipelineStage stage);
 VkPipelineStageFlags    convert_pipeline_stages(PipelineStages stages);
+VkPrimitiveTopology     convert_topology(Topology topology);
 
 }
 

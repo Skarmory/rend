@@ -115,6 +115,11 @@ enum MemoryAccess
 
 typedef uint32_t MemoryAccesses;
 
+enum class Topology
+{
+    TRIANGLE_LIST
+};
+
 struct Synchronisation
 {
     PipelineStages stages;
