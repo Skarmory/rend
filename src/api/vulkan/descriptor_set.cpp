@@ -108,7 +108,7 @@ void DescriptorSet::update(void)
         vk_write_descs.push_back(write_desc);
     }
 
-    vkUpdateDescriptorSets(_context.get_device()->get_handle(), vk_write_descs.size(), vk_write_descs.data(), 0, nullptr);
+    _context.get_device()->update_descriptor_sets(vk_write_descs);
 }
 
 DescriptorSet::Binding* DescriptorSet::_find_binding(uint32_t slot)

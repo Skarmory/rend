@@ -267,6 +267,11 @@ std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector
     return sets;
 }
 
+void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets)
+{
+    vkUpdateDescriptorSets(_vk_device, write_sets.size(), write_sets.data(), 0, nullptr);
+}
+
 std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool)
 {
     VkCommandBufferAllocateInfo alloc_info = {};

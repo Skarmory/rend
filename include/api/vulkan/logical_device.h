@@ -50,6 +50,7 @@ public:
     VkMemoryRequirements         get_buffer_memory_reqs(VkBuffer buffer);
     VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
     std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
+    void                         update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets);
 
     std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool);
     void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool);
