@@ -22,7 +22,7 @@ CommandPool::~CommandPool(void)
 {
     free_all();
 
-    vkDestroyCommandPool(_context.get_device()->get_handle(), _vk_command_pool, nullptr);
+    _context.get_device()->destroy_command_pool(_vk_command_pool);
 }
 
 bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_reset)
@@ -30,14 +30,8 @@ bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_
     if(_vk_command_pool != VK_NULL_HANDLE)
         return false;
 
-    VkCommandPoolCreateInfo create_info = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0),
-        .queueFamilyIndex = queue_family->get_index()
-    };
-
-    if(vkCreateCommandPool(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_command_pool) != VK_SUCCESS)
+    _vk_command_pool = _context.get_device()->create_command_pool(can_reset, queue_family->get_index());
+    if(_vk_command_pool == VK_NULL_HANDLE)
         return false;
 
     _queue_family = queue_family;

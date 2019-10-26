@@ -69,6 +69,9 @@ public:
     VkDescriptorSetLayout create_descriptor_set_layout(std::vector<VkDescriptorSetLayoutBinding>& bindings);
     void                  destroy_descriptor_set_layout(VkDescriptorSetLayout layout);
 
+    VkCommandPool         create_command_pool(bool can_reset, uint32_t queue_family_index);
+    void                  destroy_command_pool(VkCommandPool pool);
+
     VkImageView           create_image_view(VkImage image, VkImageViewType viewType, VkFormat format, VkComponentMapping components, VkImageSubresourceRange subresourceRange);
     void                  destroy_image_view(VkImageView image_view);
 

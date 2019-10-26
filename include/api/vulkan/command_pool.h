@@ -57,13 +57,11 @@ public:
     void free_all(void);
 
 private:
-    DeviceContext& _context;
-    const QueueFamily* _queue_family;
-    bool               _can_reset;
-
-    VkCommandPool  _vk_command_pool;
-
+    DeviceContext&              _context;
+    const QueueFamily*          _queue_family;
+    bool                        _can_reset;
     std::vector<CommandBuffer*> _command_buffers;
+    VkCommandPool               _vk_command_pool;
 };
 
 }
