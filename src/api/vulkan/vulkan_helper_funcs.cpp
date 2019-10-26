@@ -79,16 +79,16 @@ VkImageAspectFlags vulkan_helpers::find_image_aspects(VkFormat format)
     return flags;
 }
 
-VkFormat vulkan_helpers::convert_texture_format(TextureFormat format)
+VkFormat vulkan_helpers::convert_format(Format format)
 {
     switch(format)
     {
-        case TextureFormat::R8G8B8A8: return VK_FORMAT_R8G8B8A8_UNORM;
-        case TextureFormat::B8G8R8A8: return VK_FORMAT_B8G8R8A8_UNORM;
-        case TextureFormat::R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
-        case TextureFormat::R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
-        case TextureFormat::R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
-        case TextureFormat::D24_S8: return VK_FORMAT_D24_UNORM_S8_UINT;
+        case Format::R8G8B8A8: return VK_FORMAT_R8G8B8A8_UNORM;
+        case Format::B8G8R8A8: return VK_FORMAT_B8G8R8A8_UNORM;
+        case Format::R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case Format::R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
+        case Format::R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
+        case Format::D24_S8: return VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
     return VK_FORMAT_MAX_ENUM;

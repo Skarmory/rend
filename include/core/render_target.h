@@ -23,7 +23,7 @@ public:
     RenderTarget& operator=(const RenderTarget&) = delete;
     RenderTarget& operator=(RenderTarget&&)      = delete;
 
-    bool create_render_target(uint32_t width, uint32_t height, TextureFormat format);
+    bool create_render_target(uint32_t width, uint32_t height, Format format);
     void destroy_render_target(void);
 };
 

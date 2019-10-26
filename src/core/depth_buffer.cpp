@@ -16,7 +16,7 @@ DepthBuffer::~DepthBuffer(void)
 
 bool DepthBuffer::create_depth_buffer(uint32_t width, uint32_t height)
 {
-    create_texture_base(width, height, 1, TextureFormat::D24_S8);
+    create_texture_base(width, height, 1, Format::D24_S8);
 
     if(create_depth_buffer_api(width, height) != StatusCode::SUCCESS)
     {

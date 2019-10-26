@@ -19,7 +19,7 @@ public:
     VulkanSampledTexture& operator=(VulkanSampledTexture&&)      = delete;
 
 protected:
-    StatusCode create_sampled_texture_api(uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, TextureFormat format);
+    StatusCode create_sampled_texture_api(uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, Format format);
 };
 
 }

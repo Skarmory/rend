@@ -15,7 +15,7 @@ SampledTexture::~SampledTexture(void)
 {
 }
 
-bool SampledTexture::create_sampled_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, TextureFormat format)
+bool SampledTexture::create_sampled_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, Format format)
 {
     create_texture_base(width, height, depth, format);
 

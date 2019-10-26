@@ -65,7 +65,7 @@ StatusCode RenderPass::create_render_pass(void)
     return StatusCode::SUCCESS;
 }
 
-uint32_t RenderPass::add_attachment_description(TextureFormat format, uint32_t samples, LoadOp load_op, StoreOp store_op, LoadOp ds_load_op, StoreOp ds_store_op, ImageLayout initial, ImageLayout final)
+uint32_t RenderPass::add_attachment_description(Format format, uint32_t samples, LoadOp load_op, StoreOp store_op, LoadOp ds_load_op, StoreOp ds_store_op, ImageLayout initial, ImageLayout final)
 {
     uint32_t attach_slot = _vk_attach_descs.size();
 

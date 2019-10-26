@@ -32,7 +32,7 @@ enum class StatusCode
     MEMORY_BIND_IMAGE_FAILURE
 };
 
-enum class TextureFormat
+enum class Format
 {
     R8G8B8A8,
     B8G8R8A8,

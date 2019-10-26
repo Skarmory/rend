@@ -8,7 +8,7 @@
 namespace rend
 {
 
-enum class TextureFormat;
+enum class Format;
 
 class GPUTextureBase : public GPUResource
 {
@@ -21,19 +21,19 @@ public:
     GPUTextureBase& operator=(const GPUTextureBase&) = delete;
     GPUTextureBase& operator=(GPUTextureBase&&)      = delete;
 
-    uint32_t      width(void) const;
-    uint32_t      height(void) const;
-    uint32_t      depth(void) const;
-    TextureFormat format(void) const;
+    uint32_t width(void) const;
+    uint32_t height(void) const;
+    uint32_t depth(void) const;
+    Format   format(void) const;
 
 protected:
-    bool create_texture_base(uint32_t width, uint32_t height, uint32_t depth, TextureFormat format);
+    bool create_texture_base(uint32_t width, uint32_t height, uint32_t depth, Format format);
 
 private:
-    uint32_t      _width;
-    uint32_t      _height;
-    uint32_t      _depth;
-    TextureFormat _format;
+    uint32_t _width;
+    uint32_t _height;
+    uint32_t _depth;
+    Format   _format;
 };
 
 }

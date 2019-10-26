@@ -22,7 +22,7 @@ public:
     VulkanRenderTarget& operator=(VulkanRenderTarget&&)      = delete;
 
 protected:
-    StatusCode create_render_target_api(uint32_t width, uint32_t height, TextureFormat format);
+    StatusCode create_render_target_api(uint32_t width, uint32_t height, Format format);
 };
 
 }

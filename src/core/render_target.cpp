@@ -12,9 +12,10 @@ RenderTarget::RenderTarget(DeviceContext& context)
 
 RenderTarget::~RenderTarget(void)
 {
+    destroy_render_target();
 }
 
-bool RenderTarget::create_render_target(uint32_t width, uint32_t height, TextureFormat format)
+bool RenderTarget::create_render_target(uint32_t width, uint32_t height, Format format)
 {
     create_texture_base(width, height, 1, format);
 
