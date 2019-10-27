@@ -23,7 +23,7 @@ class LogicalDevice
 {
 
 public:
-    LogicalDevice(const DeviceContext& device_context);
+    explicit LogicalDevice(const DeviceContext& context);
     ~LogicalDevice(void);
 
     LogicalDevice(const LogicalDevice&) = delete;
@@ -90,6 +90,18 @@ public:
 
     VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);
     void                  destroy_pipeline_layout(VkPipelineLayout layout);
+
+    VkPipeline            create_pipeline(
+                                VkPipelineLayout layout, VkRenderPass render_pass, uint32_t subpass,
+                                std::vector<VkPipelineShaderStageCreateInfo>& shader_stage_infos, VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkPipelineInputAssemblyStateCreateInfo& input_assembly_info,
+                                VkPipelineTessellationStateCreateInfo& tessellation_info, VkPipelineViewportStateCreateInfo& viewport_info, VkPipelineRasterizationStateCreateInfo& rasterisation_info,
+                                VkPipelineMultisampleStateCreateInfo& multisample_info, VkPipelineDepthStencilStateCreateInfo& depth_stencil_info, VkPipelineColorBlendStateCreateInfo& blend_info,
+                                VkPipelineDynamicStateCreateInfo& dynamic_state_info
+                          );
+    void                  destroy_pipeline(VkPipeline pipeline);
+
+
+
 
     VkEvent               create_event(void);
     void                  destroy_event(VkEvent event);

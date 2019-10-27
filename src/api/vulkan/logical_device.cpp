@@ -558,6 +558,45 @@ void LogicalDevice::destroy_pipeline_layout(VkPipelineLayout layout)
     vkDestroyPipelineLayout(_vk_device, layout, nullptr);
 }
 
+VkPipeline LogicalDevice::create_pipeline(
+    VkPipelineLayout layout, VkRenderPass render_pass, uint32_t subpass,
+    std::vector<VkPipelineShaderStageCreateInfo>& shader_stage_infos, VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkPipelineInputAssemblyStateCreateInfo& input_assembly_info,
+    VkPipelineTessellationStateCreateInfo& tessellation_info, VkPipelineViewportStateCreateInfo& viewport_info, VkPipelineRasterizationStateCreateInfo& rasterisation_info,
+    VkPipelineMultisampleStateCreateInfo& multisample_info, VkPipelineDepthStencilStateCreateInfo& depth_stencil_info, VkPipelineColorBlendStateCreateInfo& blend_info,
+    VkPipelineDynamicStateCreateInfo& dynamic_state_info
+)
+{
+    VkGraphicsPipelineCreateInfo create_info = {};
+    create_info.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    create_info.pNext               = nullptr;
+    create_info.flags               = 0;
+    create_info.stageCount          = static_cast<uint32_t>(shader_stage_infos.size());
+    create_info.pStages             = shader_stage_infos.data();
+    create_info.pVertexInputState   = &vertex_input_info;
+    create_info.pInputAssemblyState = &input_assembly_info;
+    create_info.pTessellationState  = &tessellation_info;
+    create_info.pViewportState      = &viewport_info;
+    create_info.pRasterizationState = &rasterisation_info;
+    create_info.pMultisampleState   = &multisample_info;
+    create_info.pDepthStencilState  = &depth_stencil_info;
+    create_info.pColorBlendState    = &blend_info;
+    create_info.pDynamicState       = &dynamic_state_info;
+    create_info.layout              = layout;
+    create_info.renderPass          = render_pass;
+    create_info.subpass             = subpass;
+    create_info.basePipelineHandle  = VK_NULL_HANDLE;
+    create_info.basePipelineIndex   = 0;
+
+    VkPipeline pipeline = VK_NULL_HANDLE;
+    vkCreateGraphicsPipelines(_vk_device, VK_NULL_HANDLE, 1, &create_info, nullptr, &pipeline);
+    return pipeline;
+}
+
+void LogicalDevice::destroy_pipeline(VkPipeline pipeline)
+{
+    vkDestroyPipeline(_vk_device, pipeline, nullptr);
+}
+
 VkEvent LogicalDevice::create_event(void)
 {
     VkEventCreateInfo create_info = {};
