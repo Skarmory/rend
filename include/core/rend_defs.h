@@ -217,6 +217,19 @@ enum class BlendOp
     MAX
 };
 
+enum class DynamicState
+{
+    VIEWPORT,
+    SCISSOR,
+    LINE_WIDTH,
+    DEPTH_BIAS,
+    BLEND_CONSTANTS,
+    DEPTH_BOUNDS,
+    STENCIL_COMPARE_MASK,
+    STENCIL_WRITE_MASK,
+    STENCIL_REFERENCE
+};
+
 struct Synchronisation
 {
     PipelineStages stages;

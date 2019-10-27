@@ -387,3 +387,21 @@ VkBlendOp vulkan_helpers::convert_blend_op(BlendOp op)
 
     return VK_BLEND_OP_MAX_ENUM;
 }
+
+VkDynamicState vulkan_helpers::convert_dynamic_state(DynamicState state)
+{
+    switch(state)
+    {
+        case DynamicState::VIEWPORT: return VK_DYNAMIC_STATE_VIEWPORT;
+        case DynamicState::SCISSOR: return VK_DYNAMIC_STATE_SCISSOR;
+        case DynamicState::LINE_WIDTH: return VK_DYNAMIC_STATE_LINE_WIDTH;
+        case DynamicState::DEPTH_BIAS: return VK_DYNAMIC_STATE_DEPTH_BIAS;
+        case DynamicState::BLEND_CONSTANTS: return VK_DYNAMIC_STATE_BLEND_CONSTANTS;
+        case DynamicState::DEPTH_BOUNDS: return VK_DYNAMIC_STATE_DEPTH_BOUNDS;
+        case DynamicState::STENCIL_COMPARE_MASK: return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
+        case DynamicState::STENCIL_WRITE_MASK: return VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
+        case DynamicState::STENCIL_REFERENCE: return VK_DYNAMIC_STATE_STENCIL_REFERENCE;
+    };
+
+    return VK_DYNAMIC_STATE_MAX_ENUM;
+}

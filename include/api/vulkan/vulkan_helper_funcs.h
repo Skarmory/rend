@@ -34,6 +34,7 @@ VkStencilOp             convert_stencil_op(StencilOp stencil_op);
 VkLogicOp               convert_logic_op(LogicOp logic_op);
 VkBlendFactor           convert_blend_factor(BlendFactor factor);
 VkBlendOp               convert_blend_op(BlendOp op);
+VkDynamicState          convert_dynamic_state(DynamicState state);
 
 }
 
