@@ -31,6 +31,9 @@ VkCullModeFlagBits      convert_cull_mode(CullMode mode);
 VkSampleCountFlagBits   convert_sample_count(uint32_t count);
 VkCompareOp             convert_compare_op(CompareOp compare_op);
 VkStencilOp             convert_stencil_op(StencilOp stencil_op);
+VkLogicOp               convert_logic_op(LogicOp logic_op);
+VkBlendFactor           convert_blend_factor(BlendFactor factor);
+VkBlendOp               convert_blend_op(BlendOp op);
 
 }
 

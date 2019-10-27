@@ -320,3 +320,70 @@ VkStencilOp vulkan_helpers::convert_stencil_op(StencilOp stencil_op)
 
     return VK_STENCIL_OP_MAX_ENUM;
 }
+
+VkLogicOp vulkan_helpers::convert_logic_op(LogicOp logic_op)
+{
+    switch(logic_op)
+    {
+        case LogicOp::CLEAR: return VK_LOGIC_OP_CLEAR;
+        case LogicOp::AND: return VK_LOGIC_OP_AND;
+        case LogicOp::AND_REVERSE: return VK_LOGIC_OP_AND_REVERSE;
+        case LogicOp::COPY: return VK_LOGIC_OP_COPY;
+        case LogicOp::AND_INVERTED: return VK_LOGIC_OP_AND_INVERTED;
+        case LogicOp::NO_OP: return VK_LOGIC_OP_NO_OP;
+        case LogicOp::XOR: return VK_LOGIC_OP_XOR;
+        case LogicOp::OR: return VK_LOGIC_OP_OR;
+        case LogicOp::NOR: return VK_LOGIC_OP_NOR;
+        case LogicOp::EQUIVALENT: return VK_LOGIC_OP_EQUIVALENT;
+        case LogicOp::INVERT: return VK_LOGIC_OP_INVERT;
+        case LogicOp::OR_REVERSE: return VK_LOGIC_OP_OR_REVERSE;
+        case LogicOp::COPY_INVERTED: return VK_LOGIC_OP_COPY_INVERTED;
+        case LogicOp::OR_INVERTED: return VK_LOGIC_OP_OR_INVERTED;
+        case LogicOp::NAND: return VK_LOGIC_OP_NAND;
+        case LogicOp::SET: return VK_LOGIC_OP_SET;
+    }
+
+    return VK_LOGIC_OP_MAX_ENUM;
+}
+
+VkBlendFactor vulkan_helpers::convert_blend_factor(BlendFactor factor)
+{
+    switch(factor)
+    {
+        case BlendFactor::ZERO: return VK_BLEND_FACTOR_ZERO;
+        case BlendFactor::ONE: return VK_BLEND_FACTOR_ONE;
+        case BlendFactor::SRC_COLOUR: return VK_BLEND_FACTOR_SRC_COLOR;
+        case BlendFactor::ONE_MINUS_SRC_COLOUR: return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+        case BlendFactor::DST_COLOUR: return VK_BLEND_FACTOR_DST_COLOR;
+        case BlendFactor::ONE_MINUS_DST_COLOUR: return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+        case BlendFactor::SRC_ALPHA: return VK_BLEND_FACTOR_SRC_ALPHA;
+        case BlendFactor::ONE_MINUS_SRC_ALPHA: return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        case BlendFactor::DST_ALPHA: return VK_BLEND_FACTOR_DST_ALPHA;
+        case BlendFactor::ONE_MINUS_DST_ALPHA: return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+        case BlendFactor::CONSTANT_COLOUR: return VK_BLEND_FACTOR_CONSTANT_COLOR;
+        case BlendFactor::ONE_MINUS_CONSTANT_COLOUR: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+        case BlendFactor::CONSTANT_ALPHA: return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+        case BlendFactor::ONE_MINUS_CONSTANT_ALPHA: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+        case BlendFactor::SRC_ALPHA_SATURATE: return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+        case BlendFactor::SRC1_COLOUR: return VK_BLEND_FACTOR_SRC1_COLOR;
+        case BlendFactor::ONE_MINUS_SRC1_COLOUR: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+        case BlendFactor::SRC1_ALPHA: return VK_BLEND_FACTOR_SRC1_ALPHA;
+        case BlendFactor::ONE_MINUS_SRC1_ALPHA: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+    }
+
+    return VK_BLEND_FACTOR_MAX_ENUM;
+}
+
+VkBlendOp vulkan_helpers::convert_blend_op(BlendOp op)
+{
+    switch(op)
+    {
+        case BlendOp::ADD: return VK_BLEND_OP_ADD;
+        case BlendOp::SUBTRACT: return VK_BLEND_OP_SUBTRACT;
+        case BlendOp::REVERSE_SUBTRACT: return VK_BLEND_OP_REVERSE_SUBTRACT;
+        case BlendOp::MIN: return VK_BLEND_OP_MIN;
+        case BlendOp::MAX: return VK_BLEND_OP_MAX;
+    }
+
+    return VK_BLEND_OP_MAX_ENUM;
+}

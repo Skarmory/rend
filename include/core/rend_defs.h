@@ -165,6 +165,58 @@ enum class StencilOp
     DECREMENT_AND_WRAP
 };
 
+enum class LogicOp
+{
+    CLEAR,
+    AND,
+    AND_REVERSE,
+    COPY,
+    AND_INVERTED,
+    NO_OP,
+    XOR,
+    OR,
+    NOR,
+    EQUIVALENT,
+    INVERT,
+    OR_REVERSE,
+    COPY_INVERTED,
+    OR_INVERTED,
+    NAND,
+    SET
+};
+
+enum class BlendFactor
+{
+    ZERO,
+    ONE,
+    SRC_COLOUR,
+    ONE_MINUS_SRC_COLOUR,
+    DST_COLOUR,
+    ONE_MINUS_DST_COLOUR,
+    SRC_ALPHA,
+    ONE_MINUS_SRC_ALPHA,
+    DST_ALPHA,
+    ONE_MINUS_DST_ALPHA,
+    CONSTANT_COLOUR,
+    ONE_MINUS_CONSTANT_COLOUR,
+    CONSTANT_ALPHA,
+    ONE_MINUS_CONSTANT_ALPHA,
+    SRC_ALPHA_SATURATE,
+    SRC1_COLOUR,
+    ONE_MINUS_SRC1_COLOUR,
+    SRC1_ALPHA,
+    ONE_MINUS_SRC1_ALPHA
+};
+
+enum class BlendOp
+{
+    ADD,
+    SUBTRACT,
+    REVERSE_SUBTRACT,
+    MIN,
+    MAX
+};
+
 struct Synchronisation
 {
     PipelineStages stages;
