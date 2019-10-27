@@ -286,3 +286,37 @@ VkSampleCountFlagBits vulkan_helpers::convert_sample_count(uint32_t count)
 
     return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
 }
+
+VkCompareOp vulkan_helpers::convert_compare_op(CompareOp compare_op)
+{
+    switch(compare_op)
+    {
+        case CompareOp::NEVER: return VK_COMPARE_OP_NEVER;
+        case CompareOp::LESS: return VK_COMPARE_OP_LESS;
+        case CompareOp::EQUAL: return VK_COMPARE_OP_EQUAL;
+        case CompareOp::LESS_OR_EQUAL: return VK_COMPARE_OP_LESS_OR_EQUAL;
+        case CompareOp::GREATER: return VK_COMPARE_OP_GREATER;
+        case CompareOp::NOT_EQUAL: return VK_COMPARE_OP_NOT_EQUAL;
+        case CompareOp::GREATER_OR_EQUAL: return VK_COMPARE_OP_GREATER_OR_EQUAL;
+        case CompareOp::ALWAYS: return VK_COMPARE_OP_ALWAYS;
+    }
+
+    return VK_COMPARE_OP_MAX_ENUM;
+}
+
+VkStencilOp vulkan_helpers::convert_stencil_op(StencilOp stencil_op)
+{
+    switch(stencil_op)
+    {
+        case StencilOp::KEEP: return VK_STENCIL_OP_KEEP;
+        case StencilOp::ZERO: return VK_STENCIL_OP_ZERO;
+        case StencilOp::REPLACE: return VK_STENCIL_OP_REPLACE;
+        case StencilOp::INCREMENT_AND_CLAMP: return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+        case StencilOp::DECREMENT_AND_CLAMP: return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+        case StencilOp::INVERT: return VK_STENCIL_OP_INVERT;
+        case StencilOp::INCREMENT_AND_WRAP: return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+        case StencilOp::DECREMENT_AND_WRAP: return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+    }
+
+    return VK_STENCIL_OP_MAX_ENUM;
+}

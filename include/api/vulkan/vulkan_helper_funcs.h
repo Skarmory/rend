@@ -29,6 +29,8 @@ VkPolygonMode           convert_polygon_mode(PolygonMode mode);
 VkFrontFace             convert_front_face(FrontFace face);
 VkCullModeFlagBits      convert_cull_mode(CullMode mode);
 VkSampleCountFlagBits   convert_sample_count(uint32_t count);
+VkCompareOp             convert_compare_op(CompareOp compare_op);
+VkStencilOp             convert_stencil_op(StencilOp stencil_op);
 
 }
 

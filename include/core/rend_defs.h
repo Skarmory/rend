@@ -141,6 +141,30 @@ enum class CullMode
     FRONT_AND_BACK
 };
 
+enum class CompareOp
+{
+    NEVER,
+    LESS,
+    EQUAL,
+    LESS_OR_EQUAL,
+    GREATER,
+    NOT_EQUAL,
+    GREATER_OR_EQUAL,
+    ALWAYS
+};
+
+enum class StencilOp
+{
+    KEEP,
+    ZERO,
+    REPLACE,
+    INCREMENT_AND_CLAMP,
+    DECREMENT_AND_CLAMP,
+    INVERT,
+    INCREMENT_AND_WRAP,
+    DECREMENT_AND_WRAP
+};
+
 struct Synchronisation
 {
     PipelineStages stages;
