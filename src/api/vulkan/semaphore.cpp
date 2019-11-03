@@ -13,25 +13,20 @@ Semaphore::Semaphore(DeviceContext& context)
 
 Semaphore::~Semaphore(void)
 {
-    vkDestroySemaphore(_context.get_device()->get_handle(), _vk_semaphore, nullptr);
+    _context.get_device()->destroy_semaphore(_vk_semaphore);
 }
 
-bool Semaphore::create_semaphore(void)
+StatusCode Semaphore::create_semaphore(void)
 {
     if(_vk_semaphore != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
-    VkSemaphoreCreateInfo create_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0
-    };
+    _vk_semaphore = _context.get_device()->create_semaphore();
 
-    if(vkCreateSemaphore(_context.get_device()->get_handle(), &create_info, nullptr, &_vk_semaphore) != VK_SUCCESS)
-        return false;
+    if(_vk_semaphore == VK_NULL_HANDLE)
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 VkSemaphore Semaphore::get_handle(void) const

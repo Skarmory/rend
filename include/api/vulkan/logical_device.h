@@ -100,14 +100,14 @@ public:
                           );
     void                  destroy_pipeline(VkPipeline pipeline);
 
-
-
-
     VkEvent               create_event(void);
     void                  destroy_event(VkEvent event);
 
     VkFence               create_fence(bool start_signalled);
     void                  destroy_fence(VkFence fence);
+
+    VkSemaphore           create_semaphore(void);
+    void                  destroy_semaphore(VkSemaphore semaphore);
 
 private:
     const DeviceContext&  _context;
