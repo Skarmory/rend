@@ -88,7 +88,7 @@ public:
     VkImageView           create_image_view(VkImageViewCreateInfo& create_info);
     void                  destroy_image_view(VkImageView image_view);
 
-    VkBuffer              create_buffer(VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, uint32_t* queue_family_indices);
+    VkBuffer              create_buffer(VkBufferCreateInfo& create_info);
     void                  destroy_buffer(VkBuffer buffer);
 
     VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);

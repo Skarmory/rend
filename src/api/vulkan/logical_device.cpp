@@ -494,26 +494,10 @@ void LogicalDevice::destroy_image_view(VkImageView image_view)
     vkDestroyImageView(_vk_device, image_view, nullptr);
 }
 
-VkBuffer LogicalDevice::create_buffer(
-    VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode,
-    uint32_t queue_family_index_count, uint32_t* queue_family_indices
-)
+VkBuffer LogicalDevice::create_buffer(VkBufferCreateInfo& info)
 {
-    VkBufferCreateInfo create_info =
-    {
-        .sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .size                  = size_bytes,
-        .usage                 = usage,
-        .sharingMode           = sharing_mode,
-        .queueFamilyIndexCount = queue_family_index_count,
-        .pQueueFamilyIndices   = queue_family_indices
-    };
-
     VkBuffer buffer = VK_NULL_HANDLE;
-    vkCreateBuffer(_vk_device, &create_info, nullptr, &buffer);
-
+    vkCreateBuffer(_vk_device, &info, nullptr, &buffer);
     return buffer;
 }
 

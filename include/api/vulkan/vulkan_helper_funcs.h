@@ -40,6 +40,7 @@ VkMemoryAllocateInfo    gen_memory_allocate_info(void);
 VkSamplerCreateInfo     gen_sampler_create_info(void);
 VkImageCreateInfo       gen_image_create_info(void);
 VkImageViewCreateInfo   gen_image_view_create_info(void);
+VkBufferCreateInfo      gen_buffer_create_info(void);
 
 }
 

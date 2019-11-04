@@ -45,7 +45,14 @@ StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFla
 {
     uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
-    if((_vk_buffer = _context.get_device()->create_buffer(size_bytes, buffer_usage, VK_SHARING_MODE_EXCLUSIVE, 1, &queue_family_index)) == VK_NULL_HANDLE)
+    VkBufferCreateInfo create_info    = vulkan_helpers::gen_buffer_create_info();
+    create_info.size                  = size_bytes;
+    create_info.usage                 = buffer_usage;
+    create_info.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.queueFamilyIndexCount = 1;
+    create_info.pQueueFamilyIndices   = &queue_family_index;
+
+    if((_vk_buffer = _context.get_device()->create_buffer(create_info)) == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 
     VkMemoryRequirements memory_reqs = _context.get_device()->get_buffer_memory_reqs(_vk_buffer);

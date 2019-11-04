@@ -444,3 +444,13 @@ VkImageViewCreateInfo vulkan_helpers::gen_image_view_create_info(void)
 
     return info;
 }
+
+VkBufferCreateInfo vulkan_helpers::gen_buffer_create_info(void)
+{
+    VkBufferCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
