@@ -2,6 +2,7 @@
 
 #include "device_context.h"
 #include "logical_device.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -49,7 +50,12 @@ StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFla
 
     VkMemoryRequirements memory_reqs = _context.get_device()->get_buffer_memory_reqs(_vk_buffer);
 
-    if((_vk_memory = _context.get_device()->allocate_memory(size_bytes, memory_reqs, memory_properties)) == VK_NULL_HANDLE)
+    VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
+    alloc_info.allocationSize = size_bytes;
+    alloc_info.memoryTypeIndex = _context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
+
+    _vk_memory = _context.get_device()->allocate_memory(alloc_info);
+    if(_vk_memory == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 
     if(_context.get_device()->bind_buffer_memory(_vk_buffer, _vk_memory) != VK_SUCCESS)

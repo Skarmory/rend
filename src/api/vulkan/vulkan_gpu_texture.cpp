@@ -169,15 +169,12 @@ bool VulkanGPUTexture::_alloc_vk_memory(VkMemoryPropertyFlags memory_properties)
     VkMemoryRequirements memory_reqs;
     vkGetImageMemoryRequirements(_context.get_device()->get_handle(), _vk_image, &memory_reqs);
     
-    VkMemoryAllocateInfo alloc_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .allocationSize = memory_reqs.size,
-        .memoryTypeIndex = _context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties)
-    };
+    VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
+    alloc_info.allocationSize       = memory_reqs.size;
+    alloc_info.memoryTypeIndex      = _context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
 
-    if(vkAllocateMemory(_context.get_device()->get_handle(), &alloc_info, nullptr, &_vk_memory) != VK_SUCCESS)
+    _vk_memory = _context.get_device()->allocate_memory(alloc_info);
+    if(_vk_memory == VK_NULL_HANDLE)
         return false;
 
     _bytes = memory_reqs.size;

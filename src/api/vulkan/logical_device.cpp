@@ -310,19 +310,10 @@ void LogicalDevice::free_command_buffers(std::vector<VkCommandBuffer>& buffers, 
     vkFreeCommandBuffers(_vk_device, pool, buffers.size(), buffers.data());
 }
 
-VkDeviceMemory LogicalDevice::allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props)
+VkDeviceMemory LogicalDevice::allocate_memory(VkMemoryAllocateInfo& alloc_info)
 {
-    VkMemoryAllocateInfo alloc_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .allocationSize = size_bytes,
-        .memoryTypeIndex = find_memory_type(reqs.memoryTypeBits, props)
-    };
-
     VkDeviceMemory memory = VK_NULL_HANDLE;
     vkAllocateMemory(_vk_device, &alloc_info, nullptr, &memory);
-
     return memory;
 }
 

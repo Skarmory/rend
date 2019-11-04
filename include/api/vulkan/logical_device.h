@@ -62,7 +62,7 @@ public:
     std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool);
     void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool);
 
-    VkDeviceMemory        allocate_memory(VkDeviceSize size_bytes, VkMemoryRequirements reqs, VkMemoryPropertyFlags props);
+    VkDeviceMemory        allocate_memory(VkMemoryAllocateInfo& alloc_info);
     void                  free_memory(VkDeviceMemory memory);
 
     VkSwapchainKHR        create_swapchain(VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format, VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers, VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha, VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain);

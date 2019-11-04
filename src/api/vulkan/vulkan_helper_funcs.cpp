@@ -406,6 +406,15 @@ VkDynamicState vulkan_helpers::convert_dynamic_state(DynamicState state)
     return VK_DYNAMIC_STATE_MAX_ENUM;
 }
 
+VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
+{
+    VkMemoryAllocateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    info.pNext = nullptr;
+
+    return info;
+}
+
 VkSamplerCreateInfo vulkan_helpers::gen_sampler_create_info(void)
 {
     VkSamplerCreateInfo info = {};
