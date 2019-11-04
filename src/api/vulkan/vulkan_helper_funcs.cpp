@@ -454,3 +454,13 @@ VkBufferCreateInfo vulkan_helpers::gen_buffer_create_info(void)
 
     return info;
 }
+
+VkShaderModuleCreateInfo vulkan_helpers::gen_shader_module_create_info(void)
+{
+    VkShaderModuleCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

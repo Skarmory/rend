@@ -118,6 +118,9 @@ public:
     VkSampler             create_sampler(VkSamplerCreateInfo& create_info);
     void                  destroy_sampler(VkSampler sampler);
 
+    VkShaderModule        create_shader_module(VkShaderModuleCreateInfo& create_info);
+    void                  destroy_shader_module(VkShaderModule module);
+
 private:
     const DeviceContext&  _context;
     const PhysicalDevice* _physical_device;

@@ -15,7 +15,7 @@ class DeviceContext;
 class VulkanShader : public ShaderBase
 {
 public:
-    VulkanShader(DeviceContext& context);
+    explicit VulkanShader(DeviceContext& context);
     ~VulkanShader(void);
 
     VulkanShader(const VulkanShader&)            = delete;

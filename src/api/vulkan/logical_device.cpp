@@ -648,3 +648,15 @@ void LogicalDevice::destroy_sampler(VkSampler sampler)
 {
     vkDestroySampler(_vk_device, sampler, nullptr);
 }
+
+VkShaderModule LogicalDevice::create_shader_module(VkShaderModuleCreateInfo& create_info)
+{
+    VkShaderModule module = VK_NULL_HANDLE;
+    vkCreateShaderModule(_vk_device, &create_info, nullptr, &module);
+    return module;
+}
+
+void LogicalDevice::destroy_shader_module(VkShaderModule module)
+{
+    vkDestroyShaderModule(_vk_device, module, nullptr);
+}
