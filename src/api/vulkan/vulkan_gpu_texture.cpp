@@ -5,6 +5,7 @@
 #include "device_context.h"
 #include "fence.h"
 #include "logical_device.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -46,7 +47,7 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
         return StatusCode::MEMORY_ALLOC_FAILURE;
     }
 
-    if(vkBindImageMemory(_context.get_device()->get_handle(), _vk_image, _vk_memory, 0) != VK_SUCCESS)
+    if(_context.get_device()->bind_image_memory(_vk_image, _vk_memory) != VK_SUCCESS)
     {
         return StatusCode::MEMORY_BIND_IMAGE_FAILURE;
     }
@@ -77,10 +78,10 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
 
 void VulkanGPUTexture::destroy_texture_api(void)
 {
-    vkDestroySampler(_context.get_device()->get_handle(), _vk_sampler, nullptr);
-    vkDestroyImageView(_context.get_device()->get_handle(), _vk_image_view, nullptr);
-    vkFreeMemory(_context.get_device()->get_handle(), _vk_memory, nullptr);
-    vkDestroyImage(_context.get_device()->get_handle(), _vk_image, nullptr);
+    _context.get_device()->destroy_sampler(_vk_sampler);
+    _context.get_device()->destroy_image_view(_vk_image_view);
+    _context.get_device()->free_memory(_vk_memory);
+    _context.get_device()->destroy_image(_vk_image);
 
     _vk_sampler = VK_NULL_HANDLE;
     _vk_image_view = VK_NULL_HANDLE;
@@ -142,26 +143,22 @@ bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExt
 {
     uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
-    VkImageCreateInfo image_info =
-    {
-        .sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .imageType             = type,
-        .format                = format,
-        .extent                = extent,
-        .mipLevels             = mip_levels,
-        .arrayLayers           = array_layers,
-        .samples               = samples,
-        .tiling                = tiling,
-        .usage                 = usage,
-        .sharingMode           = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 1,
-        .pQueueFamilyIndices   = &queue_family_index,
-        .initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED
-    };
+    VkImageCreateInfo create_info     = vulkan_helpers::gen_image_create_info();
+    create_info.format                = format;
+    create_info.imageType             = type;
+    create_info.extent                = extent;
+    create_info.mipLevels             = mip_levels;
+    create_info.arrayLayers           = array_layers;
+    create_info.samples               = samples;
+    create_info.tiling                = tiling;
+    create_info.usage                 = usage;
+    create_info.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.queueFamilyIndexCount = 1;
+    create_info.pQueueFamilyIndices   = &queue_family_index;
+    create_info.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    if(vkCreateImage(_context.get_device()->get_handle(), &image_info, nullptr, &_vk_image) != VK_SUCCESS)
+    _vk_image = _context.get_device()->create_image(create_info);
+    if(_vk_image == VK_NULL_HANDLE)
         return false;
 
     return true;
@@ -223,32 +220,26 @@ bool VulkanGPUTexture::_create_vk_image_view(VkFormat format, VkImageViewType vi
 
 bool VulkanGPUTexture::_create_vk_sampler(void)
 {
-    VkSamplerCreateInfo sampler_info =
-    {
-        .sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .pNext                   = nullptr,
-        .flags                   = 0,
-        .magFilter               = VK_FILTER_LINEAR,
-        .minFilter               = VK_FILTER_LINEAR,
-        .mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-        .addressModeU            = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .addressModeV            = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .addressModeW            = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .mipLodBias              = 1.0f,
-        .anisotropyEnable        = VK_FALSE,
-        .maxAnisotropy           = 1.0f,
-        .compareEnable           = VK_FALSE,
-        .compareOp               = VK_COMPARE_OP_ALWAYS,
-        .minLod                  = 1.0f,
-        .maxLod                  = 1.0f,
-        .borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
-        .unnormalizedCoordinates = VK_FALSE
-    };
+    VkSamplerCreateInfo sampler_info     = vulkan_helpers::gen_sampler_create_info();
+    sampler_info.magFilter               = VK_FILTER_LINEAR;
+    sampler_info.minFilter               = VK_FILTER_LINEAR;
+    sampler_info.mipmapMode              = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sampler_info.addressModeU            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_info.addressModeV            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_info.addressModeW            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_info.mipLodBias              = 1.0f;
+    sampler_info.anisotropyEnable        = VK_FALSE;
+    sampler_info.maxAnisotropy           = 1.0f;
+    sampler_info.compareEnable           = VK_FALSE;
+    sampler_info.compareOp               = VK_COMPARE_OP_ALWAYS;
+    sampler_info.minLod                  = 1.0f;
+    sampler_info.maxLod                  = 1.0f;
+    sampler_info.borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+    sampler_info.unnormalizedCoordinates = VK_FALSE;
 
-    if(vkCreateSampler(_context.get_device()->get_handle(), &sampler_info, nullptr, &_vk_sampler) != VK_SUCCESS)
-    {
+    _vk_sampler = _context.get_device()->create_sampler(sampler_info);
+    if(_vk_sampler == VK_NULL_HANDLE)
         return false;
-    }
 
     return true;
 }

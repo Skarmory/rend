@@ -54,6 +54,7 @@ public:
 
     VkMemoryRequirements         get_buffer_memory_reqs(VkBuffer buffer);
     VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
+    VkResult                     bind_image_memory(VkImage image, VkDeviceMemory memory);
 
     std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
     void                         update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets);
@@ -108,6 +109,12 @@ public:
 
     VkSemaphore           create_semaphore(void);
     void                  destroy_semaphore(VkSemaphore semaphore);
+
+    VkImage               create_image(VkImageCreateInfo& create_info);
+    void                  destroy_image(VkImage image);
+
+    VkSampler             create_sampler(VkSamplerCreateInfo& create_info);
+    void                  destroy_sampler(VkSampler sampler);
 
 private:
     const DeviceContext&  _context;

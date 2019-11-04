@@ -260,6 +260,11 @@ VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memor
     return vkBindBufferMemory(_vk_device, buffer, memory, 0);
 }
 
+VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory)
+{
+    return vkBindImageMemory(_vk_device, image, memory, 0);
+}
+
 std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool)
 {
     VkDescriptorSetAllocateInfo alloc_info =
@@ -651,4 +656,28 @@ VkSemaphore LogicalDevice::create_semaphore(void)
 void LogicalDevice::destroy_semaphore(VkSemaphore semaphore)
 {
     vkDestroySemaphore(_vk_device, semaphore, nullptr);
+}
+
+VkImage LogicalDevice::create_image(VkImageCreateInfo& create_info)
+{
+    VkImage image = VK_NULL_HANDLE;
+    vkCreateImage(_vk_device, &create_info, nullptr, &image);
+    return image;
+}
+
+void LogicalDevice::destroy_image(VkImage image)
+{
+    vkDestroyImage(_vk_device, image, nullptr);
+}
+
+VkSampler LogicalDevice::create_sampler(VkSamplerCreateInfo& create_info)
+{
+    VkSampler sampler = VK_NULL_HANDLE;
+    vkCreateSampler(_vk_device, &create_info, nullptr, &sampler);
+    return sampler;
+}
+
+void LogicalDevice::destroy_sampler(VkSampler sampler)
+{
+    vkDestroySampler(_vk_device, sampler, nullptr);
 }

@@ -405,3 +405,23 @@ VkDynamicState vulkan_helpers::convert_dynamic_state(DynamicState state)
 
     return VK_DYNAMIC_STATE_MAX_ENUM;
 }
+
+VkSamplerCreateInfo vulkan_helpers::gen_sampler_create_info(void)
+{
+    VkSamplerCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkImageCreateInfo vulkan_helpers::gen_image_create_info(void)
+{
+    VkImageCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
