@@ -251,13 +251,19 @@ VkMemoryRequirements LogicalDevice::get_buffer_memory_reqs(VkBuffer buffer)
 {
     VkMemoryRequirements memory_reqs = {};
     vkGetBufferMemoryRequirements(_vk_device, buffer, &memory_reqs);
-
     return memory_reqs;
 }
 
 VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory)
 {
     return vkBindBufferMemory(_vk_device, buffer, memory, 0);
+}
+
+VkMemoryRequirements LogicalDevice::get_image_memory_reqs(VkImage image)
+{
+    VkMemoryRequirements memory_reqs = {};
+    vkGetImageMemoryRequirements(_vk_device, image, &memory_reqs);
+    return memory_reqs;
 }
 
 VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory)

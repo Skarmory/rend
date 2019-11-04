@@ -54,6 +54,8 @@ public:
 
     VkMemoryRequirements         get_buffer_memory_reqs(VkBuffer buffer);
     VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
+
+    VkMemoryRequirements         get_image_memory_reqs(VkImage image);
     VkResult                     bind_image_memory(VkImage image, VkDeviceMemory memory);
 
     std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);

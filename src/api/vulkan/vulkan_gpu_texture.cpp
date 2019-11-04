@@ -166,8 +166,7 @@ bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExt
 
 bool VulkanGPUTexture::_alloc_vk_memory(VkMemoryPropertyFlags memory_properties)
 {
-    VkMemoryRequirements memory_reqs;
-    vkGetImageMemoryRequirements(_context.get_device()->get_handle(), _vk_image, &memory_reqs);
+    VkMemoryRequirements memory_reqs = _context.get_device()->get_image_memory_reqs(_vk_image);
     
     VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
     alloc_info.allocationSize       = memory_reqs.size;
