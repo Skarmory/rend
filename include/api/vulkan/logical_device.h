@@ -85,7 +85,7 @@ public:
     VkCommandPool         create_command_pool(bool can_reset, uint32_t queue_family_index);
     void                  destroy_command_pool(VkCommandPool pool);
 
-    VkImageView           create_image_view(VkImage image, VkImageViewType viewType, VkFormat format, VkComponentMapping components, VkImageSubresourceRange subresourceRange);
+    VkImageView           create_image_view(VkImageViewCreateInfo& create_info);
     void                  destroy_image_view(VkImageView image_view);
 
     VkBuffer              create_buffer(VkDeviceSize size_bytes, VkBufferUsageFlags usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, uint32_t* queue_family_indices);

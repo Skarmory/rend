@@ -7,6 +7,7 @@
 #include "render_target.h"
 #include "semaphore.h"
 #include "window.h"
+#include "vulkan_helper_funcs.h"
 
 #include <limits>
 
@@ -152,12 +153,21 @@ StatusCode Swapchain::_get_images(void)
         if(!_render_targets[idx])
             _render_targets[idx] = new RenderTarget(_context);
 
-        VkImageView view = _context.get_device()->create_image_view(
-            images[idx], VK_IMAGE_VIEW_TYPE_2D, _surface_format.format,
-            VkComponentMapping{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
-            VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-        );
+        VkImageViewCreateInfo image_view_info = vulkan_helpers::gen_image_view_create_info();
+        image_view_info.image                           = images[idx];
+        image_view_info.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+        image_view_info.format                          = _surface_format.format;
+        image_view_info.components.r                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+        image_view_info.components.g                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+        image_view_info.components.b                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+        image_view_info.components.a                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+        image_view_info.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        image_view_info.subresourceRange.baseMipLevel   = 0;
+        image_view_info.subresourceRange.levelCount     = 1;
+        image_view_info.subresourceRange.baseArrayLayer = 0;
+        image_view_info.subresourceRange.layerCount     = 1;
 
+        VkImageView view = _context.get_device()->create_image_view(image_view_info);
         if(view == VK_NULL_HANDLE)
             return StatusCode::FAILURE;
 

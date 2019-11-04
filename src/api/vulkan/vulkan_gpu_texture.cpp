@@ -183,32 +183,18 @@ bool VulkanGPUTexture::_alloc_vk_memory(VkMemoryPropertyFlags memory_properties)
 
 bool VulkanGPUTexture::_create_vk_image_view(VkFormat format, VkImageViewType view_type, VkImageAspectFlags aspects, uint32_t mip_levels, uint32_t array_layers)
 {
-    VkImageViewCreateInfo image_view_info =
-    {
-        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext            = nullptr,
-        .flags            = 0,
-        .image            = _vk_image,
-        .viewType         = view_type,
-        .format           = format,
-        .components       =
-        {
-            .r = VK_COMPONENT_SWIZZLE_R,
-            .g = VK_COMPONENT_SWIZZLE_G,
-            .b = VK_COMPONENT_SWIZZLE_B,
-            .a = VK_COMPONENT_SWIZZLE_A
-        },
-        .subresourceRange =
-        {
-            .aspectMask     = aspects,
-            .baseMipLevel   = 0,
-            .levelCount     = mip_levels,
-            .baseArrayLayer = 0,
-            .layerCount     = array_layers
-        }
-    };
+    VkImageViewCreateInfo image_view_info = vulkan_helpers::gen_image_view_create_info();
+    image_view_info.image                           = _vk_image;
+    image_view_info.viewType                        = view_type;
+    image_view_info.format                          = format;
+    image_view_info.subresourceRange.aspectMask     = aspects;
+    image_view_info.subresourceRange.baseMipLevel   = 0;
+    image_view_info.subresourceRange.levelCount     = mip_levels;
+    image_view_info.subresourceRange.baseArrayLayer = 0;
+    image_view_info.subresourceRange.layerCount     = array_layers;
 
-    if(vkCreateImageView(_context.get_device()->get_handle(), &image_view_info, nullptr, &_vk_image_view) != VK_SUCCESS)
+    _vk_image_view = _context.get_device()->create_image_view(image_view_info);
+    if(_vk_image_view == VK_NULL_HANDLE)
         return false;
 
     return true;

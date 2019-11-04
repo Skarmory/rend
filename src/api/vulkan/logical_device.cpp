@@ -482,24 +482,10 @@ void LogicalDevice::destroy_descriptor_set_layout(VkDescriptorSetLayout layout)
     vkDestroyDescriptorSetLayout(_vk_device, layout, nullptr);
 }
 
-VkImageView LogicalDevice::create_image_view(
-    VkImage image, VkImageViewType view_type, VkFormat format,
-    VkComponentMapping components, VkImageSubresourceRange subresource_range
-)
+VkImageView LogicalDevice::create_image_view(VkImageViewCreateInfo& create_info)
 {
-    VkImageViewCreateInfo image_view_create_info = {};
-    image_view_create_info.sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    image_view_create_info.pNext            = nullptr;
-    image_view_create_info.flags            = 0;
-    image_view_create_info.format           = format;
-    image_view_create_info.image            = image;
-    image_view_create_info.viewType         = view_type;
-    image_view_create_info.components       = components;
-    image_view_create_info.subresourceRange = subresource_range;
-
     VkImageView image_view = VK_NULL_HANDLE;
-    vkCreateImageView(_vk_device, &image_view_create_info, nullptr, &image_view);
-
+    vkCreateImageView(_vk_device, &create_info, nullptr, &image_view);
     return image_view;
 }
 

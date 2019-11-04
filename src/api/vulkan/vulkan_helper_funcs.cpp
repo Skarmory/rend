@@ -434,3 +434,13 @@ VkImageCreateInfo vulkan_helpers::gen_image_create_info(void)
 
     return info;
 }
+
+VkImageViewCreateInfo vulkan_helpers::gen_image_view_create_info(void)
+{
+    VkImageViewCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
