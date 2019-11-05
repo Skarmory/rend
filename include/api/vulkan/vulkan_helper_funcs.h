@@ -43,17 +43,17 @@ VkImageViewCreateInfo         gen_image_view_create_info(void);
 VkBufferCreateInfo            gen_buffer_create_info(void);
 VkShaderModuleCreateInfo      gen_shader_module_create_info(void);
 
-VkPipelineShaderStageCreateInfo gen_shader_stage_create_info(void);
-VkPipelineVertexInputStateCreateInfo gen_vertex_input_state_create_info(void);
+VkPipelineShaderStageCreateInfo        gen_shader_stage_create_info(void);
+VkPipelineVertexInputStateCreateInfo   gen_vertex_input_state_create_info(void);
 VkPipelineInputAssemblyStateCreateInfo gen_input_assembly_state_create_info(void);
 VkPipelineTessellationStateCreateInfo  gen_tessellation_state_create_info(void);
-VkPipelineViewportStateCreateInfo gen_viewport_state_create_info(void);
+VkPipelineViewportStateCreateInfo      gen_viewport_state_create_info(void);
 VkPipelineRasterizationStateCreateInfo gen_rasterisation_state_create_info(void);
-VkPipelineMultisampleStateCreateInfo  gen_multisample_state_create_info(void);
-VkPipelineDepthStencilStateCreateInfo gen_depth_stencil_state_create_info(void);
-VkPipelineColorBlendStateCreateInfo   gen_colour_blend_state_create_info(void);
-VkPipelineDynamicStateCreateInfo      gen_dynamic_state_create_info(void);
-VkGraphicsPipelineCreateInfo  gen_graphics_pipeline_create_info(void);
+VkPipelineMultisampleStateCreateInfo   gen_multisample_state_create_info(void);
+VkPipelineDepthStencilStateCreateInfo  gen_depth_stencil_state_create_info(void);
+VkPipelineColorBlendStateCreateInfo    gen_colour_blend_state_create_info(void);
+VkPipelineDynamicStateCreateInfo       gen_dynamic_state_create_info(void);
+VkGraphicsPipelineCreateInfo           gen_graphics_pipeline_create_info(void);
 
 }
 
