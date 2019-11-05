@@ -50,6 +50,11 @@ void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& d
     vkEnumeratePhysicalDevices(_vk_instance, &device_count, devices.data());
 }
 
+void VulkanInstance::destroy_surface(VkSurfaceKHR surface)
+{
+    vkDestroySurfaceKHR(_vk_instance, surface, nullptr);
+}
+
 VkInstance VulkanInstance::get_handle(void) const
 {
     return _vk_instance;

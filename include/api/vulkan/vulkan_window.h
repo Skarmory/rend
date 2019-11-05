@@ -14,7 +14,7 @@ class VulkanInstance;
 class VulkanWindow : public WindowBase
 {
 public:
-    VulkanWindow(VulkanInstance& instance);
+    explicit VulkanWindow(VulkanInstance& instance);
     ~VulkanWindow(void);
 
     VulkanWindow(const VulkanWindow&)            = delete;
@@ -26,7 +26,7 @@ public:
 
 protected:
     VulkanInstance& _instance;
-    VkSurfaceKHR   _vk_surface;
+    VkSurfaceKHR    _vk_surface;
 };
 
 }

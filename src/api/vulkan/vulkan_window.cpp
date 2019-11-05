@@ -12,7 +12,7 @@ VulkanWindow::VulkanWindow(VulkanInstance& instance)
 
 VulkanWindow::~VulkanWindow(void)
 {
-    vkDestroySurfaceKHR(_instance.get_handle(), _vk_surface, nullptr);
+    _instance.destroy_surface(_vk_surface);
 }
 
 VkSurfaceKHR VulkanWindow::get_handle(void) const
