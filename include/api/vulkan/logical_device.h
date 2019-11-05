@@ -94,6 +94,7 @@ public:
     VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);
     void                  destroy_pipeline_layout(VkPipelineLayout layout);
 
+    VkPipeline            create_pipeline(VkGraphicsPipelineCreateInfo& create_info);
     VkPipeline            create_pipeline(
                                 VkPipelineLayout layout, VkRenderPass render_pass, uint32_t subpass,
                                 std::vector<VkPipelineShaderStageCreateInfo>& shader_stage_infos, VkPipelineVertexInputStateCreateInfo& vertex_input_info, VkPipelineInputAssemblyStateCreateInfo& input_assembly_info,

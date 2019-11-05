@@ -63,21 +63,9 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
 
     std::vector<VkPipelineShaderStageCreateInfo> shader_stage_infos;
     for(Shader* shader : _shaders)
+    {
         shader_stage_infos.push_back(_gen_shader_stage_create_info(*shader));
-
-    VkPipelineVertexInputStateCreateInfo input_info = _gen_vertex_input_state_create_info();
-
-    VkPipelineInputAssemblyStateCreateInfo assembly_info = _gen_input_assembly_state_create_info();
-
-    VkPipelineTessellationStateCreateInfo tessellation_info = _gen_tessellation_state_create_info();
-
-    VkPipelineViewportStateCreateInfo viewport_info = _gen_viewport_state_create_info();
-
-    VkPipelineRasterizationStateCreateInfo rasterisation_info = _gen_rasterisation_state_create_info();
-
-    VkPipelineMultisampleStateCreateInfo multisample_info = _gen_multisample_state_create_info();
-
-    VkPipelineDepthStencilStateCreateInfo depth_stencil_info = _gen_depth_stencil_state_create_info();
+    }
 
     std::vector<VkPipelineColorBlendAttachmentState> vk_attachments;
     for(ColourBlendAttachmentSettings& settings : _colour_blend_attachment_settings)
@@ -85,22 +73,41 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
         vk_attachments.push_back(_gen_colour_blend_attachment_state(settings));
     }
 
-    VkPipelineColorBlendStateCreateInfo colour_blend_info = _gen_colour_blend_state_create_info(vk_attachments);
-
     std::vector<VkDynamicState> dynamic_states;
     for(DynamicState state : _dynamic_states)
     {
         dynamic_states.push_back(vulkan_helpers::convert_dynamic_state(state));
     }
 
-    VkPipelineDynamicStateCreateInfo dynamic_info = _gen_dynamic_state_create_info(dynamic_states);
+    VkPipelineVertexInputStateCreateInfo vertex_input_info     = _gen_vertex_input_state_create_info();
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_info = _gen_input_assembly_state_create_info();
+    VkPipelineTessellationStateCreateInfo tessellation_info    = _gen_tessellation_state_create_info();
+    VkPipelineViewportStateCreateInfo viewport_info            = _gen_viewport_state_create_info();
+    VkPipelineRasterizationStateCreateInfo rasterisation_info  = _gen_rasterisation_state_create_info();
+    VkPipelineMultisampleStateCreateInfo multisample_info      = _gen_multisample_state_create_info();
+    VkPipelineDepthStencilStateCreateInfo depth_stencil_info   = _gen_depth_stencil_state_create_info();
+    VkPipelineColorBlendStateCreateInfo colour_blend_info      = _gen_colour_blend_state_create_info(vk_attachments);
+    VkPipelineDynamicStateCreateInfo dynamic_info              = _gen_dynamic_state_create_info(dynamic_states);
 
-    _vk_pipeline = _context.get_device()->create_pipeline(
-        layout.get_handle(), render_pass.get_handle(), subpass,
-        shader_stage_infos, input_info, assembly_info, tessellation_info,
-        viewport_info, rasterisation_info, multisample_info, depth_stencil_info,
-        colour_blend_info, dynamic_info
-    );
+    VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
+    pipeline_create_info.stageCount          = static_cast<uint32_t>(shader_stage_infos.size());
+    pipeline_create_info.pStages             = shader_stage_infos.data();
+    pipeline_create_info.pVertexInputState   = &vertex_input_info;
+    pipeline_create_info.pInputAssemblyState = &input_assembly_info;
+    pipeline_create_info.pTessellationState  = &tessellation_info;
+    pipeline_create_info.pViewportState      = &viewport_info;
+    pipeline_create_info.pRasterizationState = &rasterisation_info;
+    pipeline_create_info.pMultisampleState   = &multisample_info;
+    pipeline_create_info.pDepthStencilState  = &depth_stencil_info;
+    pipeline_create_info.pColorBlendState    = &colour_blend_info;
+    pipeline_create_info.pDynamicState       = &dynamic_info;
+    pipeline_create_info.layout              = layout.get_handle();
+    pipeline_create_info.renderPass          = render_pass.get_handle();
+    pipeline_create_info.subpass             = subpass;
+    pipeline_create_info.basePipelineHandle  = VK_NULL_HANDLE;
+    pipeline_create_info.basePipelineIndex   = 0;
+
+    _vk_pipeline = _context.get_device()->create_pipeline(pipeline_create_info);
 
     if(_vk_pipeline == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
@@ -316,10 +323,7 @@ VkPipeline Pipeline::get_handle(void) const
 
 VkPipelineShaderStageCreateInfo Pipeline::_gen_shader_stage_create_info(Shader& shader)
 {
-    VkPipelineShaderStageCreateInfo create_info = {};
-    create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    create_info.pNext = nullptr;
-    create_info.flags = 0;
+    VkPipelineShaderStageCreateInfo create_info = vulkan_helpers::gen_shader_stage_create_info();
     create_info.module = shader.get_handle();
     create_info.pName = "main";
     create_info.pSpecializationInfo = nullptr;
@@ -337,10 +341,7 @@ VkPipelineShaderStageCreateInfo Pipeline::_gen_shader_stage_create_info(Shader& 
 
 VkPipelineVertexInputStateCreateInfo Pipeline::_gen_vertex_input_state_create_info(void)
 {
-    VkPipelineVertexInputStateCreateInfo create_info = {};
-    create_info.sType                                = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    create_info.pNext                                = nullptr;
-    create_info.flags                                = 0;
+    VkPipelineVertexInputStateCreateInfo create_info = vulkan_helpers::gen_vertex_input_state_create_info();
     create_info.vertexBindingDescriptionCount        = static_cast<uint32_t>(_vk_binding_descs.size());
     create_info.pVertexBindingDescriptions           = _vk_binding_descs.data();
     create_info.vertexAttributeDescriptionCount      = static_cast<uint32_t>(_vk_attribute_descs.size());
@@ -351,10 +352,7 @@ VkPipelineVertexInputStateCreateInfo Pipeline::_gen_vertex_input_state_create_in
 
 VkPipelineInputAssemblyStateCreateInfo Pipeline::_gen_input_assembly_state_create_info(void)
 {
-    VkPipelineInputAssemblyStateCreateInfo create_info = {};
-    create_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    create_info.pNext                  = nullptr;
-    create_info.flags                  = 0;
+    VkPipelineInputAssemblyStateCreateInfo create_info = vulkan_helpers::gen_input_assembly_state_create_info();
     create_info.topology               = vulkan_helpers::convert_topology(_topology);
     create_info.primitiveRestartEnable = _primitive_restart;
 
@@ -363,10 +361,7 @@ VkPipelineInputAssemblyStateCreateInfo Pipeline::_gen_input_assembly_state_creat
 
 VkPipelineTessellationStateCreateInfo  Pipeline::_gen_tessellation_state_create_info(void)
 {
-    VkPipelineTessellationStateCreateInfo create_info = {};
-    create_info.sType              = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
-    create_info.pNext              = nullptr;
-    create_info.flags              = 0;
+    VkPipelineTessellationStateCreateInfo create_info = vulkan_helpers::gen_tessellation_state_create_info();
     create_info.patchControlPoints = _patch_control_points;
 
     return create_info;
@@ -374,10 +369,7 @@ VkPipelineTessellationStateCreateInfo  Pipeline::_gen_tessellation_state_create_
 
 VkPipelineViewportStateCreateInfo Pipeline::_gen_viewport_state_create_info(void)
 {
-    VkPipelineViewportStateCreateInfo create_info = {};
-    create_info.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    create_info.pNext         = nullptr;
-    create_info.flags         = 0;
+    VkPipelineViewportStateCreateInfo create_info = vulkan_helpers::gen_viewport_state_create_info();
     create_info.viewportCount = static_cast<uint32_t>(_vk_viewports.size());
     create_info.pViewports    = _vk_viewports.data();
     create_info.scissorCount  = static_cast<uint32_t>(_vk_scissors.size());
@@ -388,10 +380,7 @@ VkPipelineViewportStateCreateInfo Pipeline::_gen_viewport_state_create_info(void
 
 VkPipelineRasterizationStateCreateInfo Pipeline::_gen_rasterisation_state_create_info(void)
 {
-    VkPipelineRasterizationStateCreateInfo create_info = {};
-    create_info.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    create_info.pNext                   = nullptr;
-    create_info.flags                   = 0;
+    VkPipelineRasterizationStateCreateInfo create_info = vulkan_helpers::gen_rasterisation_state_create_info();
     create_info.depthClampEnable        = static_cast<VkBool32>(_depth_clamp_enable);
     create_info.rasterizerDiscardEnable = static_cast<VkBool32>(_rasteriser_discard_enable);
     create_info.polygonMode             = vulkan_helpers::convert_polygon_mode(_polygon_mode);
@@ -408,10 +397,7 @@ VkPipelineRasterizationStateCreateInfo Pipeline::_gen_rasterisation_state_create
 
 VkPipelineMultisampleStateCreateInfo Pipeline::_gen_multisample_state_create_info(void)
 {
-    VkPipelineMultisampleStateCreateInfo create_info = {};
-    create_info.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    create_info.pNext                 = nullptr;
-    create_info.flags                 = 0;
+    VkPipelineMultisampleStateCreateInfo create_info = vulkan_helpers::gen_multisample_state_create_info();
     create_info.rasterizationSamples  = vulkan_helpers::convert_sample_count(_samples);
     create_info.sampleShadingEnable   = _sample_shading_enable;
     create_info.minSampleShading      = _min_sample_shading;
@@ -424,10 +410,7 @@ VkPipelineMultisampleStateCreateInfo Pipeline::_gen_multisample_state_create_inf
 
 VkPipelineDepthStencilStateCreateInfo Pipeline::_gen_depth_stencil_state_create_info(void)
 {
-    VkPipelineDepthStencilStateCreateInfo create_info = {};
-    create_info.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    create_info.pNext                 = nullptr;
-    create_info.flags                 = 0;
+    VkPipelineDepthStencilStateCreateInfo create_info = vulkan_helpers::gen_depth_stencil_state_create_info();
     create_info.depthTestEnable       = static_cast<VkBool32>(_depth_test_enable);
     create_info.depthWriteEnable      = static_cast<VkBool32>(_depth_write_enable);
     create_info.depthCompareOp        = vulkan_helpers::convert_compare_op(_compare_op);
@@ -470,10 +453,7 @@ VkPipelineColorBlendAttachmentState Pipeline::_gen_colour_blend_attachment_state
 
 VkPipelineColorBlendStateCreateInfo Pipeline::_gen_colour_blend_state_create_info(std::vector<VkPipelineColorBlendAttachmentState>& states)
 {
-    VkPipelineColorBlendStateCreateInfo create_info = {};
-    create_info.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    create_info.pNext             = nullptr;
-    create_info.flags             = 0;
+    VkPipelineColorBlendStateCreateInfo create_info = vulkan_helpers::gen_colour_blend_state_create_info();
     create_info.logicOpEnable     = _logic_op_enable;
     create_info.logicOp           = vulkan_helpers::convert_logic_op(_logic_op);
     create_info.attachmentCount   = static_cast<uint32_t>(states.size());
@@ -488,10 +468,7 @@ VkPipelineColorBlendStateCreateInfo Pipeline::_gen_colour_blend_state_create_inf
 
 VkPipelineDynamicStateCreateInfo Pipeline::_gen_dynamic_state_create_info(std::vector<VkDynamicState>& states)
 {
-    VkPipelineDynamicStateCreateInfo create_info = {};
-    create_info.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    create_info.pNext             = nullptr;
-    create_info.flags             = 0;
+    VkPipelineDynamicStateCreateInfo create_info = vulkan_helpers::gen_dynamic_state_create_info();
     create_info.dynamicStateCount = static_cast<uint32_t>(states.size());
     create_info.pDynamicStates    = states.data();
 

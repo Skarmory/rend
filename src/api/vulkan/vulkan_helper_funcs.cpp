@@ -464,3 +464,113 @@ VkShaderModuleCreateInfo vulkan_helpers::gen_shader_module_create_info(void)
 
     return info;
 }
+
+VkPipelineShaderStageCreateInfo vulkan_helpers::gen_shader_stage_create_info(void)
+{
+    VkPipelineShaderStageCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineVertexInputStateCreateInfo vulkan_helpers::gen_vertex_input_state_create_info(void)
+{
+    VkPipelineVertexInputStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineInputAssemblyStateCreateInfo vulkan_helpers::gen_input_assembly_state_create_info(void)
+{
+    VkPipelineInputAssemblyStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineTessellationStateCreateInfo vulkan_helpers::gen_tessellation_state_create_info(void)
+{
+    VkPipelineTessellationStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineViewportStateCreateInfo vulkan_helpers::gen_viewport_state_create_info(void)
+{
+    VkPipelineViewportStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineRasterizationStateCreateInfo vulkan_helpers::gen_rasterisation_state_create_info(void)
+{
+    VkPipelineRasterizationStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineMultisampleStateCreateInfo vulkan_helpers::gen_multisample_state_create_info(void)
+{
+    VkPipelineMultisampleStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineDepthStencilStateCreateInfo vulkan_helpers::gen_depth_stencil_state_create_info(void)
+{
+    VkPipelineDepthStencilStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineColorBlendStateCreateInfo vulkan_helpers::gen_colour_blend_state_create_info(void)
+{
+    VkPipelineColorBlendStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkPipelineDynamicStateCreateInfo vulkan_helpers::gen_dynamic_state_create_info(void)
+{
+    VkPipelineDynamicStateCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
+VkGraphicsPipelineCreateInfo vulkan_helpers::gen_graphics_pipeline_create_info(void)
+{
+    VkGraphicsPipelineCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
