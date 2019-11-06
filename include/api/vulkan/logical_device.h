@@ -91,7 +91,7 @@ public:
     VkBuffer              create_buffer(VkBufferCreateInfo& create_info);
     void                  destroy_buffer(VkBuffer buffer);
 
-    VkPipelineLayout      create_pipeline_layout(std::vector<VkPushConstantRange>& push_constants, std::vector<VkDescriptorSetLayout>& layouts);
+    VkPipelineLayout      create_pipeline_layout(VkPipelineLayoutCreateInfo& create_info);
     void                  destroy_pipeline_layout(VkPipelineLayout layout);
 
     VkPipeline            create_pipeline(VkGraphicsPipelineCreateInfo& create_info);

@@ -465,6 +465,16 @@ VkShaderModuleCreateInfo vulkan_helpers::gen_shader_module_create_info(void)
     return info;
 }
 
+VkPipelineLayoutCreateInfo vulkan_helpers::gen_pipeline_layout_create_info(void)
+{
+    VkPipelineLayoutCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
+
 VkPipelineShaderStageCreateInfo vulkan_helpers::gen_shader_stage_create_info(void)
 {
     VkPipelineShaderStageCreateInfo info = {};

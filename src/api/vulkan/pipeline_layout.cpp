@@ -29,7 +29,13 @@ StatusCode PipelineLayout::create_pipeline_layout(void)
     for(DescriptorSetLayout* layout : _descriptor_set_layouts)
         vk_layouts.push_back(layout->get_handle());
 
-    _vk_layout = _context.get_device()->create_pipeline_layout(_push_constant_ranges, vk_layouts);
+    VkPipelineLayoutCreateInfo create_info = vulkan_helpers::gen_pipeline_layout_create_info();
+    create_info.setLayoutCount = static_cast<uint32_t>(vk_layouts.size());
+    create_info.pSetLayouts = vk_layouts.data();
+    create_info.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
+    create_info.pPushConstantRanges = _push_constant_ranges.data();
+
+    _vk_layout = _context.get_device()->create_pipeline_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
