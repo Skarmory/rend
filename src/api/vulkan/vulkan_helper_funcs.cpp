@@ -584,3 +584,13 @@ VkGraphicsPipelineCreateInfo vulkan_helpers::gen_graphics_pipeline_create_info(v
 
     return info;
 }
+
+VkCommandPoolCreateInfo vulkan_helpers::gen_command_pool_create_info(void)
+{
+    VkCommandPoolCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

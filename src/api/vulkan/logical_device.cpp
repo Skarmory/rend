@@ -441,17 +441,10 @@ void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool)
     vkDestroyDescriptorPool(_vk_device, pool, nullptr);
 }
 
-VkCommandPool LogicalDevice::create_command_pool(bool can_reset, uint32_t queue_family_index)
+VkCommandPool LogicalDevice::create_command_pool(VkCommandPoolCreateInfo& create_info)
 {
-    VkCommandPoolCreateInfo create_info = {};
-    create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    create_info.pNext = nullptr;
-    create_info.flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0);
-    create_info.queueFamilyIndex = queue_family_index;
-
     VkCommandPool pool = VK_NULL_HANDLE;
     vkCreateCommandPool(_vk_device, &create_info, nullptr, &pool);
-
     return pool;
 }
 

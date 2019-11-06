@@ -4,6 +4,7 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "queue_family.h"
+#include "vulkan_helper_funcs.h"
 
 #include <utility>
 #include <iostream>
@@ -30,7 +31,11 @@ bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_
     if(_vk_command_pool != VK_NULL_HANDLE)
         return false;
 
-    _vk_command_pool = _context.get_device()->create_command_pool(can_reset, queue_family->get_index());
+    VkCommandPoolCreateInfo create_info = vulkan_helpers::gen_command_pool_create_info();
+    create_info.flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0);
+    create_info.queueFamilyIndex = queue_family->get_index();
+
+    _vk_command_pool = _context.get_device()->create_command_pool(create_info);
     if(_vk_command_pool == VK_NULL_HANDLE)
         return false;
 

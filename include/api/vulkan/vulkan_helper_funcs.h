@@ -54,6 +54,7 @@ VkPipelineDepthStencilStateCreateInfo  gen_depth_stencil_state_create_info(void)
 VkPipelineColorBlendStateCreateInfo    gen_colour_blend_state_create_info(void);
 VkPipelineDynamicStateCreateInfo       gen_dynamic_state_create_info(void);
 VkGraphicsPipelineCreateInfo           gen_graphics_pipeline_create_info(void);
+VkCommandPoolCreateInfo                gen_command_pool_create_info(void);
 
 }
 
