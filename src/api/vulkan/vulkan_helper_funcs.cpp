@@ -604,3 +604,13 @@ VkFenceCreateInfo vulkan_helpers::gen_fence_create_info(void)
 
     return info;
 }
+
+VkSemaphoreCreateInfo vulkan_helpers::gen_semaphore_create_info(void)
+{
+    VkSemaphoreCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

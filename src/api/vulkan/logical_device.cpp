@@ -553,18 +553,10 @@ void LogicalDevice::destroy_fence(VkFence fence)
     vkDestroyFence(_vk_device, fence, nullptr);
 }
 
-VkSemaphore LogicalDevice::create_semaphore(void)
+VkSemaphore LogicalDevice::create_semaphore(VkSemaphoreCreateInfo& create_info)
 {
-    VkSemaphoreCreateInfo create_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0
-    };
-
     VkSemaphore semaphore;
     vkCreateSemaphore(_vk_device, &create_info, nullptr, &semaphore);
-
     return semaphore;
 }
 

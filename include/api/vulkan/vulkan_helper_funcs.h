@@ -56,6 +56,7 @@ VkPipelineDynamicStateCreateInfo       gen_dynamic_state_create_info(void);
 VkGraphicsPipelineCreateInfo           gen_graphics_pipeline_create_info(void);
 VkCommandPoolCreateInfo                gen_command_pool_create_info(void);
 VkFenceCreateInfo                      gen_fence_create_info(void);
+VkSemaphoreCreateInfo                  gen_semaphore_create_info(void);
 
 }
 
