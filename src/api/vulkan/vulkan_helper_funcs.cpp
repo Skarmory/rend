@@ -624,3 +624,13 @@ VkSemaphoreCreateInfo vulkan_helpers::gen_semaphore_create_info(void)
 
     return info;
 }
+
+VkDescriptorSetLayoutCreateInfo vulkan_helpers::gen_descriptor_set_layout_create_info(void)
+{
+    VkDescriptorSetLayoutCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

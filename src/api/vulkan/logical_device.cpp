@@ -453,20 +453,10 @@ void LogicalDevice::destroy_command_pool(VkCommandPool pool)
     vkDestroyCommandPool(_vk_device, pool, nullptr);
 }
 
-VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(std::vector<VkDescriptorSetLayoutBinding>& bindings)
+VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(VkDescriptorSetLayoutCreateInfo& create_info)
 {
-    VkDescriptorSetLayoutCreateInfo create_info =
-    {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = static_cast<uint32_t>(bindings.size()),
-        .pBindings = bindings.data()
-    };
-
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
     vkCreateDescriptorSetLayout(_vk_device, &create_info, nullptr, &layout);
-
     return layout;
 }
 
