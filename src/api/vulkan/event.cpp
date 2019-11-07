@@ -2,6 +2,7 @@
 
 #include "device_context.h"
 #include "logical_device.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -21,7 +22,9 @@ bool Event::create_event(void)
     if(_vk_event != VK_NULL_HANDLE)
         return false;
 
-    _vk_event = _context.get_device()->create_event();
+    VkEventCreateInfo create_info = vulkan_helpers::gen_event_create_info();
+
+    _vk_event = _context.get_device()->create_event(create_info);
     if(_vk_event == VK_NULL_HANDLE)
         return false;
 

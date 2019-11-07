@@ -97,10 +97,10 @@ public:
     VkPipeline            create_pipeline(VkGraphicsPipelineCreateInfo& create_info);
     void                  destroy_pipeline(VkPipeline pipeline);
 
-    VkEvent               create_event(void);
+    VkEvent               create_event(VkEventCreateInfo& create_info);
     void                  destroy_event(VkEvent event);
 
-    VkFence               create_fence(VkFenceCreateInfo& info);
+    VkFence               create_fence(VkFenceCreateInfo& create_info);
     void                  destroy_fence(VkFence fence);
 
     VkSemaphore           create_semaphore(VkSemaphoreCreateInfo& create_info);
