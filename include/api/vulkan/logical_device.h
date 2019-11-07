@@ -100,7 +100,7 @@ public:
     VkEvent               create_event(void);
     void                  destroy_event(VkEvent event);
 
-    VkFence               create_fence(bool start_signalled);
+    VkFence               create_fence(VkFenceCreateInfo& info);
     void                  destroy_fence(VkFence fence);
 
     VkSemaphore           create_semaphore(void);

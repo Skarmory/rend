@@ -594,3 +594,13 @@ VkCommandPoolCreateInfo vulkan_helpers::gen_command_pool_create_info(void)
 
     return info;
 }
+
+VkFenceCreateInfo vulkan_helpers::gen_fence_create_info(void)
+{
+    VkFenceCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

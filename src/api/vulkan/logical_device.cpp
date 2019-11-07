@@ -541,16 +541,10 @@ void LogicalDevice::destroy_event(VkEvent event)
     vkDestroyEvent(_vk_device, event, nullptr);
 }
 
-VkFence LogicalDevice::create_fence(bool start_signalled)
+VkFence LogicalDevice::create_fence(VkFenceCreateInfo& create_info)
 {
-    VkFenceCreateInfo create_info = {};
-    create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    create_info.pNext = nullptr;
-    create_info.flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
-
     VkFence fence = VK_NULL_HANDLE;
     vkCreateFence(_vk_device, &create_info, nullptr, &fence);
-
     return fence;
 }
 

@@ -2,6 +2,7 @@
 
 #include "device_context.h"
 #include "logical_device.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -21,7 +22,10 @@ bool Fence::create_fence(bool start_signalled)
     if(_vk_fence !=  VK_NULL_HANDLE)
         return false;
 
-    _vk_fence = _context.get_device()->create_fence(start_signalled);
+    VkFenceCreateInfo create_info = vulkan_helpers::gen_fence_create_info();
+    create_info.flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
+
+    _vk_fence = _context.get_device()->create_fence(create_info);
     if(_vk_fence == VK_NULL_HANDLE)
         return false;
 
