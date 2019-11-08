@@ -119,14 +119,21 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
-    _vk_swapchain = _context.get_device()->create_swapchain(
-        _context.get_window()->get_handle(), _image_count, _surface_format.format,
-        _surface_format.colorSpace, surface_caps.currentExtent, 1,
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_SHARING_MODE_EXCLUSIVE, 0,
-        nullptr, VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        _present_mode, VK_TRUE, old_swapchain
-    );
+    VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
+    create_info.surface               = _context.get_window()->get_handle();
+    create_info.minImageCount         = _image_count;
+    create_info.imageFormat           = _surface_format.format;
+    create_info.imageColorSpace       = _surface_format.colorSpace;
+    create_info.imageExtent           = surface_caps.currentExtent;
+    create_info.imageArrayLayers      = 1;
+    create_info.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    create_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    create_info.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    create_info.presentMode           = _present_mode;
+    create_info.oldSwapchain          = old_swapchain;
 
+    _vk_swapchain = _context.get_device()->create_swapchain(create_info);
     if(_vk_swapchain == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 

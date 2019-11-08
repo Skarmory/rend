@@ -664,3 +664,13 @@ VkRenderPassCreateInfo vulkan_helpers::gen_render_pass_create_info(void)
 
     return info;
 }
+
+VkSwapchainCreateInfoKHR vulkan_helpers::gen_swapchain_create_info(void)
+{
+    VkSwapchainCreateInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

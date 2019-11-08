@@ -62,6 +62,7 @@ VkDescriptorSetLayoutCreateInfo        gen_descriptor_set_layout_create_info(voi
 VkDescriptorPoolCreateInfo             gen_descriptor_pool_create_info(void);
 VkFramebufferCreateInfo                gen_framebuffer_create_info(void);
 VkRenderPassCreateInfo                 gen_render_pass_create_info(void);
+VkSwapchainCreateInfoKHR               gen_swapchain_create_info(void);
 
 }
 

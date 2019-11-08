@@ -328,38 +328,10 @@ void LogicalDevice::free_memory(VkDeviceMemory memory)
     vkFreeMemory(_vk_device, memory, nullptr);
 }
 
-VkSwapchainKHR LogicalDevice::create_swapchain(
-        VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format,
-        VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers,
-        VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count,
-        const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha,
-        VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain
-    )
+VkSwapchainKHR LogicalDevice::create_swapchain(VkSwapchainCreateInfoKHR& create_info)
 {
-    VkSwapchainCreateInfoKHR create_info = {
-        .sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext                 = nullptr,
-        .flags                 = 0,
-        .surface               = surface,
-        .minImageCount         = min_image_count,
-        .imageFormat           = format,
-        .imageColorSpace       = colour_space,
-        .imageExtent           = extent,
-        .imageArrayLayers      = array_layers,
-        .imageUsage            = image_usage,
-        .imageSharingMode      = sharing_mode,
-        .queueFamilyIndexCount = queue_family_index_count,
-        .pQueueFamilyIndices   = queue_family_indices,
-        .preTransform          = pre_transform,
-        .compositeAlpha        = composite_alpha,
-        .presentMode           = present_mode,
-        .clipped               = clipped,
-        .oldSwapchain          = old_swapchain
-    };
-
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     vkCreateSwapchainKHR(_vk_device, &create_info, nullptr, &swapchain);
-
     return swapchain;
 }
 
