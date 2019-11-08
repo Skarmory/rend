@@ -57,7 +57,15 @@ StatusCode RenderPass::create_render_pass(void)
         static_cast<VkDependencyFlags>(0)
     });
 
-    _vk_render_pass = _context.get_device()->create_render_pass(_vk_attach_descs, subpass_descs, subpass_deps);
+    VkRenderPassCreateInfo create_info = vulkan_helpers::gen_render_pass_create_info();
+    create_info.attachmentCount = static_cast<uint32_t>(_vk_attach_descs.size());
+    create_info.pAttachments    = _vk_attach_descs.data();
+    create_info.subpassCount    = static_cast<uint32_t>(subpass_descs.size());
+    create_info.pSubpasses      = subpass_descs.data();
+    create_info.dependencyCount = static_cast<uint32_t>(subpass_deps.size());
+    create_info.pDependencies   = subpass_deps.data();
+
+    _vk_render_pass = _context.get_device()->create_render_pass(create_info);
 
     if(_vk_render_pass == VK_NULL_HANDLE)
         return StatusCode::FAILURE;

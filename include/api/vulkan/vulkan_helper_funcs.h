@@ -61,6 +61,7 @@ VkSemaphoreCreateInfo                  gen_semaphore_create_info(void);
 VkDescriptorSetLayoutCreateInfo        gen_descriptor_set_layout_create_info(void);
 VkDescriptorPoolCreateInfo             gen_descriptor_pool_create_info(void);
 VkFramebufferCreateInfo                gen_framebuffer_create_info(void);
+VkRenderPassCreateInfo                 gen_render_pass_create_info(void);
 
 }
 

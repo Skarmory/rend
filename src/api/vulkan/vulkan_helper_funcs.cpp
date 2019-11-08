@@ -654,3 +654,13 @@ VkFramebufferCreateInfo vulkan_helpers::gen_framebuffer_create_info(void)
 
     return info;
 }
+
+VkRenderPassCreateInfo vulkan_helpers::gen_render_pass_create_info(void)
+{
+    VkRenderPassCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}
