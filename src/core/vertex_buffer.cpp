@@ -24,5 +24,8 @@ bool VertexBuffer::create_vertex_buffer(uint32_t vertices_count, size_t vertex_s
         return false;
     }
 
+    _count = vertices_count;
+    _vertex_bytes = vertex_size;
+
     return true;
 }

@@ -16,7 +16,6 @@ class Fence;
 class PhysicalDevice;
 class Semaphore;
 class Swapchain;
-struct PipelineSettings;
 enum class ShaderType;
 
 class LogicalDevice
@@ -68,7 +67,6 @@ public:
     void                  free_memory(VkDeviceMemory memory);
 
     VkSwapchainKHR        create_swapchain(VkSwapchainCreateInfoKHR& create_info);
-    VkSwapchainKHR        create_swapchain(VkSurfaceKHR surface, uint32_t min_image_count, VkFormat format, VkColorSpaceKHR colour_space, VkExtent2D extent, uint32_t array_layers, VkImageUsageFlags image_usage, VkSharingMode sharing_mode, uint32_t queue_family_index_count, const uint32_t* queue_family_indices, VkSurfaceTransformFlagBitsKHR pre_transform, VkCompositeAlphaFlagBitsKHR composite_alpha, VkPresentModeKHR present_mode, VkBool32 clipped, VkSwapchainKHR old_swapchain);
     void                  destroy_swapchain(VkSwapchainKHR swapchain);
 
     VkRenderPass          create_render_pass(VkRenderPassCreateInfo& create_info);

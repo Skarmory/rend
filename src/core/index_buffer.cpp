@@ -24,5 +24,7 @@ bool IndexBuffer::create_index_buffer(uint32_t indices_count, size_t index_size)
         return false;
     }
 
+    _count = indices_count;
+
     return true;
 }
