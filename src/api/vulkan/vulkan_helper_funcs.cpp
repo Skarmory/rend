@@ -634,3 +634,13 @@ VkDescriptorSetLayoutCreateInfo vulkan_helpers::gen_descriptor_set_layout_create
 
     return info;
 }
+
+VkDescriptorPoolCreateInfo vulkan_helpers::gen_descriptor_pool_create_info(void)
+{
+    VkDescriptorPoolCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

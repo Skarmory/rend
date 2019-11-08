@@ -59,6 +59,7 @@ VkEventCreateInfo                      gen_event_create_info(void);
 VkFenceCreateInfo                      gen_fence_create_info(void);
 VkSemaphoreCreateInfo                  gen_semaphore_create_info(void);
 VkDescriptorSetLayoutCreateInfo        gen_descriptor_set_layout_create_info(void);
+VkDescriptorPoolCreateInfo             gen_descriptor_pool_create_info(void);
 
 }
 

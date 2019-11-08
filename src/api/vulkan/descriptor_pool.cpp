@@ -4,6 +4,7 @@
 #include "descriptor_set_layout.h"
 #include "device_context.h"
 #include "logical_device.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -63,7 +64,12 @@ StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     if(_input_attachment_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, _input_attachment_count});
 
-    _vk_pool = _context.get_device()->create_descriptor_pool(max_sets, pool_sizes);
+    VkDescriptorPoolCreateInfo create_info = vulkan_helpers::gen_descriptor_pool_create_info();
+    create_info.maxSets       = max_sets;
+    create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
+    create_info.pPoolSizes    = pool_sizes.data();
+
+    _vk_pool = _context.get_device()->create_descriptor_pool(create_info);
     if(_vk_pool == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 

@@ -418,21 +418,10 @@ void LogicalDevice::destroy_framebuffer(VkFramebuffer framebuffer)
     vkDestroyFramebuffer(_vk_device, framebuffer, nullptr);
 }
 
-VkDescriptorPool LogicalDevice::create_descriptor_pool(uint32_t max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
+VkDescriptorPool LogicalDevice::create_descriptor_pool(VkDescriptorPoolCreateInfo& create_info)
 {
-    VkDescriptorPoolCreateInfo create_info =
-    {
-        .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext         = nullptr,
-        .flags         = 0,
-        .maxSets       = max_sets,
-        .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
-        .pPoolSizes    = pool_sizes.data()
-    };
-
     VkDescriptorPool pool = VK_NULL_HANDLE;
     vkCreateDescriptorPool(_vk_device, &create_info, nullptr, &pool);
-
     return pool;
 }
 
