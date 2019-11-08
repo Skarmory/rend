@@ -5,6 +5,7 @@
 #include "logical_device.h"
 #include "render_pass.h"
 #include "render_target.h"
+#include "vulkan_helper_funcs.h"
 
 using namespace rend;
 
@@ -95,8 +96,15 @@ const DepthBuffer* Framebuffer::get_depth_buffer(void) const
 
 bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
 {
-    _vk_framebuffer = _context.get_device()->create_framebuffer(_render_pass->get_handle(), attachments, dimensions.width, dimensions.height, dimensions.depth);
+    VkFramebufferCreateInfo create_info = vulkan_helpers::gen_framebuffer_create_info();
+    create_info.renderPass = _render_pass->get_handle();
+    create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+    create_info.pAttachments = attachments.data();
+    create_info.width = dimensions.width;
+    create_info.height = dimensions.height;
+    create_info.layers = dimensions.depth;
 
+    _vk_framebuffer = _context.get_device()->create_framebuffer(create_info);
     if(_vk_framebuffer == VK_NULL_HANDLE)
         return false;
 

@@ -644,3 +644,13 @@ VkDescriptorPoolCreateInfo vulkan_helpers::gen_descriptor_pool_create_info(void)
 
     return info;
 }
+
+VkFramebufferCreateInfo vulkan_helpers::gen_framebuffer_create_info(void)
+{
+    VkFramebufferCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    return info;
+}

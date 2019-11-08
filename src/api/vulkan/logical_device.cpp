@@ -394,22 +394,10 @@ void LogicalDevice::destroy_render_pass(VkRenderPass render_pass)
     vkDestroyRenderPass(_vk_device, render_pass, nullptr);
 }
 
-VkFramebuffer LogicalDevice::create_framebuffer(VkRenderPass render_pass, const std::vector<VkImageView>& attachments, uint32_t width, int32_t height, uint32_t layers)
+VkFramebuffer LogicalDevice::create_framebuffer(VkFramebufferCreateInfo& create_info)
 {
-    VkFramebufferCreateInfo create_info = {};
-    create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    create_info.pNext = nullptr;
-    create_info.flags = 0;
-    create_info.renderPass = render_pass;
-    create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    create_info.pAttachments = attachments.data();
-    create_info.width = width;
-    create_info.height = height;
-    create_info.layers = layers;
-
     VkFramebuffer framebuffer = VK_NULL_HANDLE;
     vkCreateFramebuffer(_vk_device, &create_info, nullptr, &framebuffer);
-
     return framebuffer;
 }
 
