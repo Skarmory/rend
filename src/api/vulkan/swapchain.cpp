@@ -9,6 +9,7 @@
 #include "window.h"
 #include "vulkan_helper_funcs.h"
 
+#include <cassert>
 #include <limits>
 
 using namespace rend;
@@ -35,9 +36,15 @@ VkFormat Swapchain::get_format(void) const
     return _surface_format.format;
 }
 
-const std::vector<RenderTarget*>& Swapchain::get_render_targets(void) const
+std::vector<RenderTarget*>& Swapchain::get_render_targets(void)
 {
     return _render_targets;
+}
+
+RenderTarget& Swapchain::get_render_target(uint32_t idx)
+{
+    assert(idx < _render_targets.size());
+    return *_render_targets[idx];
 }
 
 VkExtent2D Swapchain::get_extent(void) const

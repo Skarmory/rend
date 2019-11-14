@@ -27,11 +27,12 @@ public:
     Swapchain& operator=(Swapchain&&)      = delete;
 
     // Accessors
-    VkFormat                          get_format(void) const;
-    const std::vector<RenderTarget*>& get_render_targets(void) const;
-    VkExtent2D                        get_extent(void) const;
-    VkSwapchainKHR                    get_handle(void) const;
-    uint32_t                          get_current_image_index(void) const;
+    VkFormat                    get_format(void) const;
+    std::vector<RenderTarget*>& get_render_targets(void);
+    RenderTarget&               get_render_target(uint32_t idx);
+    VkExtent2D                  get_extent(void) const;
+    VkSwapchainKHR              get_handle(void) const;
+    uint32_t                    get_current_image_index(void) const;
 
     // Mutators
     StatusCode create_swapchain(uint32_t desired_images);
