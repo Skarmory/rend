@@ -133,7 +133,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     create_info.imageColorSpace       = _surface_format.colorSpace;
     create_info.imageExtent           = surface_caps.currentExtent;
     create_info.imageArrayLayers      = 1;
-    create_info.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    create_info.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     create_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
     create_info.preTransform          = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     create_info.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -185,6 +185,7 @@ StatusCode Swapchain::_get_images(void)
         if(view == VK_NULL_HANDLE)
             return StatusCode::FAILURE;
 
+        _render_targets[idx]->create_texture_base(_vk_extent.width, _vk_extent.height, 0, Format::B8G8R8A8);
         _render_targets[idx]->_vk_image      = images[idx];
         _render_targets[idx]->_vk_image_view = view;
         _render_targets[idx]->_vk_type       = VK_IMAGE_TYPE_2D;
@@ -193,8 +194,8 @@ StatusCode Swapchain::_get_images(void)
         _render_targets[idx]->_array_layers  = 1;
         _render_targets[idx]->_vk_samples    = VK_SAMPLE_COUNT_1_BIT;
         _render_targets[idx]->_vk_tiling     = VK_IMAGE_TILING_OPTIMAL;
-        _render_targets[idx]->_vk_usage      = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        _render_targets[idx]->_vk_layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        _render_targets[idx]->_vk_usage      = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        _render_targets[idx]->_vk_layout     = VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
     return StatusCode::SUCCESS;
