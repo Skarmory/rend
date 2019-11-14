@@ -44,6 +44,7 @@ private:
         VkAttachmentReference              vk_depth_stencil_attach_ref;
         VkSubpassDescription               vk_subpass_desc;
         VkSubpassDependency                vk_subpass_dep;
+        bool                               has_depth_stencil_attach { false };
     };
 
     DeviceContext& _context;

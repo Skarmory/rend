@@ -27,22 +27,33 @@ StatusCode RenderPass::create_render_pass(void)
 
     for(uint32_t subpass_idx = 0; subpass_idx < _subpasses.size(); ++subpass_idx)
     {
-        subpass_descs.push_back({
-            0,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            static_cast<uint32_t>(_subpasses[subpass_idx].vk_input_attach_refs.size()),
-            _subpasses[subpass_idx].vk_input_attach_refs.data(),
-            static_cast<uint32_t>(_subpasses[subpass_idx].vk_colour_attach_refs.size()),
-            _subpasses[subpass_idx].vk_colour_attach_refs.data(),
-            _subpasses[subpass_idx].vk_resolve_attach_refs.data(),
-            &_subpasses[subpass_idx].vk_depth_stencil_attach_ref,
-            static_cast<uint32_t>(_subpasses[subpass_idx].vk_preserve_attach_refs.size()),
-            _subpasses[subpass_idx].vk_preserve_attach_refs.data()
-        });
+        Subpass& subpass = _subpasses[subpass_idx];
+        subpass.vk_subpass_desc.flags = 0;
+        subpass.vk_subpass_desc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-        _subpasses[subpass_idx].vk_subpass_dep.srcSubpass = subpass_idx - 1;
-        _subpasses[subpass_idx].vk_subpass_dep.dstSubpass = subpass_idx;
-        subpass_deps.push_back(_subpasses[subpass_idx].vk_subpass_dep);
+        subpass.vk_subpass_desc.colorAttachmentCount = subpass.vk_colour_attach_refs.size();
+        if(subpass.vk_subpass_desc.colorAttachmentCount > 0)
+            subpass.vk_subpass_desc.pColorAttachments = subpass.vk_colour_attach_refs.data();
+
+        subpass.vk_subpass_desc.inputAttachmentCount = subpass.vk_input_attach_refs.size();
+        if(subpass.vk_subpass_desc.inputAttachmentCount > 0)
+            subpass.vk_subpass_desc.pInputAttachments = subpass.vk_input_attach_refs.data();
+
+        subpass.vk_subpass_desc.preserveAttachmentCount = subpass.vk_preserve_attach_refs.size();
+        if(subpass.vk_subpass_desc.preserveAttachmentCount > 0)
+            subpass.vk_subpass_desc.pPreserveAttachments = subpass.vk_preserve_attach_refs.data();
+
+        if(subpass.vk_resolve_attach_refs.size() > 0)
+            subpass.vk_subpass_desc.pResolveAttachments = subpass.vk_resolve_attach_refs.data();
+
+        if(subpass.has_depth_stencil_attach)
+            subpass.vk_subpass_desc.pDepthStencilAttachment = &subpass.vk_depth_stencil_attach_ref;
+
+        subpass_descs.push_back(subpass.vk_subpass_desc);
+
+        subpass.vk_subpass_dep.srcSubpass = subpass_idx - 1;
+        subpass.vk_subpass_dep.dstSubpass = subpass_idx;
+        subpass_deps.push_back(subpass.vk_subpass_dep);
     }
 
     subpass_deps.front().srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -139,6 +150,8 @@ void RenderPass::add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot, 
     _subpasses.back().vk_depth_stencil_attach_ref = {
         attach_slot, vulkan_helpers::convert_image_layout(layout)
     };
+
+    _subpasses.back().has_depth_stencil_attach = true;
 }
 
 VkRenderPass RenderPass::get_handle(void) const
