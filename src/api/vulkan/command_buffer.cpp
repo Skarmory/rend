@@ -78,7 +78,7 @@ bool CommandBuffer::reset(void)
 
 bool CommandBuffer::recording(void) const
 {
-    return _recording;    
+    return _recording;
 }
 
 bool CommandBuffer::recorded(void) const
