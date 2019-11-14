@@ -19,7 +19,7 @@ StatusCode VulkanRenderTarget::create_render_target_api(uint32_t width, uint32_t
     VkExtent3D vk_extent               = VkExtent3D{ width, height, 1 };
     VkImageType vk_type                = vulkan_helpers::find_image_type(vk_extent);
     VkFormat vk_format                 = vulkan_helpers::convert_format(format);
-    VkImageUsageFlags vk_usage         = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkImageUsageFlags vk_usage         = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     VkImageViewType vk_view_type       = vulkan_helpers::find_image_view_type(vk_type, false, false);
     VkImageAspectFlags vk_image_aspect = vulkan_helpers::find_image_aspects(vk_format);
 
