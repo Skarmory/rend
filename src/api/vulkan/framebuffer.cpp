@@ -12,6 +12,7 @@ using namespace rend;
 Framebuffer::Framebuffer(DeviceContext& context)
     : _context(context),
       _render_pass(nullptr),
+      _depth_buffer(nullptr),
       _vk_framebuffer(VK_NULL_HANDLE)
 {
 }
@@ -114,4 +115,18 @@ bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3
 void Framebuffer::_destroy(void)
 {
     _context.get_device()->destroy_framebuffer(_vk_framebuffer);
+}
+
+void Framebuffer::on_end_render_pass(void)
+{
+    const std::vector<VkAttachmentDescription>& descs = _render_pass->get_attachment_descs();
+    for(uint32_t colour_attach_idx = 0; colour_attach_idx < _render_targets.size(); ++colour_attach_idx)
+    {
+        _render_targets[colour_attach_idx]->transition(descs[colour_attach_idx].finalLayout);
+    }
+
+    if(_depth_buffer)
+    {
+        _depth_buffer->transition(descs.back().finalLayout);
+    }
 }

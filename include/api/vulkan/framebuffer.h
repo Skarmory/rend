@@ -34,6 +34,8 @@ public:
     const std::vector<RenderTarget*>& get_render_targets(void) const;
     const DepthBuffer*                get_depth_buffer(void) const;
 
+    void on_end_render_pass(void);
+
 private:
     bool _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
     void _destroy(void);
