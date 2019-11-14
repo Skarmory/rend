@@ -7,6 +7,7 @@
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
+#include "vulkan_helper_funcs.h"
 
 #include "vulkan_index_buffer.h"
 #include "index_buffer.h"
@@ -218,6 +219,38 @@ void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const Vulk
     };
 
     vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst.get_handle(), 1, &copy);
+}
+
+void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst)
+{
+    _recorded = true;
+
+    VkImageBlit blit = {};
+    blit.srcSubresource.aspectMask     = vulkan_helpers::find_image_aspects(src.get_vk_format());
+    blit.srcSubresource.mipLevel       = 0;
+    blit.srcSubresource.baseArrayLayer = 0;
+    blit.srcSubresource.layerCount     = src.get_array_layers();
+
+    blit.srcOffsets[0].x = 0;
+    blit.srcOffsets[0].y = 0;
+    blit.srcOffsets[0].z = 0;
+    blit.srcOffsets[1].x = src.width();
+    blit.srcOffsets[1].y = src.height();
+    blit.srcOffsets[1].z = 1;
+
+    blit.dstSubresource.aspectMask     = vulkan_helpers::find_image_aspects(dst.get_vk_format());
+    blit.dstSubresource.mipLevel       = 0;
+    blit.dstSubresource.baseArrayLayer = 0;
+    blit.dstSubresource.layerCount     = dst.get_array_layers();
+
+    blit.dstOffsets[0].x = 0;
+    blit.dstOffsets[0].y = 0;
+    blit.dstOffsets[0].z = 0;
+    blit.dstOffsets[1].x = dst.width();
+    blit.dstOffsets[1].y = dst.height();
+    blit.dstOffsets[1].z = 1;
+
+    vkCmdBlitImage(_vk_command_buffer, src.get_handle(), src.get_layout(), dst.get_handle(), dst.get_layout(), 1, &blit, VK_FILTER_LINEAR);
 }
 
 void CommandBuffer::pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers)

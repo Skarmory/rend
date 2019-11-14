@@ -54,6 +54,7 @@ public:
 
     void copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image);
     void copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VulkanGPUBuffer& dst);
+    void blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst);
 
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 
