@@ -158,3 +158,8 @@ VkRenderPass RenderPass::get_handle(void) const
 {
     return _vk_render_pass;
 }
+
+const std::vector<VkAttachmentDescription>& RenderPass::get_attachment_descs(void) const
+{
+    return _vk_attach_descs;
+}

@@ -33,6 +33,7 @@ public:
     void     add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot, ImageLayout layout);
 
     VkRenderPass get_handle(void) const;
+    const std::vector<VkAttachmentDescription>& get_attachment_descs(void) const;
 
 private:
     struct Subpass
