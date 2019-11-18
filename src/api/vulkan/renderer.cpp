@@ -111,7 +111,6 @@ FrameResources& Renderer::start_frame(void)
     _frame_counter++;
 
     frame_res.submit_fen->wait();
-    frame_res.submit_fen->reset();
     frame_res.command_buffer->reset();
 
     StatusCode code = StatusCode::SUCCESS;
@@ -137,6 +136,8 @@ FrameResources& Renderer::start_frame(void)
 
 void Renderer::end_frame(FrameResources& frame_res)
 {
+    frame_res.submit_fen->reset();
+    _context.get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
