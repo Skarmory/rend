@@ -1,6 +1,8 @@
 #include "vulkan_helper_funcs.h"
 #include "gpu_texture_base.h"
 
+#include <cassert>
+#include <iostream>
 #include <unordered_set>
 
 using namespace rend;
@@ -408,6 +410,59 @@ VkDynamicState vulkan_helpers::convert_dynamic_state(DynamicState state)
     return VK_DYNAMIC_STATE_MAX_ENUM;
 }
 
+ImageLayout vulkan_helpers::convert_image_layout(VkImageLayout layout)
+{
+    switch(layout)
+    {
+        case VK_IMAGE_LAYOUT_UNDEFINED: return ImageLayout::UNDEFINED;
+        case VK_IMAGE_LAYOUT_GENERAL: return ImageLayout::GENERAL;
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return ImageLayout::COLOUR_ATTACHMENT;
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return ImageLayout::DEPTH_STENCIL_ATTACHMENT;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return ImageLayout::SHADER_READ_ONLY;
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return ImageLayout::TRANSFER_SRC;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return ImageLayout::TRANSFER_DST;
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: return ImageLayout::PRESENT;
+
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
+        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
+        case VK_IMAGE_LAYOUT_PREINITIALIZED:
+        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
+        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
+        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
+        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR:
+        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR:
+        case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR:
+        case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR:
+            std::cerr << "Unsupported VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
+            assert("Invalid conversion" || true);
+            return ImageLayout::UNDEFINED;
+        case VK_IMAGE_LAYOUT_RANGE_SIZE:
+        case VK_IMAGE_LAYOUT_MAX_ENUM:
+            std::cerr << "Invalid VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
+            assert("Invalid conversion" || true);
+            return ImageLayout::UNDEFINED;
+    }
+}
+
+uint32_t vulkan_helpers::convert_sample_count(VkSampleCountFlagBits samples)
+{
+    switch(samples)
+    {
+        case VK_SAMPLE_COUNT_1_BIT: return 1;
+        case VK_SAMPLE_COUNT_2_BIT: return 2;
+        case VK_SAMPLE_COUNT_4_BIT: return 4;
+        case VK_SAMPLE_COUNT_8_BIT: return 8;
+        case VK_SAMPLE_COUNT_16_BIT: return 16;
+        case VK_SAMPLE_COUNT_32_BIT: return 32;
+        case VK_SAMPLE_COUNT_64_BIT: return 64;
+        case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM:
+            std::cerr << "Invalid VkSampleCountFlagBits (" << stringify(samples) << ") for conversion" << std::endl;
+            assert("Invalid conversion" || true);
+            return 1;
+    }
+}
+
 VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
 {
     VkMemoryAllocateInfo info = {};
@@ -701,4 +756,21 @@ const char* vulkan_helpers::stringify(VkImageLayout layout)
     }
 
     return "Unknown VkImageLayout";
+}
+
+const char* vulkan_helpers::stringify(VkSampleCountFlagBits sample_count)
+{
+    switch(sample_count)
+    {
+        case VK_SAMPLE_COUNT_1_BIT:              return "VK_SAMPLE_COUNT_1_BIT";
+        case VK_SAMPLE_COUNT_2_BIT:              return "VK_SAMPLE_COUNT_2_BIT";
+        case VK_SAMPLE_COUNT_4_BIT:              return "VK_SAMPLE_COUNT_4_BIT";
+        case VK_SAMPLE_COUNT_8_BIT:              return "VK_SAMPLE_COUNT_8_BIT";
+        case VK_SAMPLE_COUNT_16_BIT:             return "VK_SAMPLE_COUNT_16_BIT";
+        case VK_SAMPLE_COUNT_32_BIT:             return "VK_SAMPLE_COUNT_32_BIT";
+        case VK_SAMPLE_COUNT_64_BIT:             return "VK_SAMPLE_COUNT_64_BIT";
+        case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM: return "VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM";
+    }
+
+    return "Unknown VkSampleCountFlagBits";
 }

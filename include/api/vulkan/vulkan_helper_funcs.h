@@ -15,6 +15,7 @@ namespace vulkan_helpers
 VkImageType             find_image_type(VkExtent3D extent);
 VkImageViewType         find_image_view_type(VkImageType image_type, bool array, bool cube);
 VkImageAspectFlags      find_image_aspects(VkFormat format);
+
 VkFormat                convert_format(Format format);
 VkShaderStageFlags      convert_shader_stage(ShaderType type);
 VkImageLayout           convert_image_layout(ImageLayout layout);
@@ -35,6 +36,9 @@ VkLogicOp               convert_logic_op(LogicOp logic_op);
 VkBlendFactor           convert_blend_factor(BlendFactor factor);
 VkBlendOp               convert_blend_op(BlendOp op);
 VkDynamicState          convert_dynamic_state(DynamicState state);
+
+ImageLayout             convert_image_layout(VkImageLayout layout);
+uint32_t                convert_sample_count(VkSampleCountFlagBits samples);
 
 VkMemoryAllocateInfo                   gen_memory_allocate_info(void);
 VkSamplerCreateInfo                    gen_sampler_create_info(void);
@@ -65,6 +69,7 @@ VkRenderPassCreateInfo                 gen_render_pass_create_info(void);
 VkSwapchainCreateInfoKHR               gen_swapchain_create_info(void);
 
 const char* stringify(VkImageLayout layout);
+const char* stringify(VkSampleCountFlagBits sample_count);
 
 }
 
