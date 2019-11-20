@@ -2,6 +2,7 @@
 
 #include "device_context.h"
 #include "logical_device.h"
+#include "render_target.h"
 #include "vulkan_helper_funcs.h"
 
 using namespace rend;
@@ -102,6 +103,20 @@ uint32_t RenderPass::add_attachment_description(Format format, uint32_t samples,
     _vk_attach_descs.push_back(desc);
 
     return attach_slot;
+}
+
+uint32_t RenderPass::add_attachment_description(const RenderTarget& target, LoadOp load_op, StoreOp store_op, ImageLayout final)
+{
+    return add_attachment_description(
+        target.format(),
+        vulkan_helpers::convert_sample_count(target.get_sample_count()),
+        load_op,
+        store_op,
+        LoadOp::DONT_CARE,
+        StoreOp::DONT_CARE,
+        vulkan_helpers::convert_image_layout(target.get_layout()),
+        final
+    );
 }
 
 void RenderPass::add_subpass(Synchronisation src, Synchronisation dst)
