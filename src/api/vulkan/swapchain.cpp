@@ -186,16 +186,16 @@ StatusCode Swapchain::_get_images(void)
             return StatusCode::FAILURE;
 
         _render_targets[idx]->create_texture_base(_vk_extent.width, _vk_extent.height, 0, Format::B8G8R8A8);
-        _render_targets[idx]->_vk_image      = images[idx];
-        _render_targets[idx]->_vk_image_view = view;
-        _render_targets[idx]->_vk_type       = VK_IMAGE_TYPE_2D;
-        _render_targets[idx]->_vk_format     = _surface_format.format;
-        _render_targets[idx]->_mip_levels    = 1;
-        _render_targets[idx]->_array_layers  = 1;
-        _render_targets[idx]->_vk_samples    = VK_SAMPLE_COUNT_1_BIT;
-        _render_targets[idx]->_vk_tiling     = VK_IMAGE_TILING_OPTIMAL;
-        _render_targets[idx]->_vk_usage      = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        _render_targets[idx]->_vk_layout     = VK_IMAGE_LAYOUT_UNDEFINED;
+        _render_targets[idx]->_vk_image        = images[idx];
+        _render_targets[idx]->_vk_image_view   = view;
+        _render_targets[idx]->_vk_type         = VK_IMAGE_TYPE_2D;
+        _render_targets[idx]->_vk_format       = _surface_format.format;
+        _render_targets[idx]->_mip_levels      = 1;
+        _render_targets[idx]->_array_layers    = 1;
+        _render_targets[idx]->_vk_sample_count = VK_SAMPLE_COUNT_1_BIT;
+        _render_targets[idx]->_vk_tiling       = VK_IMAGE_TILING_OPTIMAL;
+        _render_targets[idx]->_vk_usage        = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        _render_targets[idx]->_vk_layout       = VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
     return StatusCode::SUCCESS;

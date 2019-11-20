@@ -25,14 +25,15 @@ public:
     VulkanGPUTexture& operator=(const VulkanGPUTexture&) = delete;
     VulkanGPUTexture& operator=(VulkanGPUTexture&&)      = delete;
 
-    VkImage       get_handle(void) const;
-    VkImageView   get_view(void) const;
-    VkSampler     get_sampler(void) const;
-    VkImageLayout get_layout(void) const;
-    VkExtent3D    get_extent(void) const;
-    VkFormat      get_vk_format(void) const;
-    uint32_t      get_array_layers(void) const;
-    uint32_t      get_mip_levels(void) const;
+    VkImage               get_handle(void) const;
+    VkImageView           get_view(void) const;
+    VkSampler             get_sampler(void) const;
+    VkImageLayout         get_layout(void) const;
+    VkExtent3D            get_extent(void) const;
+    VkFormat              get_vk_format(void) const;
+    uint32_t              get_array_layers(void) const;
+    uint32_t              get_mip_levels(void) const;
+    VkSampleCountFlagBits get_sample_count(void) const;
 
     VkDeviceMemory        get_memory(void) const;
     VkMemoryPropertyFlags get_memory_properties(void) const;
@@ -43,7 +44,7 @@ protected:
     StatusCode create_texture_api(
         VkExtent3D extent, VkImageType type, VkFormat format,
         uint32_t mip_levels, uint32_t array_layers,
-        VkSampleCountFlagBits samples, VkImageTiling tiling,
+        VkSampleCountFlagBits sample_count, VkImageTiling tiling,
         VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage,
         VkImageViewType view_type, VkImageAspectFlags aspects
     );
@@ -51,7 +52,7 @@ protected:
     void destroy_texture_api(void);
 
 private:
-    bool _create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkImageUsageFlags usage);
+    bool _create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits sample_count, VkImageTiling tiling, VkImageUsageFlags usage);
     bool _alloc_vk_memory(VkMemoryPropertyFlags memory_properties);
     bool _create_vk_image_view(VkFormat format, VkImageViewType view_type, VkImageAspectFlags aspects, uint32_t mip_levels, uint32_t array_layers);
     bool _create_vk_sampler(void);
@@ -69,7 +70,7 @@ private:
     VkFormat              _vk_format;
     uint32_t              _mip_levels;
     uint32_t              _array_layers;
-    VkSampleCountFlagBits _vk_samples;
+    VkSampleCountFlagBits _vk_sample_count;
     VkImageTiling         _vk_tiling;
     VkImageUsageFlags     _vk_usage;
     VkImageLayout         _vk_layout;

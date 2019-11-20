@@ -20,7 +20,7 @@ VulkanGPUTexture::VulkanGPUTexture(DeviceContext& context)
       _vk_format(VK_FORMAT_MAX_ENUM),
       _mip_levels(0),
       _array_layers(0),
-      _vk_samples(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM),
+      _vk_sample_count(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM),
       _vk_tiling(VK_IMAGE_TILING_MAX_ENUM),
       _vk_usage(0),
       _vk_layout(VK_IMAGE_LAYOUT_MAX_ENUM)
@@ -32,12 +32,12 @@ VulkanGPUTexture::~VulkanGPUTexture(void)
     destroy_texture_api();
 }
 
-StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
+StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType type, VkFormat format, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits sample_count, VkImageTiling tiling, VkMemoryPropertyFlags memory_properties, VkImageUsageFlags usage, VkImageViewType view_type, VkImageAspectFlags aspects)
 {
     if(_vk_image != VK_NULL_HANDLE)
         return StatusCode::ALREADY_CREATED;
 
-    if(!_create_vk_image(type, format, extent, mip_levels, array_layers, samples, tiling, usage))
+    if(!_create_vk_image(type, format, extent, mip_levels, array_layers, sample_count, tiling, usage))
     {
         return StatusCode::IMAGE_CREATE_FAILURE;
     }
@@ -67,7 +67,7 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
     _vk_format = format;
     _mip_levels = mip_levels;
     _array_layers = array_layers;
-    _vk_samples = samples;
+    _vk_sample_count = sample_count;
     _vk_tiling = tiling;
     _vk_usage = usage;
     _vk_layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -129,6 +129,11 @@ uint32_t VulkanGPUTexture::get_mip_levels(void) const
     return _mip_levels;
 }
 
+VkSampleCountFlagBits VulkanGPUTexture::get_sample_count(void) const
+{
+    return _vk_sample_count;
+}
+
 VkDeviceMemory VulkanGPUTexture::get_memory(void) const
 {
     return _vk_memory;
@@ -139,7 +144,7 @@ VkMemoryPropertyFlags VulkanGPUTexture::get_memory_properties(void) const
     return _vk_memory_properties;
 }
 
-bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits samples, VkImageTiling tiling, VkImageUsageFlags usage)
+bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits sample_count, VkImageTiling tiling, VkImageUsageFlags usage)
 {
     uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
@@ -149,7 +154,7 @@ bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExt
     create_info.extent                = extent;
     create_info.mipLevels             = mip_levels;
     create_info.arrayLayers           = array_layers;
-    create_info.samples               = samples;
+    create_info.samples               = sample_count;
     create_info.tiling                = tiling;
     create_info.usage                 = usage;
     create_info.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
