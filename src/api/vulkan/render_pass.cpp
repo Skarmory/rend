@@ -210,6 +210,8 @@ void RenderPass::add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot)
     _subpasses.back().vk_depth_stencil_attach_ref = {
         attach_slot, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     };
+
+    _subpasses.back().has_depth_stencil_attach = true;
 }
 
 VkRenderPass RenderPass::get_handle(void) const
