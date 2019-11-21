@@ -33,10 +33,12 @@ public:
 
     void     add_subpass(Synchronisation src, Synchronisation dst);
     void     add_subpass_colour_attachment_ref(uint32_t attach_slot, ImageLayout layout);
+    void     add_subpass_colour_attachment_ref(uint32_t attach_slot);
     void     add_subpass_input_attachment_ref(uint32_t attach_slot, ImageLayout layout);
     void     add_subpass_resolve_attachment_ref(uint32_t attach_slot, ImageLayout layout);
     void     add_subpass_preserve_attachment_ref(uint32_t attach_slot);
     void     add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot, ImageLayout layout);
+    void     add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot);
 
     VkRenderPass get_handle(void) const;
     const std::vector<VkAttachmentDescription>& get_attachment_descs(void) const;

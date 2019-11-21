@@ -170,6 +170,13 @@ void RenderPass::add_subpass_colour_attachment_ref(uint32_t attach_slot, ImageLa
     });
 }
 
+void RenderPass::add_subpass_colour_attachment_ref(uint32_t attach_slot)
+{
+    _subpasses.back().vk_colour_attach_refs.push_back({
+        attach_slot, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    });
+}
+
 void RenderPass::add_subpass_input_attachment_ref(uint32_t attach_slot, ImageLayout layout)
 {
     _subpasses.back().vk_input_attach_refs.push_back({
@@ -196,6 +203,13 @@ void RenderPass::add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot, 
     };
 
     _subpasses.back().has_depth_stencil_attach = true;
+}
+
+void RenderPass::add_subpass_depth_stencil_attachment_ref(uint32_t attach_slot)
+{
+    _subpasses.back().vk_depth_stencil_attach_ref = {
+        attach_slot, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
 }
 
 VkRenderPass RenderPass::get_handle(void) const
