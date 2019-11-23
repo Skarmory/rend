@@ -388,7 +388,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
 
     if(recreate)
     {
-        delete _default_depth_buffer;
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
             delete _default_framebuffers[idx];
     }
