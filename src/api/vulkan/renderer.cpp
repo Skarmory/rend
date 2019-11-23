@@ -38,6 +38,7 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
     _command_pool = new CommandPool(_context);
     _command_pool->create_command_pool(_context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
+    _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
     _create_default_framebuffers(false);
 
@@ -144,6 +145,7 @@ void Renderer::end_frame(FrameResources& frame_res)
 void Renderer::resize_resources(void)
 {
     _swapchain->recreate();
+    _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_framebuffers(true);
 }
 
@@ -350,27 +352,29 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
     image->transition(final_layout);
 }
 
+void Renderer::_create_default_depth_buffer(VkExtent2D extent)
+{
+    if(_default_depth_buffer)
+        delete _default_depth_buffer;
+
+    _default_depth_buffer = new DepthBuffer(_context);
+    _default_depth_buffer->create_depth_buffer(extent.width, extent.height);
+}
+
 void Renderer::_create_default_renderpass(void)
 {
     _default_render_pass = new RenderPass(_context);
 
-    uint32_t colour_attach = _default_render_pass->add_attachment_description(
-        Format::B8G8R8A8, 1, LoadOp::CLEAR, StoreOp::STORE,
-        LoadOp::DONT_CARE, StoreOp::DONT_CARE, ImageLayout::UNDEFINED, ImageLayout::PRESENT
-    );
-
-    uint32_t depth_attach = _default_render_pass->add_attachment_description(
-        Format::D24_S8, 1, LoadOp::CLEAR, StoreOp::STORE,
-        LoadOp::CLEAR, StoreOp::STORE, ImageLayout::UNDEFINED, ImageLayout::DEPTH_STENCIL_ATTACHMENT
-    );
+    uint32_t colour_attach = _default_render_pass->add_attachment_description(_swapchain->get_render_target(0), LoadOp::CLEAR, StoreOp::STORE, ImageLayout::PRESENT);
+    uint32_t depth_attach  = _default_render_pass->add_attachment_description(*_default_depth_buffer, LoadOp::CLEAR, StoreOp::STORE, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
 
     _default_render_pass->add_subpass(
         Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ },
         Synchronisation{ PipelineStage::COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE }
     );
 
-    _default_render_pass->add_subpass_colour_attachment_ref(colour_attach, ImageLayout::COLOUR_ATTACHMENT);
-    _default_render_pass->add_subpass_depth_stencil_attachment_ref(depth_attach, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
+    _default_render_pass->add_subpass_colour_attachment_ref(colour_attach);
+    _default_render_pass->add_subpass_depth_stencil_attachment_ref(depth_attach);
 
     _default_render_pass->create_render_pass();
 }
@@ -388,9 +392,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
             delete _default_framebuffers[idx];
     }
-
-    _default_depth_buffer = new DepthBuffer(_context);
-    _default_depth_buffer->create_depth_buffer(swapchain_extent.width, swapchain_extent.height);
 
     _default_framebuffers.resize(targets.size());
     for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)

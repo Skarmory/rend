@@ -102,6 +102,7 @@ private:
     // Tasking
     void _process_task_queue(FrameResources& resources);
 
+    void _create_default_depth_buffer(VkExtent2D extent);
     void _create_default_renderpass(void);
     void _create_default_framebuffers(bool recreate);
 
