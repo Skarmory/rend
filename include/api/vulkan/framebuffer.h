@@ -1,6 +1,8 @@
 #ifndef REND_FRAME_BUFFER_H
 #define REND_FRAME_BUFFER_H
 
+#include "rend_defs.h"
+
 #include <vulkan.h>
 #include <vector>
 
@@ -23,8 +25,8 @@ public:
     Framebuffer& operator=(const Framebuffer&) = delete;
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
-    bool create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
-    bool recreate(VkExtent3D dimensions);
+    StatusCode create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
+    StatusCode recreate(VkExtent3D dimensions);
 
     bool add_render_target(RenderTarget& target);
     bool set_depth_buffer(DepthBuffer& buffer);
@@ -37,7 +39,7 @@ public:
     void on_end_render_pass(void);
 
 private:
-    bool _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
+    StatusCode _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
     void _destroy(void);
 
 private:

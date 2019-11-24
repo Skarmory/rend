@@ -42,10 +42,10 @@ bool Framebuffer::set_depth_buffer(DepthBuffer& buffer)
     return true;
 }
 
-bool Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions)
+StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions)
 {
     if(_vk_framebuffer != VK_NULL_HANDLE)
-        return false;
+        return StatusCode::ALREADY_CREATED;
 
     std::vector<VkImageView> attachments;
     for(RenderTarget* target : _render_targets)
@@ -59,10 +59,10 @@ bool Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D d
     return _create(attachments, dimensions);
 }
 
-bool Framebuffer::recreate(VkExtent3D dimensions)
+StatusCode Framebuffer::recreate(VkExtent3D dimensions)
 {
     if(_vk_framebuffer == VK_NULL_HANDLE)
-        return false;
+        return StatusCode::FAILURE;
 
     std::vector<VkImageView> attachments;
     for(RenderTarget* target : _render_targets)
@@ -95,7 +95,7 @@ const DepthBuffer* Framebuffer::get_depth_buffer(void) const
     return _depth_buffer;
 }
 
-bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
+StatusCode Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions)
 {
     VkFramebufferCreateInfo create_info = vulkan_helpers::gen_framebuffer_create_info();
     create_info.renderPass = _render_pass->get_handle();
@@ -107,9 +107,9 @@ bool Framebuffer::_create(const std::vector<VkImageView>& attachments, VkExtent3
 
     _vk_framebuffer = _context.get_device()->create_framebuffer(create_info);
     if(_vk_framebuffer == VK_NULL_HANDLE)
-        return false;
+        return StatusCode::FAILURE;
 
-    return true;
+    return StatusCode::SUCCESS;
 }
 
 void Framebuffer::_destroy(void)
