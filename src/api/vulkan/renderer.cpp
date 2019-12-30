@@ -30,7 +30,8 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
       _default_render_pass(nullptr),
       _frame_counter(0)
 {
-    _context.create_device(desired_features, desired_queues);
+    _context.choose_gpu(desired_features);
+    _context.create_device(desired_queues);
 
     _swapchain = new Swapchain(_context);
     _swapchain->create_swapchain(3);

@@ -78,7 +78,7 @@ bool PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
     return true;
 }
 
-bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device)
+bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device, Window& window)
 {
     if(_vk_physical_device != VK_NULL_HANDLE)
         return false;
@@ -90,7 +90,7 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
-    VkSurfaceKHR surface = _context.get_window()->get_handle();
+    VkSurfaceKHR surface = window.get_handle();
     if(!_find_queue_families(surface))
         return false;
 
