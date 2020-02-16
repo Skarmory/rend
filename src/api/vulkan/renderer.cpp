@@ -95,9 +95,9 @@ RenderPass* Renderer::get_default_render_pass(void) const
     return _default_render_pass;
 }
 
-void Renderer::load(void* resource, ResourceType type, void* data, size_t bytes)
+void Renderer::load(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset)
 {
-    LoadTask* task = new LoadTask(resource, type, data, bytes);
+    LoadTask* task = new LoadTask(resource, type, data, bytes, offset);
     _task_queue.push(task);
 }
 
@@ -190,18 +190,28 @@ void Renderer::_process_task_queue(FrameResources& resources)
 void LoadTask::execute(DeviceContext& context, FrameResources& resources)
 {
     bool is_device_local = false;
-    switch(resource_type)
+    switch(resource_usage)
     {
-        case ResourceType::VERTEX_BUFFER:
-        case ResourceType::INDEX_BUFFER:
+        case ResourceUsage::VERTEX_BUFFER:
+        case ResourceUsage::INDEX_BUFFER:
+        {
             is_device_local = true;
             break;
-        case ResourceType::UNIFORM_BUFFER:
+        }
+        case ResourceUsage::UNIFORM_BUFFER:
+        {
             is_device_local = static_cast<UniformBuffer*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
-        case ResourceType::TEXTURE2D:
+        }
+        case ResourceUsage::TEXTURE_2D:
+        {
             is_device_local = static_cast<VulkanGPUTexture*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             break;
+        }
+        case ResourceUsage::NO_RESOURCE:
+        {
+            break;
+        }
     }
 
     VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -220,38 +230,49 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
         memcpy(mapped, data, size_bytes);
         vkUnmapMemory(context.get_device()->get_handle(), memory);
 
-        switch(resource_type)
+        switch(resource_usage)
         {
-            case ResourceType::VERTEX_BUFFER:
+            case ResourceUsage::VERTEX_BUFFER:
+            case ResourceUsage::INDEX_BUFFER:
+            case ResourceUsage::UNIFORM_BUFFER:
+            {
                 resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
                 break;
-            case ResourceType::INDEX_BUFFER:
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
-                break;
-            case ResourceType::UNIFORM_BUFFER:
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
-                break;
-            case ResourceType::TEXTURE2D:
+            }
+            case ResourceUsage::TEXTURE_2D:
+            {
                 resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<VulkanGPUTexture*>(resource));
                 break;
+            }
+            case ResourceUsage::NO_RESOURCE:
+            {
+                break;
+            }
         }
     }
     else
     {
-        switch(resource_type)
+        switch(resource_usage)
         {
-            case ResourceType::VERTEX_BUFFER:
+            case ResourceUsage::NO_RESOURCE:
+            {
+                assert(true && "LoadTask::execute, No resource usage specified.");
+                break;
+            }
+
+            case ResourceUsage::VERTEX_BUFFER:
+            case ResourceUsage::INDEX_BUFFER:
+            case ResourceUsage::UNIFORM_BUFFER:
+            {
                 memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
                 break;
-            case ResourceType::INDEX_BUFFER:
-                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
-                break;
-            case ResourceType::UNIFORM_BUFFER:
-                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
-                break;
-            case ResourceType::TEXTURE2D:
+            }
+
+            case ResourceUsage::TEXTURE_2D:
+            {
                 memory = static_cast<VulkanGPUTexture*>(resource)->get_memory();
                 break;
+            }
         }
 
         vkMapMemory(context.get_device()->get_handle(), memory, 0, size_bytes, 0, &mapped);

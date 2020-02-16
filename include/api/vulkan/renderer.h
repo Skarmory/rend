@@ -28,14 +28,6 @@ class Window;
 class IndexBuffer;
 class VertexBuffer;
 
-enum class ResourceType
-{
-    TEXTURE2D,
-    INDEX_BUFFER,
-    VERTEX_BUFFER,
-    UNIFORM_BUFFER
-};
-
 struct FrameResources
 {
     std::vector<UniformBuffer*> staging_buffers;
@@ -55,12 +47,13 @@ struct Task
 
 struct LoadTask : public Task
 {
-    void*        resource;
-    ResourceType resource_type;
-    void*        data;
-    size_t       size_bytes;
+    void*         resource       { nullptr };
+    ResourceUsage resource_usage { NO_RESOURCE };
+    void*         data           { nullptr };
+    size_t        size_bytes     { 0 };
+    uint32_t      offset         { 0 };
 
-    LoadTask(void* resource, ResourceType type, void* data, size_t bytes) : resource(resource), resource_type(type), data(data), size_bytes(bytes) {}
+    LoadTask(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset) : resource(resource), resource_usage(type), data(data), size_bytes(bytes), offset(offset) {}
     virtual void execute(DeviceContext& context, FrameResources& resources) override;
 };
 
@@ -90,7 +83,7 @@ public:
     RenderPass*    get_default_render_pass(void) const;
 
     // Resource functions
-    void load(void* resource, ResourceType type, void* data, size_t bytes);
+    void load(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset);
     void transition(VulkanGPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions
