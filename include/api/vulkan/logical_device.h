@@ -65,6 +65,8 @@ public:
 
     VkDeviceMemory        allocate_memory(VkMemoryAllocateInfo& alloc_info);
     void                  free_memory(VkDeviceMemory memory);
+    bool                  map_memory(VkDeviceMemory memory, size_t size_bytes, uint64_t offset_bytes, void** mapped);
+    void                  unmap_memory(VkDeviceMemory memory);
 
     VkSwapchainKHR        create_swapchain(VkSwapchainCreateInfoKHR& create_info);
     void                  destroy_swapchain(VkSwapchainKHR swapchain);

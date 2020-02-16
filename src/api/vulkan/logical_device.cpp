@@ -328,6 +328,17 @@ void LogicalDevice::free_memory(VkDeviceMemory memory)
     vkFreeMemory(_vk_device, memory, nullptr);
 }
 
+bool LogicalDevice::map_memory(VkDeviceMemory memory, size_t size_bytes, uint64_t offset_bytes, void** mapped)
+{
+    auto code = vkMapMemory(_vk_device, memory, offset_bytes, size_bytes, 0, mapped);
+    return code == VK_SUCCESS;
+}
+
+void LogicalDevice::unmap_memory(VkDeviceMemory memory)
+{
+    vkUnmapMemory(_vk_device, memory);
+}
+
 VkSwapchainKHR LogicalDevice::create_swapchain(VkSwapchainCreateInfoKHR& create_info)
 {
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
