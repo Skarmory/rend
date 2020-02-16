@@ -244,6 +244,19 @@ struct Synchronisation
     MemoryAccesses accesses;
 };
 
+enum ResourceUsage : uint32_t
+{
+    NO_RESOURCE    = 0,
+
+    // Buffer types
+    VERTEX_BUFFER  = BIT(0),
+    INDEX_BUFFER   = BIT(1),
+    UNIFORM_BUFFER = BIT(2),
+
+    // Texture types
+    TEXTURE_2D     = BIT(4)
+};
+
 }
 
 #endif
