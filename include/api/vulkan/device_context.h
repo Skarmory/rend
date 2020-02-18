@@ -19,7 +19,6 @@ class Window;
 class DeviceContext : public core::Resource
 {
 public:
-    explicit DeviceContext(VulkanInstance& instance);
     ~DeviceContext(void);
 
     DeviceContext(const DeviceContext&)            = delete;
@@ -31,7 +30,7 @@ public:
     LogicalDevice*  get_device(void) const;
     Window*         get_window(void) const;
 
-    StatusCode create(Window& window);
+    StatusCode create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window& window);
     void       destroy(void);
 
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
@@ -41,9 +40,8 @@ private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
 
 private:
-    VulkanInstance& _instance;
-
     std::vector<PhysicalDevice*> _physical_devices;
+    VulkanInstance*              _instance          { nullptr };
     LogicalDevice*               _logical_device    { nullptr };
     PhysicalDevice*              _chosen_gpu        { nullptr };
     Window*                      _window            { nullptr };

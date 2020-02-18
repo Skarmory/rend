@@ -17,6 +17,9 @@ enum class StatusCode
     ALREADY_CREATED,
     RESOURCE_NOT_CREATED,
 
+    // Instance
+    INSTANCE_CREATE_FAILURE,
+
     // Device context
     CONTEXT_GPU_WITH_DESIRED_FEATURES_NOT_FOUND,
     CONTEXT_GPU_NOT_CHOSEN,
