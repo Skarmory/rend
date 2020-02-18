@@ -443,6 +443,8 @@ ImageLayout vulkan_helpers::convert_image_layout(VkImageLayout layout)
             assert("Invalid conversion" || true);
             return ImageLayout::UNDEFINED;
     }
+
+    return ImageLayout::UNDEFINED;
 }
 
 uint32_t vulkan_helpers::convert_sample_count(VkSampleCountFlagBits samples)
@@ -461,6 +463,8 @@ uint32_t vulkan_helpers::convert_sample_count(VkSampleCountFlagBits samples)
             assert("Invalid conversion" || true);
             return 1;
     }
+
+    return 1;
 }
 
 VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
@@ -734,6 +738,8 @@ VkSwapchainCreateInfoKHR vulkan_helpers::gen_swapchain_create_info(void)
 
 const char* vulkan_helpers::stringify(VkImageLayout layout)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
     switch(layout)
     {
         case VK_IMAGE_LAYOUT_UNDEFINED: return "VK_IMAGE_LAYOUT_UNDEFINED";
@@ -754,6 +760,7 @@ const char* vulkan_helpers::stringify(VkImageLayout layout)
         case VK_IMAGE_LAYOUT_RANGE_SIZE: return "VK_IMAGE_LAYOUT_RANGE_SIZE";
         case VK_IMAGE_LAYOUT_MAX_ENUM: return "VK_IMAGE_LAYOUT_MAX_ENUM";
     }
+#pragma GCC diagnostic pop
 
     return "Unknown VkImageLayout";
 }

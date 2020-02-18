@@ -309,6 +309,9 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
         }
     };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+
     switch(image->get_layout())
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
@@ -368,6 +371,7 @@ void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resour
             std::cerr << "Transition: new layout is unsupported" << std::endl;
             return;
     }
+#pragma GCC diagnostic pop
 
     resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
