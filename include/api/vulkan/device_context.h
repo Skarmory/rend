@@ -19,6 +19,7 @@ class Window;
 class DeviceContext : public core::Resource
 {
 public:
+    DeviceContext(void) = default;
     ~DeviceContext(void);
 
     DeviceContext(const DeviceContext&)            = delete;

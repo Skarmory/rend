@@ -3,9 +3,10 @@
 #define REND_GLFW_WINDOW_H
 
 #include "rend_defs.h"
+#include "window_base.h"
 
 #ifdef USE_VULKAN
-#include "vulkan_window.h"
+#include <vulkan.h>
 #endif
 
 struct GLFWwindow;
@@ -13,16 +14,14 @@ struct GLFWwindow;
 namespace rend
 {
 
-class VulkanInstance;
-
 #ifdef USE_VULKAN
-class GLFWWindow : public VulkanWindow
+class VulkanInstance;
 #endif
+
+class GLFWWindow : public WindowBase
 {
 public:
-#ifdef USE_VULKAN
-    explicit GLFWWindow(VulkanInstance& instance);
-#endif
+    GLFWWindow(void) = default;
     ~GLFWWindow(void);
 
     GLFWWindow(const GLFWWindow&)            = delete;
@@ -32,10 +31,20 @@ public:
 
     StatusCode create_window_api(uint32_t width, uint32_t height, const char* title);
 
+#ifdef USE_VULKAN
+    void set_vulkan_instance(VulkanInstance& instance);
+    VkSurfaceKHR get_vk_surface(void) const;
+#endif
+
     GLFWwindow* get_glfw_handle(void) const;
 
 private:
-    GLFWwindow* _glfw_window;
+    GLFWwindow* _glfw_window { nullptr };
+
+#ifdef USE_VULKAN
+    VulkanInstance* _vulkan_instance { nullptr };
+    VkSurfaceKHR    _vk_surface      { nullptr };
+#endif
 };
 
 }

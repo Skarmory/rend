@@ -90,7 +90,7 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
-    VkSurfaceKHR surface = window.get_handle();
+    VkSurfaceKHR surface = window.get_vk_surface();
     if(!_find_queue_families(surface))
         return false;
 
@@ -159,7 +159,7 @@ const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(v
 VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
 {
     VkSurfaceCapabilitiesKHR caps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context.get_window()->get_handle(), &caps);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context.get_window()->get_vk_surface(), &caps);
 
     return caps;
 }

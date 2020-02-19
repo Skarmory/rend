@@ -17,17 +17,15 @@ class Window : public GLFWWindow
 #endif
 {
 public:
-#ifdef USE_VULKAN
-    explicit Window(VulkanInstance& instance);
-#endif
-    ~Window(void);
-
+    Window(void)                     = default;
+    ~Window(void)                    = default;
     Window(const Window&)            = delete;
     Window(Window&&)                 = delete;
     Window& operator=(const Window&) = delete;
     Window& operator=(Window&&)      = delete;
 
     bool create_window(uint32_t width, uint32_t height, const char* title);
+    bool create_window(void);
 };
 
 }
