@@ -11,49 +11,9 @@
 
 using namespace rend;
 
-Pipeline::Pipeline(DeviceContext& context)
-    : _context(context),
-      _layout(nullptr),
-      _render_pass(nullptr),
-      _subpass(0),
-      _topology(Topology::TRIANGLE_LIST),
-      _primitive_restart(false),
-      _patch_control_points(0),
-      _depth_clamp_enable(false),
-      _rasteriser_discard_enable(false),
-      _polygon_mode(PolygonMode::FILL),
-      _cull_mode(CullMode::BACK),
-      _front_face(FrontFace::CCW),
-      _depth_bias_enable(false),
-      _depth_bias_constant(0.0f),
-      _depth_bias_clamp(0.0f),
-      _depth_bias_slope(0.0f),
-      _line_width(1.0f),
-      _samples(1),
-      _sample_shading_enable(false),
-      _min_sample_shading(0.0f),
-      _sample_mask(1),
-      _alpha_to_coverage_enable(false),
-      _alpha_to_one_enable(false),
-      _depth_test_enable(true),
-      _depth_write_enable(true),
-      _compare_op(CompareOp::LESS),
-      _depth_bounds_test_enable(false),
-      _stencil_test_enable(false),
-      _stencil_op_state_front({ StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 }),
-      _stencil_op_state_back({ StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 }),
-      _min_depth_bound(0),
-      _max_depth_bound(1),
-      _logic_op_enable(false),
-      _logic_op(LogicOp::NO_OP),
-      _blend_constants { 1.0f },
-      _vk_pipeline(VK_NULL_HANDLE)
-{
-}
-
 Pipeline::~Pipeline(void)
 {
-    _context.get_device()->destroy_pipeline(_vk_pipeline);
+    DeviceContext::instance().get_device()->destroy_pipeline(_vk_pipeline);
 }
 
 StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
@@ -107,10 +67,12 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
     pipeline_create_info.basePipelineHandle  = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex   = 0;
 
-    _vk_pipeline = _context.get_device()->create_pipeline(pipeline_create_info);
+    _vk_pipeline = DeviceContext::instance().get_device()->create_pipeline(pipeline_create_info);
 
     if(_vk_pipeline == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     _layout      = &layout;
     _render_pass = &render_pass;

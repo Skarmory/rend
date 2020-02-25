@@ -10,14 +10,12 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanGPUTexture : public GPUTextureBase
 {
     friend class Swapchain;
 
 public:
-    explicit VulkanGPUTexture(DeviceContext& context);
+    VulkanGPUTexture(void) = default;
     ~VulkanGPUTexture(void);
 
     VulkanGPUTexture(const VulkanGPUTexture&)            = delete;
@@ -58,22 +56,21 @@ private:
     bool _create_vk_sampler(void);
 
 private:
-    DeviceContext& _context;
-    bool           _loaded;
-
-    VkImage               _vk_image;
-    VkImageView           _vk_image_view;
-    VkSampler             _vk_sampler;
-    VkDeviceMemory        _vk_memory;
-    VkMemoryPropertyFlags _vk_memory_properties;
-    VkImageType           _vk_type;
-    VkFormat              _vk_format;
-    uint32_t              _mip_levels;
-    uint32_t              _array_layers;
-    VkSampleCountFlagBits _vk_sample_count;
-    VkImageTiling         _vk_tiling;
-    VkImageUsageFlags     _vk_usage;
-    VkImageLayout         _vk_layout;
+    bool                  _loaded { false };  //TODO: Not necessary due to Resource base?
+    bool                  _swapchain_image { false };
+    VkImage               _vk_image { VK_NULL_HANDLE };
+    VkImageView           _vk_image_view { VK_NULL_HANDLE };
+    VkSampler             _vk_sampler { VK_NULL_HANDLE };
+    VkDeviceMemory        _vk_memory { VK_NULL_HANDLE };
+    VkMemoryPropertyFlags _vk_memory_properties { 0 };
+    VkImageType           _vk_type { VK_IMAGE_TYPE_MAX_ENUM };
+    VkFormat              _vk_format { VK_FORMAT_MAX_ENUM };
+    uint32_t              _mip_levels { 0 };
+    uint32_t              _array_layers { 0 };
+    VkSampleCountFlagBits _vk_sample_count { VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM };
+    VkImageTiling         _vk_tiling { VK_IMAGE_TILING_MAX_ENUM };
+    VkImageUsageFlags     _vk_usage { 0 };
+    VkImageLayout         _vk_layout { VK_IMAGE_LAYOUT_MAX_ENUM };
 };
 
 }

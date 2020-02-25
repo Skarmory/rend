@@ -8,12 +8,10 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class Semaphore
 {
 public:
-    explicit Semaphore(DeviceContext& context);
+    Semaphore(void) = default;
     ~Semaphore(void);
     Semaphore(const Semaphore&) = delete;
     Semaphore(Semaphore&&)      = delete;
@@ -25,8 +23,7 @@ public:
     VkSemaphore get_handle(void) const;
 
 private:
-    DeviceContext& _context;
-    VkSemaphore    _vk_semaphore;
+    VkSemaphore _vk_semaphore { VK_NULL_HANDLE };
 };
 
 }

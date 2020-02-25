@@ -2,10 +2,10 @@
 
 using namespace rend;
 
-RenderTarget::RenderTarget(DeviceContext& context)
+RenderTarget::RenderTarget(void)
     :
 #ifdef USE_VULKAN
-        VulkanRenderTarget(context)
+        VulkanRenderTarget()
 #endif
 {
 }

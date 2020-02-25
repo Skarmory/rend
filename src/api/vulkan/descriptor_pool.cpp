@@ -8,36 +8,22 @@
 
 using namespace rend;
 
-DescriptorPool::DescriptorPool(DeviceContext& context)
-    : _context(context),
-      _max_sets(0),
-      _sampler_count(0),
-      _combined_image_sampler_count(0),
-      _sampled_image_count(0),
-      _storage_image_count(0),
-      _uniform_texel_buffer_count(0),
-      _storage_texel_buffer_count(0),
-      _uniform_buffer_count(0),
-      _storage_buffer_count(0),
-      _dynamic_uniform_buffer_count(0),
-      _dynamic_storage_buffer_count(0),
-      _input_attachment_count(0),
-      _vk_pool(VK_NULL_HANDLE)
-{
-}
-
 DescriptorPool::~DescriptorPool(void)
 {
     for(DescriptorSet* dset : _sets)
+    {
         delete dset;
+    }
 
-    _context.get_device()->destroy_descriptor_pool(_vk_pool);
+    DeviceContext::instance().get_device()->destroy_descriptor_pool(_vk_pool);
 }
 
 StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
 {
     if(_vk_pool != VK_NULL_HANDLE)
+    {
         return StatusCode::ALREADY_CREATED;
+    }
 
     std::vector<VkDescriptorPoolSize> pool_sizes;
 
@@ -69,9 +55,11 @@ StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
     create_info.pPoolSizes    = pool_sizes.data();
 
-    _vk_pool = _context.get_device()->create_descriptor_pool(create_info);
+    _vk_pool = DeviceContext::instance().get_device()->create_descriptor_pool(create_info);
     if(_vk_pool == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     _sets.reserve(_max_sets);
     _max_sets = max_sets;
@@ -151,11 +139,11 @@ std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<Descripto
     for(DescriptorSetLayout* layout : layouts)
         vk_layouts.push_back(layout->get_handle());
 
-    vk_sets = _context.get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
+    vk_sets = DeviceContext::instance().get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
 
     for(VkDescriptorSet vk_set : vk_sets)
     {
-        DescriptorSet* dset = new DescriptorSet(_context, vk_set);
+        DescriptorSet* dset = new DescriptorSet(vk_set);
         _sets.push_back(dset);
         out_sets.push_back(dset);
     }

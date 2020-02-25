@@ -7,21 +7,17 @@
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(DeviceContext& context)
-    : _context(context),
-      _vk_layout(VK_NULL_HANDLE)
-{
-}
-
 PipelineLayout::~PipelineLayout(void)
 {
-    _context.get_device()->destroy_pipeline_layout(_vk_layout);
+    DeviceContext::instance().get_device()->destroy_pipeline_layout(_vk_layout);
 }
 
 StatusCode PipelineLayout::create_pipeline_layout(void)
 {
     if(_vk_layout != VK_NULL_HANDLE)
+    {
         return StatusCode::ALREADY_CREATED;
+    }
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(_descriptor_set_layouts.size());
@@ -35,10 +31,12 @@ StatusCode PipelineLayout::create_pipeline_layout(void)
     create_info.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
     create_info.pPushConstantRanges = _push_constant_ranges.data();
 
-    _vk_layout = _context.get_device()->create_pipeline_layout(create_info);
+    _vk_layout = DeviceContext::instance().get_device()->create_pipeline_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
 }

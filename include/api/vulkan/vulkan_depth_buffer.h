@@ -8,13 +8,11 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanDepthBuffer : public VulkanGPUTexture
 {
 public:
-    explicit VulkanDepthBuffer(DeviceContext& context);
-    virtual ~VulkanDepthBuffer(void);
+    VulkanDepthBuffer(void);
+    ~VulkanDepthBuffer(void);
 
     VulkanDepthBuffer(const VulkanDepthBuffer&)            = delete;
     VulkanDepthBuffer(VulkanDepthBuffer&&)                 = delete;

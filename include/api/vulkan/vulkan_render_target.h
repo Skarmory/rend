@@ -8,13 +8,11 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanRenderTarget : public VulkanGPUTexture
 {
 public:
-    explicit VulkanRenderTarget(DeviceContext& context);
-    ~VulkanRenderTarget(void);
+    VulkanRenderTarget(void) = default;
+    ~VulkanRenderTarget(void) = default;
 
     VulkanRenderTarget(const VulkanRenderTarget&)            = delete;
     VulkanRenderTarget(VulkanRenderTarget&&)                 = delete;

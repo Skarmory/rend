@@ -8,15 +8,13 @@
 namespace rend
 {
 
-class DeviceContext;
-
 #ifdef USE_VULKAN
 class Shader : public VulkanShader
 #endif
 {
 public:
-    Shader(DeviceContext& context);
-    ~Shader(void);
+    Shader(void) = default;
+    ~Shader(void) = default;
 
     Shader(const Shader&)            = delete;
     Shader(Shader&&)                 = delete;

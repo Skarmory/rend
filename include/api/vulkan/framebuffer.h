@@ -10,14 +10,13 @@ namespace rend
 {
 
 class DepthBuffer;
-class DeviceContext;
 class RenderPass;
 class RenderTarget;
 
 class Framebuffer
 {
 public:
-    explicit Framebuffer(DeviceContext& device);
+    Framebuffer(void) = default;
     ~Framebuffer(void);
 
     Framebuffer(const Framebuffer&)            = delete;
@@ -43,11 +42,10 @@ private:
     void _destroy(void);
 
 private:
-    DeviceContext&             _context;
-    const RenderPass*          _render_pass;
+    const RenderPass*          _render_pass { nullptr };
     std::vector<RenderTarget*> _render_targets;
-    DepthBuffer*               _depth_buffer;
-    VkFramebuffer              _vk_framebuffer;
+    DepthBuffer*               _depth_buffer { nullptr };
+    VkFramebuffer              _vk_framebuffer { VK_NULL_HANDLE };
 };
 
 }

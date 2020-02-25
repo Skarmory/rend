@@ -6,30 +6,28 @@
 
 using namespace rend;
 
-DescriptorSetLayout::DescriptorSetLayout(DeviceContext& context)
-    : _context(context),
-      _vk_layout(VK_NULL_HANDLE)
-{
-}
-
 DescriptorSetLayout::~DescriptorSetLayout(void)
 {
-    _context.get_device()->destroy_descriptor_set_layout(_vk_layout);
+    DeviceContext::instance().get_device()->destroy_descriptor_set_layout(_vk_layout);
 }
 
 StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
 {
     if(_vk_layout != VK_NULL_HANDLE)
+    {
         return StatusCode::ALREADY_CREATED;
+    }
 
     VkDescriptorSetLayoutCreateInfo create_info = vulkan_helpers::gen_descriptor_set_layout_create_info();
     create_info.bindingCount = static_cast<uint32_t>(_bindings.size());
     create_info.pBindings    = _bindings.data();
 
-    _vk_layout = _context.get_device()->create_descriptor_set_layout(create_info);
+    _vk_layout = DeviceContext::instance().get_device()->create_descriptor_set_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
 }

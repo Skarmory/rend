@@ -7,7 +7,6 @@
 namespace rend
 {
 
-class DeviceContext;
 class QueueFamily;
 class CommandBuffer;
 
@@ -21,7 +20,7 @@ class CommandBuffer;
 class CommandPool
 {
 public:
-    explicit CommandPool(DeviceContext& context);
+    CommandPool(void);
     ~CommandPool(void);
 
     CommandPool(const CommandPool&)            = delete;
@@ -57,7 +56,6 @@ public:
     void free_all(void);
 
 private:
-    DeviceContext&              _context;
     const QueueFamily*          _queue_family;
     bool                        _can_reset;
     std::vector<CommandBuffer*> _command_buffers;

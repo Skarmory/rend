@@ -6,8 +6,8 @@
 
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(DeviceContext& context)
-    : _context(context),
+PhysicalDevice::PhysicalDevice(void)
+    :
       _logical_device(nullptr),
       _physical_device_index(0xdeadbeef),
       _vk_physical_device(VK_NULL_HANDLE)
@@ -125,7 +125,7 @@ bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
         present_family = _present_queue_families[0];
     }
 
-    _logical_device = new LogicalDevice(_context);
+    _logical_device = new LogicalDevice;
     _logical_device->create_logical_device(this, graphics_family, present_family);
 
     return true;
@@ -159,7 +159,7 @@ const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(v
 VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
 {
     VkSurfaceCapabilitiesKHR caps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, _context.get_window()->get_vk_surface(), &caps);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, DeviceContext::instance().get_window()->get_vk_surface(), &caps);
 
     return caps;
 }

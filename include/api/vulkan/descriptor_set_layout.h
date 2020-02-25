@@ -9,12 +9,10 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class DescriptorSetLayout
 {
 public:
-    explicit DescriptorSetLayout(DeviceContext& device);
+    DescriptorSetLayout(void) = default;
     ~DescriptorSetLayout(void);
 
     DescriptorSetLayout(const DescriptorSetLayout&)            = delete;
@@ -31,10 +29,9 @@ public:
     const std::vector<VkDescriptorSetLayoutBinding>& get_layout_bindings(void) const;
 
 private:
-    DeviceContext& _context;
     std::vector<VkDescriptorSetLayoutBinding> _bindings;
 
-    VkDescriptorSetLayout _vk_layout;
+    VkDescriptorSetLayout _vk_layout { VK_NULL_HANDLE };
 };
 
 }

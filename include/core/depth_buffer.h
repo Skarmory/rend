@@ -8,20 +8,18 @@
 namespace rend
 {
 
-class DeviceContext;
-
 #ifdef USE_VULKAN
 class DepthBuffer : public VulkanDepthBuffer
 #endif
 {
 public:
-    explicit DepthBuffer(DeviceContext& context);
-    ~DepthBuffer(void);
+    DepthBuffer(void) = default;
+    ~DepthBuffer(void) = default;
 
-    DepthBuffer(const DeviceContext&)            = delete;
-    DepthBuffer(DeviceContext&&)                 = delete;
-    DepthBuffer& operator=(const DeviceContext&) = delete;
-    DepthBuffer& operator=(DeviceContext&&)      = delete;
+    DepthBuffer(const DepthBuffer&)            = delete;
+    DepthBuffer(DepthBuffer&&)                 = delete;
+    DepthBuffer& operator=(const DepthBuffer&) = delete;
+    DepthBuffer& operator=(DepthBuffer&&)      = delete;
 
     bool create_depth_buffer(uint32_t width, uint32_t height);
     void destroy_depth_buffer(void);

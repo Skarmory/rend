@@ -11,7 +11,6 @@ namespace rend
 {
 
 class CommandBuffer;
-class DeviceContext;
 class Fence;
 class PhysicalDevice;
 class Semaphore;
@@ -22,7 +21,7 @@ class LogicalDevice
 {
 
 public:
-    explicit LogicalDevice(const DeviceContext& context);
+    LogicalDevice(void);
     ~LogicalDevice(void);
 
     LogicalDevice(const LogicalDevice&) = delete;
@@ -34,7 +33,6 @@ public:
     bool create_logical_device(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
 
     // Retrieval
-    const DeviceContext&  get_device_context(void) const;
     const PhysicalDevice& get_physical_device(void) const;
     VkDevice              get_handle(void) const;
     VkQueue               get_queue(QueueType type) const;
@@ -117,7 +115,6 @@ public:
     void                  destroy_shader_module(VkShaderModule module);
 
 private:
-    const DeviceContext&  _context;
     const PhysicalDevice* _physical_device;
     const QueueFamily*    _graphics_family;
     const QueueFamily*    _transfer_family;

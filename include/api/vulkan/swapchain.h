@@ -10,7 +10,6 @@
 namespace rend
 {
 
-class DeviceContext;
 class Fence;
 class LogicalDevice;
 class RenderTarget;
@@ -19,7 +18,7 @@ class Semaphore;
 class Swapchain
 {
 public:
-    explicit Swapchain(DeviceContext& context);
+    Swapchain(void) = default;
     ~Swapchain(void);
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
@@ -49,13 +48,12 @@ private:
     uint32_t           _find_image_count(uint32_t desired_images, const VkSurfaceCapabilitiesKHR& surface_caps);
 
 private:
-    DeviceContext&     _context;
-    uint32_t           _image_count;
-    uint32_t           _current_image_idx;
-    VkSurfaceFormatKHR _surface_format;
-    VkPresentModeKHR   _present_mode;
-    VkSwapchainKHR     _vk_swapchain;
-    VkExtent2D         _vk_extent;
+    uint32_t           _image_count { 0 };
+    uint32_t           _current_image_idx { 0 };
+    VkSurfaceFormatKHR _surface_format {};
+    VkPresentModeKHR   _present_mode { VK_PRESENT_MODE_IMMEDIATE_KHR };
+    VkSwapchainKHR     _vk_swapchain { VK_NULL_HANDLE };
+    VkExtent2D         _vk_extent {};
 
     std::vector<RenderTarget*> _render_targets;
 };

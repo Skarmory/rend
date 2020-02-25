@@ -8,8 +8,8 @@
 
 using namespace rend;
 
-DescriptorSet::DescriptorSet(DeviceContext& context, VkDescriptorSet set)
-    : _context(context),
+DescriptorSet::DescriptorSet(VkDescriptorSet set)
+    :
       _vk_set(set)
 {
 }
@@ -108,7 +108,7 @@ void DescriptorSet::update(void)
         vk_write_descs.push_back(write_desc);
     }
 
-    _context.get_device()->update_descriptor_sets(vk_write_descs);
+    DeviceContext::instance().get_device()->update_descriptor_sets(vk_write_descs);
 }
 
 DescriptorSet::Binding* DescriptorSet::_find_binding(uint32_t slot)

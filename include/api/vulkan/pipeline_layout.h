@@ -10,12 +10,11 @@ namespace rend
 {
 
 class DescriptorSetLayout;
-class DeviceContext;
 
 class PipelineLayout
 {
 public:
-    explicit PipelineLayout(DeviceContext& context);
+    PipelineLayout(void) = default;
     ~PipelineLayout(void);
 
     PipelineLayout(const PipelineLayout&)            = delete;
@@ -31,11 +30,10 @@ public:
     VkPipelineLayout get_handle(void) const;
 
 private:
-    DeviceContext& _context;
     std::vector<VkPushConstantRange> _push_constant_ranges;
     std::vector<DescriptorSetLayout*> _descriptor_set_layouts;
 
-    VkPipelineLayout _vk_layout;
+    VkPipelineLayout _vk_layout { VK_NULL_HANDLE };
 };
 
 }

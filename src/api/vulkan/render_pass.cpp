@@ -8,15 +8,9 @@
 
 using namespace rend;
 
-RenderPass::RenderPass(DeviceContext& context)
-    : _context(context),
-      _vk_render_pass(VK_NULL_HANDLE)
-{
-}
-
 RenderPass::~RenderPass(void)
 {
-    _context.get_device()->destroy_render_pass(_vk_render_pass);
+    DeviceContext::instance().get_device()->destroy_render_pass(_vk_render_pass);
 }
 
 StatusCode RenderPass::create_render_pass(void)
@@ -78,7 +72,7 @@ StatusCode RenderPass::create_render_pass(void)
     create_info.dependencyCount = static_cast<uint32_t>(subpass_deps.size());
     create_info.pDependencies   = subpass_deps.data();
 
-    _vk_render_pass = _context.get_device()->create_render_pass(create_info);
+    _vk_render_pass = DeviceContext::instance().get_device()->create_render_pass(create_info);
 
     if(_vk_render_pass == VK_NULL_HANDLE)
         return StatusCode::FAILURE;

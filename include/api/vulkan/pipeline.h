@@ -12,7 +12,6 @@
 namespace rend
 {
 
-class DeviceContext;
 class PipelineLayout;
 class RenderPass;
 class Shader;
@@ -22,7 +21,7 @@ typedef VkRect2D VkScissorArea;
 class Pipeline
 {
 public:
-    explicit Pipeline(DeviceContext& device);
+    Pipeline(void) = default;
     ~Pipeline(void);
 
     Pipeline(const Pipeline&) = delete;
@@ -129,11 +128,9 @@ private:
         uint32_t    write_mask;
     };
 
-    DeviceContext&   _context;
-
-    PipelineLayout* _layout;
-    RenderPass*     _render_pass;
-    int32_t         _subpass;
+    PipelineLayout* _layout { nullptr};
+    RenderPass*     _render_pass { nullptr };
+    int32_t         _subpass { 0 };
 
     std::vector<Shader*> _shaders;
 
@@ -142,57 +139,57 @@ private:
     std::vector<VkVertexInputAttributeDescription> _vk_attribute_descs;
 
     // Input assembly state settings
-    Topology _topology;
-    bool     _primitive_restart;
+    Topology _topology { Topology::TRIANGLE_LIST };
+    bool     _primitive_restart { false };
 
     // Tessellation state settings
-    uint32_t _patch_control_points;
+    uint32_t _patch_control_points { 0 };
 
     // Viewport state settings
     std::vector<VkViewport>    _vk_viewports;
     std::vector<VkScissorArea> _vk_scissors;
 
     // Rasteriser state settings
-    bool        _depth_clamp_enable;
-    bool        _rasteriser_discard_enable;
-    PolygonMode _polygon_mode;
-    CullMode    _cull_mode;
-    FrontFace   _front_face;
-    bool        _depth_bias_enable;
-    float       _depth_bias_constant;
-    float       _depth_bias_clamp;
-    float       _depth_bias_slope;
-    float       _line_width;
+    bool        _depth_clamp_enable { false };
+    bool        _rasteriser_discard_enable { false };
+    PolygonMode _polygon_mode { PolygonMode::FILL };
+    CullMode    _cull_mode { CullMode::BACK };
+    FrontFace   _front_face { FrontFace::CCW };
+    bool        _depth_bias_enable { false };
+    float       _depth_bias_constant { 0.0f };
+    float       _depth_bias_clamp { 0.0f };
+    float       _depth_bias_slope { 0.0f };
+    float       _line_width { 1.0f };
 
     // Multisample state settings
-    uint32_t _samples;
-    bool     _sample_shading_enable;
-    float    _min_sample_shading;
-    uint32_t _sample_mask;
-    bool     _alpha_to_coverage_enable;
-    bool     _alpha_to_one_enable;
+    uint32_t _samples { 1 };
+    bool     _sample_shading_enable { false };
+    float    _min_sample_shading { 0.0f };
+    uint32_t _sample_mask { 1 };
+    bool     _alpha_to_coverage_enable { false };
+    bool     _alpha_to_one_enable { false };
 
     // Depth stencil settings
-    bool           _depth_test_enable;
-    bool           _depth_write_enable;
-    CompareOp      _compare_op;
-    bool           _depth_bounds_test_enable;
-    bool           _stencil_test_enable;
-    StencilOpState _stencil_op_state_front;
-    StencilOpState _stencil_op_state_back;
-    uint32_t       _min_depth_bound;
-    uint32_t       _max_depth_bound;
+    bool           _depth_test_enable { true };
+    bool           _depth_write_enable { true };
+    CompareOp      _compare_op { CompareOp::LESS };
+    bool           _depth_bounds_test_enable { false };
+    bool           _stencil_test_enable { false };
+    StencilOpState _stencil_op_state_front { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
+    StencilOpState _stencil_op_state_back { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
+    uint32_t       _min_depth_bound { 0 };
+    uint32_t       _max_depth_bound { 1 };
 
     // Colour blend settings
-    bool    _logic_op_enable;
-    LogicOp _logic_op;
-    float   _blend_constants[4];
+    bool    _logic_op_enable { false };
+    LogicOp _logic_op { LogicOp::NO_OP };
+    float   _blend_constants[4] { 1.0f };
     std::vector<ColourBlendAttachmentSettings> _colour_blend_attachment_settings;
 
     // Dynamic state settings
     std::unordered_set<DynamicState> _dynamic_states;
 
-    VkPipeline _vk_pipeline;
+    VkPipeline _vk_pipeline { VK_NULL_HANDLE };
 };
 
 }

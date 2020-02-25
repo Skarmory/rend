@@ -2,8 +2,8 @@
 
 using namespace rend;
 
-VulkanDepthBuffer::VulkanDepthBuffer(DeviceContext& context)
-    : VulkanGPUTexture(context)
+VulkanDepthBuffer::VulkanDepthBuffer(void)
+    : VulkanGPUTexture()
 {
 }
 

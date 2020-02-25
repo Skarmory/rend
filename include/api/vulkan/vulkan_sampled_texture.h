@@ -10,8 +10,8 @@ namespace rend
 class VulkanSampledTexture : public VulkanGPUTexture
 {
 public:
-    explicit VulkanSampledTexture(DeviceContext& context);
-    ~VulkanSampledTexture(void);
+    VulkanSampledTexture(void) = default;
+    ~VulkanSampledTexture(void) = default;
 
     VulkanSampledTexture(const VulkanSampledTexture&)            = delete;
     VulkanSampledTexture(VulkanSampledTexture&&)                 = delete;

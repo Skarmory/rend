@@ -15,7 +15,7 @@ class DeviceContext;
 class VulkanGPUBuffer : public GPUBufferBase
 {
 public:
-    explicit VulkanGPUBuffer(DeviceContext& context);
+    VulkanGPUBuffer(void) = default;
     ~VulkanGPUBuffer(void);
 
     VulkanGPUBuffer(const VulkanGPUBuffer&) = delete;
@@ -33,12 +33,10 @@ protected:
     StatusCode create_buffer(size_t size_bytes, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage);
 
 private:
-    DeviceContext&        _context;
-
-    VkBuffer              _vk_buffer;
-    VkBufferUsageFlags    _vk_buffer_usage;
-    VkDeviceMemory        _vk_memory;
-    VkMemoryPropertyFlags _vk_memory_properties;
+    VkBuffer              _vk_buffer { VK_NULL_HANDLE };
+    VkBufferUsageFlags    _vk_buffer_usage { 0 };
+    VkDeviceMemory        _vk_memory { VK_NULL_HANDLE };
+    VkMemoryPropertyFlags _vk_memory_properties { 0 };
 };
 
 }

@@ -8,7 +8,6 @@
 namespace rend
 {
 
-class DeviceContext;
 class VulkanGPUBuffer;
 class VulkanGPUTexture;
 class VulkanUniformBuffer;
@@ -18,7 +17,7 @@ class DescriptorSet
     struct Binding;
 
 public:
-    explicit DescriptorSet(DeviceContext& device, VkDescriptorSet set);
+    explicit DescriptorSet(VkDescriptorSet set);
     ~DescriptorSet(void) = default;
 
     DescriptorSet(const DescriptorSet&)            = delete;
@@ -51,7 +50,6 @@ private:
         std::variant<VulkanGPUTexture*, VulkanGPUBuffer*> bound_resource;
     };
 
-    DeviceContext& _context;
     std::vector<Binding> _bindings;
 
     VkDescriptorSet _vk_set;

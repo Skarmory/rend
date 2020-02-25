@@ -10,12 +10,10 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanShader : public ShaderBase
 {
 public:
-    explicit VulkanShader(DeviceContext& context);
+    VulkanShader(void) = default;
     ~VulkanShader(void);
 
     VulkanShader(const VulkanShader&)            = delete;
@@ -29,9 +27,7 @@ protected:
     StatusCode create_shader_api(const void* code, uint32_t size_bytes, ShaderType type);
 
 private:
-    DeviceContext& _context;
-
-    VkShaderModule _vk_module;
+    VkShaderModule _vk_module { VK_NULL_HANDLE };
 };
 
 }

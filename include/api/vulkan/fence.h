@@ -7,12 +7,10 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class Fence
 {
 public:
-    explicit Fence(DeviceContext& context);
+    Fence(void) = default;
     ~Fence(void);
 
     Fence(const Fence&)            = delete;
@@ -27,8 +25,7 @@ public:
     VkResult wait(uint64_t timeout=std::numeric_limits<uint64_t>::max()) const;
 
 private:
-    DeviceContext& _context;
-    VkFence        _vk_fence;
+    VkFence _vk_fence { VK_NULL_HANDLE };
 };
 
 }

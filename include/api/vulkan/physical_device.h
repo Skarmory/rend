@@ -9,14 +9,13 @@
 namespace rend
 {
 
-class DeviceContext;
 class LogicalDevice;
 class Window;
 
 class PhysicalDevice
 {
 public:
-    explicit PhysicalDevice(DeviceContext& context);
+    PhysicalDevice(void);
     ~PhysicalDevice(void);
 
     bool create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device, Window& window);
@@ -39,7 +38,6 @@ private:
     bool _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
-    DeviceContext&                   _context;
     LogicalDevice*                   _logical_device;
 
     uint32_t                         _physical_device_index;

@@ -6,19 +6,11 @@
 
 using namespace rend;
 
-VulkanGPUBuffer::VulkanGPUBuffer(DeviceContext& context)
-    : _context(context),
-      _vk_buffer(VK_NULL_HANDLE),
-      _vk_buffer_usage(0),
-      _vk_memory(VK_NULL_HANDLE),
-      _vk_memory_properties(0)
-{
-}
-
 VulkanGPUBuffer::~VulkanGPUBuffer(void)
 {
-    _context.get_device()->free_memory(_vk_memory);
-    _context.get_device()->destroy_buffer(_vk_buffer);
+    auto& context = DeviceContext::instance();
+    context.get_device()->free_memory(_vk_memory);
+    context.get_device()->destroy_buffer(_vk_buffer);
 }
 
 VkBuffer VulkanGPUBuffer::get_handle(void) const
@@ -43,7 +35,8 @@ VkMemoryPropertyFlags VulkanGPUBuffer::get_memory_properties(void) const
 
 StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
 {
-    uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
+    auto& context = DeviceContext::instance();
+    uint32_t queue_family_index = context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
     VkBufferCreateInfo create_info    = vulkan_helpers::gen_buffer_create_info();
     create_info.size                  = size_bytes;
@@ -52,21 +45,27 @@ StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFla
     create_info.queueFamilyIndexCount = 1;
     create_info.pQueueFamilyIndices   = &queue_family_index;
 
-    if((_vk_buffer = _context.get_device()->create_buffer(create_info)) == VK_NULL_HANDLE)
+    if((_vk_buffer = context.get_device()->create_buffer(create_info)) == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
-    VkMemoryRequirements memory_reqs = _context.get_device()->get_buffer_memory_reqs(_vk_buffer);
+    VkMemoryRequirements memory_reqs = context.get_device()->get_buffer_memory_reqs(_vk_buffer);
 
     VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
     alloc_info.allocationSize = size_bytes;
-    alloc_info.memoryTypeIndex = _context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
+    alloc_info.memoryTypeIndex = context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
 
-    _vk_memory = _context.get_device()->allocate_memory(alloc_info);
+    _vk_memory = context.get_device()->allocate_memory(alloc_info);
     if(_vk_memory == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
-    if(_context.get_device()->bind_buffer_memory(_vk_buffer, _vk_memory) != VK_SUCCESS)
+    if(context.get_device()->bind_buffer_memory(_vk_buffer, _vk_memory) != VK_SUCCESS)
+    {
         return StatusCode::FAILURE;
+    }
 
     _bytes = size_bytes;
     _vk_memory_properties = memory_properties;

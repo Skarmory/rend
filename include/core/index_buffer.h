@@ -11,8 +11,6 @@
 namespace rend
 {
 
-class DeviceContext;
-
 #ifdef USE_VULKAN
 class IndexBuffer : public VulkanIndexBuffer
 #else
@@ -20,8 +18,8 @@ class IndexBuffer
 #endif
 {
 public:
-    explicit IndexBuffer(DeviceContext& context);
-    ~IndexBuffer(void);
+    IndexBuffer(void) = default;
+    ~IndexBuffer(void) = default;
 
     IndexBuffer(const IndexBuffer&) = delete;
     IndexBuffer(IndexBuffer&&) = delete;

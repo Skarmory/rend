@@ -12,13 +12,11 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanIndexBuffer : public VulkanGPUBuffer, public IndexBufferBase
 {
 public:
-    explicit VulkanIndexBuffer(DeviceContext& context);
-    ~VulkanIndexBuffer(void);
+    VulkanIndexBuffer(void) = default;
+    ~VulkanIndexBuffer(void) = default;
 
     VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
     VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;

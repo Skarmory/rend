@@ -8,14 +8,12 @@
 namespace rend
 {
 
-class DeviceContext;
-
 #ifdef USE_VULKAN
 class RenderTarget : public VulkanRenderTarget
 #endif
 {
 public:
-    explicit RenderTarget(DeviceContext& context);
+    RenderTarget(void);
     ~RenderTarget(void);
 
     RenderTarget(const RenderTarget&)            = delete;

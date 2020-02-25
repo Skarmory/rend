@@ -13,7 +13,6 @@ namespace rend
 
 class CommandPool;
 class CommandBuffer;
-class DeviceContext;
 class Fence;
 class Framebuffer;
 class DepthBuffer;
@@ -42,7 +41,7 @@ struct FrameResources
 struct Task
 {
     virtual ~Task(void) = default;
-    virtual void execute(DeviceContext& context, FrameResources& resources) = 0;
+    virtual void execute(FrameResources& resources) = 0;
 };
 
 struct LoadTask : public Task
@@ -54,7 +53,7 @@ struct LoadTask : public Task
     uint32_t      offset         { 0 };
 
     LoadTask(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset) : resource(resource), resource_usage(type), data(data), size_bytes(bytes), offset(offset) {}
-    virtual void execute(DeviceContext& context, FrameResources& resources) override;
+    virtual void execute(FrameResources& resources) override;
 };
 
 struct ImageTransitionTask : public Task
@@ -65,13 +64,13 @@ struct ImageTransitionTask : public Task
     VkImageLayout        final_layout;
 
     ImageTransitionTask(VulkanGPUTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
-    virtual void execute(DeviceContext& context, FrameResources& resources) override;
+    virtual void execute(FrameResources& resources) override;
 };
 
 class Renderer
 {
 public:
-    Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
+    Renderer(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
     ~Renderer(void);
 
     Renderer(const Renderer&)            = delete;
@@ -100,7 +99,6 @@ private:
     void _create_default_framebuffers(bool recreate);
 
 private:
-    DeviceContext&  _context;
     Swapchain*      _swapchain;
     CommandPool*    _command_pool;
 

@@ -2,18 +2,6 @@
 
 using namespace rend;
 
-DepthBuffer::DepthBuffer(DeviceContext& context)
-    :
-#ifdef USE_VULKAN
-        VulkanDepthBuffer(context)
-#endif
-{
-}
-
-DepthBuffer::~DepthBuffer(void)
-{
-}
-
 bool DepthBuffer::create_depth_buffer(uint32_t width, uint32_t height)
 {
     create_texture_base(width, height, 1, Format::D24_S8);

@@ -8,13 +8,11 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanUniformBuffer : public VulkanGPUBuffer, public UniformBufferBase
 {
 public:
-    explicit VulkanUniformBuffer(DeviceContext& context);
-    ~VulkanUniformBuffer(void);
+    VulkanUniformBuffer(void) = default;
+    ~VulkanUniformBuffer(void) = default;
 
     VulkanUniformBuffer(const VulkanUniformBuffer&)            = delete;
     VulkanUniformBuffer(VulkanUniformBuffer&&)                 = delete;

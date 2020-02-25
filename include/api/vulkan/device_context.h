@@ -6,8 +6,6 @@
 #include <vulkan.h>
 #include <vector>
 
-class GLFWwindow;
-
 namespace rend
 {
 
@@ -19,13 +17,12 @@ class Window;
 class DeviceContext : public core::Resource
 {
 public:
-    DeviceContext(void) = default;
-    ~DeviceContext(void);
-
     DeviceContext(const DeviceContext&)            = delete;
     DeviceContext(DeviceContext&&)                 = delete;
     DeviceContext& operator=(const DeviceContext&) = delete;
     DeviceContext& operator=(DeviceContext&&)      = delete;
+
+    static DeviceContext& instance(void);
 
     PhysicalDevice* gpu(void) const;
     LogicalDevice*  get_device(void) const;
@@ -38,6 +35,9 @@ public:
     StatusCode create_device(const VkQueueFlags desired_queues);
 
 private:
+    DeviceContext(void) = default;
+    ~DeviceContext(void);
+
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
 
 private:

@@ -18,8 +18,8 @@ class VertexBuffer
 #endif
 {
 public:
-    explicit VertexBuffer(DeviceContext& context);
-    ~VertexBuffer(void);
+    VertexBuffer(void) = default;
+    ~VertexBuffer(void) = default;
 
     VertexBuffer(const VertexBuffer&) = delete;
     VertexBuffer(VertexBuffer&&) = delete;

@@ -22,22 +22,23 @@
 
 using namespace rend;
 
-Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
-    : _context(context),
+Renderer::Renderer(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
+    :
       _swapchain(nullptr),
       _command_pool(nullptr),
       _default_depth_buffer(nullptr),
       _default_render_pass(nullptr),
       _frame_counter(0)
 {
-    _context.choose_gpu(desired_features);
-    _context.create_device(desired_queues);
+    auto& context = DeviceContext::instance();
+    context.choose_gpu(desired_features);
+    context.create_device(desired_queues);
 
-    _swapchain = new Swapchain(_context);
+    _swapchain = new Swapchain;
     _swapchain->create_swapchain(3);
 
-    _command_pool = new CommandPool(_context);
-    _command_pool->create_command_pool(_context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    _command_pool = new CommandPool;
+    _command_pool->create_command_pool(DeviceContext::instance().get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
@@ -46,9 +47,9 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
         _frame_resources[idx].swapchain_idx = 0xdeadbeef;
-        _frame_resources[idx].acquire_sem = new Semaphore(_context);
-        _frame_resources[idx].present_sem = new Semaphore(_context);
-        _frame_resources[idx].submit_fen  = new Fence(_context);
+        _frame_resources[idx].acquire_sem = new Semaphore;
+        _frame_resources[idx].present_sem = new Semaphore;
+        _frame_resources[idx].submit_fen  = new Fence;
 
         _frame_resources[idx].acquire_sem->create_semaphore();
         _frame_resources[idx].present_sem->create_semaphore();
@@ -59,7 +60,7 @@ Renderer::Renderer(DeviceContext& context, const VkPhysicalDeviceFeatures& desir
 
 Renderer::~Renderer(void)
 {
-    vkDeviceWaitIdle(_context.get_device()->get_handle());
+    DeviceContext::instance().get_device()->wait_idle();
 
     while(!_task_queue.empty())
     {
@@ -139,7 +140,7 @@ FrameResources& Renderer::start_frame(void)
 void Renderer::end_frame(FrameResources& frame_res)
 {
     frame_res.submit_fen->reset();
-    _context.get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
+    DeviceContext::instance().get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
@@ -155,7 +156,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     if(_task_queue.empty())
         return;
 
-    Fence* load_fence = new Fence(_context);
+    Fence* load_fence = new Fence;
     load_fence->create_fence(false);
 
     resources.command_buffer->begin();
@@ -164,7 +165,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     {
         Task* task = _task_queue.front();
         _task_queue.pop();
-        task->execute(_context, resources);
+        task->execute(resources);
         delete task;
     }
 
@@ -172,7 +173,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
 
     if(resources.command_buffer->recorded())
     {
-        _context.get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
+        DeviceContext::instance().get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
         load_fence->wait();
     }
 
@@ -187,7 +188,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     resources.staging_buffers.clear();
 }
 
-void LoadTask::execute(DeviceContext& context, FrameResources& resources)
+void LoadTask::execute(FrameResources& resources)
 {
     bool is_device_local = false;
     switch(resource_usage)
@@ -219,16 +220,16 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
 
     if(is_device_local)
     {
-        UniformBuffer* staging_buffer = new UniformBuffer(context);
+        UniformBuffer* staging_buffer = new UniformBuffer;
         staging_buffer->create_uniform_buffer(size_bytes);
 
         resources.staging_buffers.push_back(staging_buffer);
 
         memory = staging_buffer->get_memory();
 
-        vkMapMemory(context.get_device()->get_handle(), memory, 0, staging_buffer->bytes(), 0, &mapped);
+        DeviceContext::instance().get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        vkUnmapMemory(context.get_device()->get_handle(), memory);
+        DeviceContext::instance().get_device()->unmap_memory(memory);
 
         switch(resource_usage)
         {
@@ -275,16 +276,14 @@ void LoadTask::execute(DeviceContext& context, FrameResources& resources)
             }
         }
 
-        vkMapMemory(context.get_device()->get_handle(), memory, 0, size_bytes, 0, &mapped);
+        DeviceContext::instance().get_device()->map_memory(memory, size_bytes, 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        vkUnmapMemory(context.get_device()->get_handle(), memory);
+        DeviceContext::instance().get_device()->unmap_memory(memory);
     }
 }
 
-void ImageTransitionTask::execute(DeviceContext& context, FrameResources& resources)
+void ImageTransitionTask::execute(FrameResources& resources)
 {
-    UU(context);
-
     std::vector<VkImageMemoryBarrier> barriers(1);
     VkImageMemoryBarrier* barrier = barriers.data();
 
@@ -383,13 +382,13 @@ void Renderer::_create_default_depth_buffer(VkExtent2D extent)
     if(_default_depth_buffer)
         delete _default_depth_buffer;
 
-    _default_depth_buffer = new DepthBuffer(_context);
+    _default_depth_buffer = new DepthBuffer;
     _default_depth_buffer->create_depth_buffer(extent.width, extent.height);
 }
 
 void Renderer::_create_default_renderpass(void)
 {
-    _default_render_pass = new RenderPass(_context);
+    _default_render_pass = new RenderPass;
 
     uint32_t colour_attach = _default_render_pass->add_attachment_description(_swapchain->get_render_target(0), LoadOp::CLEAR, StoreOp::STORE, ImageLayout::PRESENT);
     uint32_t depth_attach  = _default_render_pass->add_attachment_description(*_default_depth_buffer, LoadOp::CLEAR, StoreOp::STORE, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
@@ -421,7 +420,7 @@ void Renderer::_create_default_framebuffers(bool recreate)
     _default_framebuffers.resize(targets.size());
     for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
     {
-        _default_framebuffers[idx] = new Framebuffer(_context);
+        _default_framebuffers[idx] = new Framebuffer;
         _default_framebuffers[idx]->set_depth_buffer(*_default_depth_buffer);
         _default_framebuffers[idx]->add_render_target(*targets[idx]);
         _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, framebuffer_dims);

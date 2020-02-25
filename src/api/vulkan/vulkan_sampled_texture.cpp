@@ -3,18 +3,6 @@
 
 using namespace rend;
 
-VulkanSampledTexture::VulkanSampledTexture(DeviceContext& context)
-    :
-#ifdef USE_VULKAN
-        VulkanGPUTexture(context)
-#endif
-{
-}
-
-VulkanSampledTexture::~VulkanSampledTexture(void)
-{
-}
-
 StatusCode VulkanSampledTexture::create_sampled_texture_api(uint32_t width, uint32_t height, uint32_t depth, uint32_t mip_levels, Format format)
 {
     VkExtent3D vk_extent               = VkExtent3D{ width, height, depth };

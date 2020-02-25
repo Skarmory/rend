@@ -9,14 +9,13 @@
 namespace rend
 {
 
-class DeviceContext;
 class DescriptorSet;
 class DescriptorSetLayout;
 
 class DescriptorPool
 {
 public:
-    explicit DescriptorPool(DeviceContext& context);
+    DescriptorPool(void) = default;
     ~DescriptorPool(void);
 
     DescriptorPool(const DescriptorPool&)            = delete;
@@ -41,23 +40,22 @@ public:
     std::vector<DescriptorSet*> allocate(const std::vector<DescriptorSetLayout*>& layouts);
 
 private:
-    DeviceContext& _context;
-    uint32_t _max_sets;
+    uint32_t _max_sets { 0 };
     std::vector<DescriptorSet*> _sets;
 
-    uint32_t _sampler_count;
-    uint32_t _combined_image_sampler_count;
-    uint32_t _sampled_image_count;
-    uint32_t _storage_image_count;
-    uint32_t _uniform_texel_buffer_count;
-    uint32_t _storage_texel_buffer_count;
-    uint32_t _uniform_buffer_count;
-    uint32_t _storage_buffer_count;
-    uint32_t _dynamic_uniform_buffer_count;
-    uint32_t _dynamic_storage_buffer_count;
-    uint32_t _input_attachment_count;
+    uint32_t _sampler_count { 0 };
+    uint32_t _combined_image_sampler_count { 0 };
+    uint32_t _sampled_image_count { 0 };
+    uint32_t _storage_image_count { 0 };
+    uint32_t _uniform_texel_buffer_count { 0 };
+    uint32_t _storage_texel_buffer_count { 0 };
+    uint32_t _uniform_buffer_count { 0 };
+    uint32_t _storage_buffer_count { 0 };
+    uint32_t _dynamic_uniform_buffer_count { 0 };
+    uint32_t _dynamic_storage_buffer_count { 0 };
+    uint32_t _input_attachment_count { 0 };
 
-    VkDescriptorPool _vk_pool;
+    VkDescriptorPool _vk_pool { VK_NULL_HANDLE };
 };
 
 }

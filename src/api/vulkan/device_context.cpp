@@ -15,6 +15,13 @@ DeviceContext::~DeviceContext(void)
     destroy();
 }
 
+DeviceContext& DeviceContext::instance(void)
+{
+    static DeviceContext s_context;
+
+    return s_context;
+}
+
 PhysicalDevice* DeviceContext::gpu(void) const
 {
     return _chosen_gpu;
@@ -59,7 +66,7 @@ StatusCode DeviceContext::create(const char** extensions, uint32_t extension_cou
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
-        PhysicalDevice* pdev = new PhysicalDevice(*this);
+        PhysicalDevice* pdev = new PhysicalDevice;
         pdev->create_physical_device(physical_device_index, physical_devices[physical_device_index], window);
         _physical_devices.push_back(pdev);
     }

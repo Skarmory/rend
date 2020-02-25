@@ -9,24 +9,6 @@
 
 using namespace rend;
 
-VulkanGPUTexture::VulkanGPUTexture(DeviceContext& context)
-    : _context(context),
-      _loaded(false),
-      _vk_image(VK_NULL_HANDLE),
-      _vk_image_view(VK_NULL_HANDLE),
-      _vk_sampler(VK_NULL_HANDLE),
-      _vk_memory_properties(0),
-      _vk_type(VK_IMAGE_TYPE_MAX_ENUM),
-      _vk_format(VK_FORMAT_MAX_ENUM),
-      _mip_levels(0),
-      _array_layers(0),
-      _vk_sample_count(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM),
-      _vk_tiling(VK_IMAGE_TILING_MAX_ENUM),
-      _vk_usage(0),
-      _vk_layout(VK_IMAGE_LAYOUT_MAX_ENUM)
-{
-}
-
 VulkanGPUTexture::~VulkanGPUTexture(void)
 {
     destroy_texture_api();
@@ -47,7 +29,7 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
         return StatusCode::MEMORY_ALLOC_FAILURE;
     }
 
-    if(_context.get_device()->bind_image_memory(_vk_image, _vk_memory) != VK_SUCCESS)
+    if(DeviceContext::instance().get_device()->bind_image_memory(_vk_image, _vk_memory) != VK_SUCCESS)
     {
         return StatusCode::MEMORY_BIND_IMAGE_FAILURE;
     }
@@ -78,10 +60,14 @@ StatusCode VulkanGPUTexture::create_texture_api(VkExtent3D extent, VkImageType t
 
 void VulkanGPUTexture::destroy_texture_api(void)
 {
-    _context.get_device()->destroy_sampler(_vk_sampler);
-    _context.get_device()->destroy_image_view(_vk_image_view);
-    _context.get_device()->free_memory(_vk_memory);
-    _context.get_device()->destroy_image(_vk_image);
+    auto& context = DeviceContext::instance();
+    context.get_device()->destroy_sampler(_vk_sampler);
+    context.get_device()->destroy_image_view(_vk_image_view);
+    if(!_swapchain_image)
+    {
+        context.get_device()->free_memory(_vk_memory);
+        context.get_device()->destroy_image(_vk_image);
+    }
 
     _vk_sampler = VK_NULL_HANDLE;
     _vk_image_view = VK_NULL_HANDLE;
@@ -146,7 +132,7 @@ VkMemoryPropertyFlags VulkanGPUTexture::get_memory_properties(void) const
 
 bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExtent3D extent, uint32_t mip_levels, uint32_t array_layers, VkSampleCountFlagBits sample_count, VkImageTiling tiling, VkImageUsageFlags usage)
 {
-    uint32_t queue_family_index = _context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
+    uint32_t queue_family_index = DeviceContext::instance().get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
     VkImageCreateInfo create_info     = vulkan_helpers::gen_image_create_info();
     create_info.format                = format;
@@ -162,7 +148,7 @@ bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExt
     create_info.pQueueFamilyIndices   = &queue_family_index;
     create_info.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    _vk_image = _context.get_device()->create_image(create_info);
+    _vk_image = DeviceContext::instance().get_device()->create_image(create_info);
     if(_vk_image == VK_NULL_HANDLE)
         return false;
 
@@ -171,13 +157,13 @@ bool VulkanGPUTexture::_create_vk_image(VkImageType type, VkFormat format, VkExt
 
 bool VulkanGPUTexture::_alloc_vk_memory(VkMemoryPropertyFlags memory_properties)
 {
-    VkMemoryRequirements memory_reqs = _context.get_device()->get_image_memory_reqs(_vk_image);
+    VkMemoryRequirements memory_reqs = DeviceContext::instance().get_device()->get_image_memory_reqs(_vk_image);
     
     VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
     alloc_info.allocationSize       = memory_reqs.size;
-    alloc_info.memoryTypeIndex      = _context.get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
+    alloc_info.memoryTypeIndex      = DeviceContext::instance().get_device()->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
 
-    _vk_memory = _context.get_device()->allocate_memory(alloc_info);
+    _vk_memory = DeviceContext::instance().get_device()->allocate_memory(alloc_info);
     if(_vk_memory == VK_NULL_HANDLE)
         return false;
 
@@ -198,7 +184,7 @@ bool VulkanGPUTexture::_create_vk_image_view(VkFormat format, VkImageViewType vi
     image_view_info.subresourceRange.baseArrayLayer = 0;
     image_view_info.subresourceRange.layerCount     = array_layers;
 
-    _vk_image_view = _context.get_device()->create_image_view(image_view_info);
+    _vk_image_view = DeviceContext::instance().get_device()->create_image_view(image_view_info);
     if(_vk_image_view == VK_NULL_HANDLE)
         return false;
 
@@ -224,7 +210,7 @@ bool VulkanGPUTexture::_create_vk_sampler(void)
     sampler_info.borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     sampler_info.unnormalizedCoordinates = VK_FALSE;
 
-    _vk_sampler = _context.get_device()->create_sampler(sampler_info);
+    _vk_sampler = DeviceContext::instance().get_device()->create_sampler(sampler_info);
     if(_vk_sampler == VK_NULL_HANDLE)
         return false;
 

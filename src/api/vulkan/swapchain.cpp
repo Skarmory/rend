@@ -14,21 +14,16 @@
 
 using namespace rend;
 
-Swapchain::Swapchain(DeviceContext& context)
-    : _context(context),
-      _image_count(0),
-      _current_image_idx(0),
-      _surface_format({}),
-      _present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR),
-      _vk_swapchain(VK_NULL_HANDLE),
-      _vk_extent({})
-{
-}
-
 Swapchain::~Swapchain(void)
 {
-    _destroy_image_views();
-    _context.get_device()->destroy_swapchain(_vk_swapchain);
+    //_destroy_image_views();
+
+    for(RenderTarget* rt : _render_targets)
+    {
+        delete rt;
+    }
+
+    DeviceContext::instance().get_device()->destroy_swapchain(_vk_swapchain);
 }
 
 VkFormat Swapchain::get_format(void) const
@@ -72,14 +67,14 @@ StatusCode Swapchain::create_swapchain(uint32_t desired_images)
 
 StatusCode Swapchain::recreate(void)
 {
-    _context.get_device()->wait_idle();
+    DeviceContext::instance().get_device()->wait_idle();
     _destroy_image_views();
     return _create_swapchain(_image_count);
 }
 
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    VkResult result = _context.get_device()->acquire_next_image(
+    VkResult result = DeviceContext::instance().get_device()->acquire_next_image(
         this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
     );
 
@@ -97,18 +92,22 @@ StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
     std::vector<VkResult> results(1);
-    if(_context.get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+    if(DeviceContext::instance().get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+    {
         return StatusCode::FAILURE;
+    }
 
     if(results[0] != VK_SUCCESS)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
 }
 
 StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 {
-    const PhysicalDevice& physical_device = _context.get_device()->get_physical_device();
+    const PhysicalDevice& physical_device = DeviceContext::instance().get_device()->get_physical_device();
 
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
 
@@ -127,7 +126,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
-    create_info.surface               = _context.get_window()->get_vk_surface();
+    create_info.surface               = DeviceContext::instance().get_window()->get_vk_surface();
     create_info.minImageCount         = _image_count;
     create_info.imageFormat           = _surface_format.format;
     create_info.imageColorSpace       = _surface_format.colorSpace;
@@ -140,12 +139,16 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     create_info.presentMode           = _present_mode;
     create_info.oldSwapchain          = old_swapchain;
 
-    _vk_swapchain = _context.get_device()->create_swapchain(create_info);
+    _vk_swapchain = DeviceContext::instance().get_device()->create_swapchain(create_info);
     if(_vk_swapchain == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     if(old_swapchain != VK_NULL_HANDLE)
-        _context.get_device()->destroy_swapchain(old_swapchain);
+    {
+        DeviceContext::instance().get_device()->destroy_swapchain(old_swapchain);
+    }
 
     return _get_images();
 }
@@ -153,19 +156,23 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 void Swapchain::_destroy_image_views(void)
 {
     for(size_t idx = 0; idx < _render_targets.size(); idx++)
-        _context.get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
+    {
+        DeviceContext::instance().get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
+    }
 }
 
 StatusCode Swapchain::_get_images(void)
 {
     std::vector<VkImage> images;
-    _context.get_device()->get_swapchain_images(this, images);
+    DeviceContext::instance().get_device()->get_swapchain_images(this, images);
     _render_targets.resize(images.size());
 
     for(size_t idx = 0; idx < images.size(); idx++)
     {
         if(!_render_targets[idx])
-            _render_targets[idx] = new RenderTarget(_context);
+        {
+            _render_targets[idx] = new RenderTarget;
+        }
 
         VkImageViewCreateInfo image_view_info = vulkan_helpers::gen_image_view_create_info();
         image_view_info.image                           = images[idx];
@@ -181,9 +188,11 @@ StatusCode Swapchain::_get_images(void)
         image_view_info.subresourceRange.baseArrayLayer = 0;
         image_view_info.subresourceRange.layerCount     = 1;
 
-        VkImageView view = _context.get_device()->create_image_view(image_view_info);
+        VkImageView view = DeviceContext::instance().get_device()->create_image_view(image_view_info);
         if(view == VK_NULL_HANDLE)
+        {
             return StatusCode::FAILURE;
+        }
 
         _render_targets[idx]->create_texture_base(_vk_extent.width, _vk_extent.height, 0, Format::B8G8R8A8);
         _render_targets[idx]->_vk_image        = images[idx];
@@ -196,6 +205,7 @@ StatusCode Swapchain::_get_images(void)
         _render_targets[idx]->_vk_tiling       = VK_IMAGE_TILING_OPTIMAL;
         _render_targets[idx]->_vk_usage        = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         _render_targets[idx]->_vk_layout       = VK_IMAGE_LAYOUT_UNDEFINED;
+        _render_targets[idx]->_swapchain_image = true;
     }
 
     return StatusCode::SUCCESS;

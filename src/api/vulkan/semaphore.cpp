@@ -6,28 +6,26 @@
 
 using namespace rend;
 
-Semaphore::Semaphore(DeviceContext& context)
-    : _context(context),
-      _vk_semaphore(VK_NULL_HANDLE)
-{
-}
-
 Semaphore::~Semaphore(void)
 {
-    _context.get_device()->destroy_semaphore(_vk_semaphore);
+    DeviceContext::instance().get_device()->destroy_semaphore(_vk_semaphore);
 }
 
 StatusCode Semaphore::create_semaphore(void)
 {
     if(_vk_semaphore != VK_NULL_HANDLE)
+    {
         return StatusCode::ALREADY_CREATED;
+    }
 
     VkSemaphoreCreateInfo create_info = vulkan_helpers::gen_semaphore_create_info();
 
-    _vk_semaphore = _context.get_device()->create_semaphore(create_info);
+    _vk_semaphore = DeviceContext::instance().get_device()->create_semaphore(create_info);
 
     if(_vk_semaphore == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
 }

@@ -8,15 +8,13 @@
 namespace rend
 {
 
-class DeviceContext;
-
 #ifdef USE_VULKAN
 class SampledTexture : public VulkanSampledTexture
 #endif
 {
 public:
-    explicit SampledTexture(DeviceContext& context);
-    ~SampledTexture(void);
+    SampledTexture(void) = default;
+    ~SampledTexture(void) = default;
 
     SampledTexture(const SampledTexture&)            = delete;
     SampledTexture(SampledTexture&&)                 = delete;

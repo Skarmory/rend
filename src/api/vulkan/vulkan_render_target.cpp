@@ -4,16 +4,6 @@
 
 using namespace rend;
 
-
-VulkanRenderTarget::VulkanRenderTarget(DeviceContext& context)
-    : VulkanGPUTexture(context)
-{
-}
-
-VulkanRenderTarget::~VulkanRenderTarget(void)
-{
-}
-
 StatusCode VulkanRenderTarget::create_render_target_api(uint32_t width, uint32_t height, Format format)
 {
     VkExtent3D vk_extent               = VkExtent3D{ width, height, 1 };

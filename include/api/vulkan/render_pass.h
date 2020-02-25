@@ -10,13 +10,12 @@ namespace rend
 {
 
 class DepthBuffer;
-class DeviceContext;
 class RenderTarget;
 
 class RenderPass
 {
 public:
-    explicit RenderPass(DeviceContext& device);
+    RenderPass(void) = default;
     ~RenderPass(void);
 
     RenderPass(const RenderPass&)            = delete;
@@ -56,10 +55,9 @@ private:
         bool                               has_depth_stencil_attach { false };
     };
 
-    DeviceContext& _context;
-    std::vector<Subpass> _subpasses;
+    std::vector<Subpass>                 _subpasses;
     std::vector<VkAttachmentDescription> _vk_attach_descs;
-    VkRenderPass _vk_render_pass;
+    VkRenderPass                         _vk_render_pass { VK_NULL_HANDLE };
 };
 
 }

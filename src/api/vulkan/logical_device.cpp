@@ -11,8 +11,8 @@
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(const DeviceContext& context)
-    : _context(context),
+LogicalDevice::LogicalDevice(void)
+    :
       _physical_device(nullptr),
       _graphics_family(nullptr),
       _transfer_family(nullptr),
@@ -115,11 +115,6 @@ const QueueFamily* LogicalDevice::get_queue_family(QueueType type) const
     }
 
     return nullptr;
-}
-
-const DeviceContext& LogicalDevice::get_device_context(void) const
-{
-    return _context;
 }
 
 const PhysicalDevice& LogicalDevice::get_physical_device(void) const

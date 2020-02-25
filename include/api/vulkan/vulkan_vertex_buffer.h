@@ -12,13 +12,11 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class VulkanVertexBuffer : public VulkanGPUBuffer, public VertexBufferBase
 {
 public:
-    explicit VulkanVertexBuffer(DeviceContext& context);
-    ~VulkanVertexBuffer(void);
+    VulkanVertexBuffer(void) = default;
+    ~VulkanVertexBuffer(void) = default;
 
     VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
     VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
