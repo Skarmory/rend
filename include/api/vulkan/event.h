@@ -6,12 +6,10 @@
 namespace rend
 {
 
-class DeviceContext;
-
 class Event
 {
 public:
-    explicit Event(DeviceContext& context);
+    Event(void) = default;
     ~Event(void);
     Event(const Event&) = delete;
     Event(Event&&)      = delete;
@@ -23,8 +21,7 @@ public:
     VkEvent get_handle(void) const;
 
 private:
-    DeviceContext& _context;
-    VkEvent        _vk_event;
+    VkEvent _vk_event { VK_NULL_HANDLE };
 };
 
 }
