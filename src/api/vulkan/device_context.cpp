@@ -1,5 +1,6 @@
 #include "device_context.h"
 
+#include "gpu_memory_interface.h"
 #include "physical_device.h"
 #include "window.h"
 #include "vulkan_instance.h"
@@ -9,6 +10,7 @@
 
 using namespace rend;
 using namespace rend::core;
+using namespace rend::vkal::memory;
 
 DeviceContext::~DeviceContext(void)
 {
@@ -131,6 +133,8 @@ StatusCode DeviceContext::create_device(const VkQueueFlags desired_queues)
         return StatusCode::CONTEXT_DEVICE_CREATE_FAILURE;
     }
 
+    _memory_interface = new GPUMemoryInterface;
+    _memory_interface->create(*_chosen_gpu);
     _logical_device = _chosen_gpu->get_logical_device();
 
     return StatusCode::SUCCESS;

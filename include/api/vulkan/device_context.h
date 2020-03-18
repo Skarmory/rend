@@ -6,6 +6,11 @@
 #include <vulkan.h>
 #include <vector>
 
+namespace rend::vkal::memory
+{
+class GPUMemoryInterface;
+}
+
 namespace rend
 {
 
@@ -42,6 +47,7 @@ private:
 
 private:
     std::vector<PhysicalDevice*> _physical_devices;
+    rend::vkal::memory:: GPUMemoryInterface* _memory_interface  { nullptr };
     VulkanInstance*              _instance          { nullptr };
     LogicalDevice*               _logical_device    { nullptr };
     PhysicalDevice*              _chosen_gpu        { nullptr };
