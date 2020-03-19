@@ -70,16 +70,16 @@ struct ImageTransitionTask : public Task
 class Renderer
 {
 public:
-    Renderer(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
-    ~Renderer(void);
-
     Renderer(const Renderer&)            = delete;
     Renderer(Renderer&&)                 = delete;
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&)      = delete;
 
-    Swapchain*     get_swapchain(void) const;
-    RenderPass*    get_default_render_pass(void) const;
+    static Renderer& instance(void);
+    StatusCode create(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
+
+    Swapchain*  get_swapchain(void) const;
+    RenderPass* get_default_render_pass(void) const;
 
     // Resource functions
     void load(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset);
@@ -91,6 +91,9 @@ public:
     void resize_resources(void);
 
 private:
+    Renderer(void) = default;
+    ~Renderer(void);
+
     // Tasking
     void _process_task_queue(FrameResources& resources);
 
@@ -99,17 +102,15 @@ private:
     void _create_default_framebuffers(bool recreate);
 
 private:
-    Swapchain*      _swapchain;
-    CommandPool*    _command_pool;
-
+    Swapchain*                _swapchain { nullptr };
+    CommandPool*              _command_pool { nullptr };
     std::vector<Framebuffer*> _default_framebuffers;
-    DepthBuffer* _default_depth_buffer;
-    RenderPass* _default_render_pass;
+    DepthBuffer*              _default_depth_buffer { nullptr };
+    RenderPass*               _default_render_pass { nullptr };
+    std::queue<Task*>         _task_queue;
 
-    std::queue<Task*>       _task_queue;
-
-    uint32_t _frame_counter;
-    static const uint32_t _FRAMES_IN_FLIGHT = 2;
+    uint32_t                                      _frame_counter { 0 };
+    static const uint32_t                         _FRAMES_IN_FLIGHT { 2 };
     std::array<FrameResources, _FRAMES_IN_FLIGHT> _frame_resources;
 };
 

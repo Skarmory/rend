@@ -22,13 +22,41 @@
 
 using namespace rend;
 
-Renderer::Renderer(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
-    :
-      _swapchain(nullptr),
-      _command_pool(nullptr),
-      _default_depth_buffer(nullptr),
-      _default_render_pass(nullptr),
-      _frame_counter(0)
+Renderer::~Renderer(void)
+{
+    DeviceContext::instance().get_device()->wait_idle();
+
+    while(!_task_queue.empty())
+    {
+        delete _task_queue.front();
+        _task_queue.pop();
+    }
+
+    delete _default_depth_buffer;
+
+    for(Framebuffer* framebuffer : _default_framebuffers)
+        delete framebuffer;
+
+    delete _default_render_pass;
+
+    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
+    {
+        delete _frame_resources[idx].acquire_sem;
+        delete _frame_resources[idx].present_sem;
+        delete _frame_resources[idx].submit_fen;
+    }
+
+    delete _command_pool;
+    delete _swapchain;
+}
+
+Renderer& Renderer::instance(void)
+{
+    static Renderer s_renderer;
+    return s_renderer;
+}
+
+StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
 {
     auto& context = DeviceContext::instance();
     context.choose_gpu(desired_features);
@@ -56,34 +84,8 @@ Renderer::Renderer(const VkPhysicalDeviceFeatures& desired_features, const VkQue
         _frame_resources[idx].submit_fen->create_fence(true);
         _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
-}
 
-Renderer::~Renderer(void)
-{
-    DeviceContext::instance().get_device()->wait_idle();
-
-    while(!_task_queue.empty())
-    {
-        delete _task_queue.front();
-        _task_queue.pop();
-    }
-
-    delete _default_depth_buffer;
-
-    for(Framebuffer* framebuffer : _default_framebuffers)
-        delete framebuffer;
-
-    delete _default_render_pass;
-
-    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
-    {
-        delete _frame_resources[idx].acquire_sem;
-        delete _frame_resources[idx].present_sem;
-        delete _frame_resources[idx].submit_fen;
-    }
-
-    delete _command_pool;
-    delete _swapchain;
+    return StatusCode::SUCCESS;
 }
 
 Swapchain* Renderer::get_swapchain(void) const
