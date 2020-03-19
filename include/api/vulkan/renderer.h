@@ -7,6 +7,7 @@
 #include <vulkan.h>
 
 #include "rend_defs.h"
+#include "resource.h"
 
 namespace rend
 {
@@ -67,7 +68,7 @@ struct ImageTransitionTask : public Task
     virtual void execute(FrameResources& resources) override;
 };
 
-class Renderer
+class Renderer : public rend::core::Resource
 {
 public:
     Renderer(const Renderer&)            = delete;
@@ -77,6 +78,7 @@ public:
 
     static Renderer& instance(void);
     StatusCode create(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
+    StatusCode destroy(void);
 
     Swapchain*  get_swapchain(void) const;
     RenderPass* get_default_render_pass(void) const;
