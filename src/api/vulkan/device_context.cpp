@@ -29,6 +29,11 @@ PhysicalDevice* DeviceContext::gpu(void) const
     return _chosen_gpu;
 }
 
+GPUMemoryInterface* DeviceContext::memory_interface(void) const
+{
+    return _memory_interface;
+}
+
 LogicalDevice* DeviceContext::get_device(void) const
 {
     return _logical_device;
