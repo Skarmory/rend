@@ -32,6 +32,8 @@ struct MemHeap::__MemHeap
 MemHeap::__MemHeap::__MemHeap(size_t available_bytes)
     : _available_bytes(available_bytes)
 {
+    //TODO: Need to implement better data structure to avoid invalidated pointers
+    _mem_blocks.reserve(1024);
 }
 
 MemHeap::__MemHeap::__MemHeap(MemHeap::__MemHeap&& other)

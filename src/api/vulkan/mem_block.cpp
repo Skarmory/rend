@@ -18,7 +18,7 @@ using namespace rend::vkal::memory;
 
 struct MemBlock::__MemBlock
 {
-    __MemBlock(void) = default;
+    __MemBlock(void);
 
     __MemBlock(const __MemBlock&)          = delete;
     __MemBlock& operator=(const MemBlock&) = delete;
@@ -47,6 +47,12 @@ struct MemBlock::__MemBlock
     VkDeviceMemory        _vk_memory           { VK_NULL_HANDLE };
     std::vector<MemAlloc> _allocs;
 };
+
+MemBlock::__MemBlock::__MemBlock(void)
+{
+    //TODO: Need to implement better data structure to avoid invalidated pointers
+    _allocs.reserve(1024);
+}
 
 MemBlock::__MemBlock::__MemBlock(MemBlock::__MemBlock&& other)
 {
