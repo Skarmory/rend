@@ -41,7 +41,7 @@ class MemAllocatorBase
 {
 public:
     MemAllocatorBase(MemBlock& block);
-    ~MemAllocatorBase(void) = default;
+    virtual ~MemAllocatorBase(void) = default;
 
     virtual MemHandle allocate(size_t size_bytes) = 0;
     virtual void      deallocate(MemHandle handle) = 0;
