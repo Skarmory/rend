@@ -6,11 +6,6 @@
 #include <memory>
 #include <vulkan.h>
 
-namespace rend
-{
-class Renderer;
-}
-
 namespace rend::vkal::memory
 {
 
@@ -40,7 +35,7 @@ public:
     MemBlock(MemBlock&&);
     MemBlock& operator=(MemBlock&&);
 
-    StatusCode create(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     // Accessors
     bool   compatible(const VkMemoryRequirements& memory_reqs, VkMemoryPropertyFlags memory_props, const VkMemoryType& memory_type, ResourceUsage resource_usage);

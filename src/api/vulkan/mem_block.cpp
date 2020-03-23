@@ -32,13 +32,12 @@ struct MemBlock::__MemBlock
     size_t    capacity(void) const;
 
     // Mutators
-    StatusCode create(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
     MemAlloc*  create_mem_alloc(uint32_t offset, size_t size_bytes);
     bool       write(void* data, size_t size_bytes, uint32_t offset);
     bool       write(void* data, size_t size_bytes, uint32_t offset, void* resource);
 
     // Member variables
-    Renderer*             _renderer; // TODO: Singletonise this?
     size_t                _capacity_bytes      { 0 };
     size_t                _used_bytes          { 0 };
     ResourceUsage         _resource_usage      { NO_RESOURCE };
@@ -53,7 +52,6 @@ MemBlock::__MemBlock::__MemBlock(MemBlock::__MemBlock&& other)
 {
     if(this != &other)
     {
-        this->_renderer            = other._renderer;
         this->_capacity_bytes      = other._capacity_bytes;
         this->_used_bytes          = other._used_bytes;
         this->_resource_usage      = other._resource_usage;
@@ -63,7 +61,6 @@ MemBlock::__MemBlock::__MemBlock(MemBlock::__MemBlock&& other)
         this->_vk_memory           = other._vk_memory;
         this->_allocs              = std::move(other._allocs);
 
-        other._renderer            = nullptr;
         other._capacity_bytes      = 0;
         other._used_bytes          = 0;
         other._resource_usage      = NO_RESOURCE;
@@ -78,7 +75,6 @@ MemBlock::__MemBlock& MemBlock::__MemBlock::operator=(MemBlock::__MemBlock&& oth
 {
     if(this != &other)
     {
-        this->_renderer            = other._renderer;
         this->_capacity_bytes      = other._capacity_bytes;
         this->_used_bytes          = other._used_bytes;
         this->_resource_usage      = other._resource_usage;
@@ -88,7 +84,6 @@ MemBlock::__MemBlock& MemBlock::__MemBlock::operator=(MemBlock::__MemBlock&& oth
         this->_vk_memory           = other._vk_memory;
         this->_allocs              = std::move(other._allocs);
 
-        other._renderer            = nullptr;
         other._capacity_bytes      = 0;
         other._used_bytes          = 0;
         other._resource_usage      = NO_RESOURCE;
@@ -101,7 +96,7 @@ MemBlock::__MemBlock& MemBlock::__MemBlock::operator=(MemBlock::__MemBlock&& oth
     return *this;
 } 
 
-StatusCode MemBlock::__MemBlock::create(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+StatusCode MemBlock::__MemBlock::create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
     VkMemoryAllocateInfo info = vulkan_helpers::gen_memory_allocate_info();
     info.allocationSize       = block_size;
@@ -113,7 +108,6 @@ StatusCode MemBlock::__MemBlock::create(Renderer& renderer, size_t block_size, c
         return StatusCode::FAILURE;
     }
 
-    _renderer = &renderer;
     _capacity_bytes = block_size;
     _resource_usage = resource_usage;
     _memory_type = memory_type;
@@ -157,7 +151,8 @@ bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset)
 
 bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset, void* resource)
 {
-    _renderer->load(resource, _resource_usage, data, size_bytes, offset);
+    auto& renderer = Renderer::instance();
+    renderer.load(resource, _resource_usage, data, size_bytes, offset);
     _used_bytes += size_bytes;
     return true;
 }
@@ -191,11 +186,10 @@ MemBlock& MemBlock::operator=(MemBlock&& other)
     return *this;
 }
 
-// TODO: Get rid of renderer dep injection
-StatusCode MemBlock::create(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+StatusCode MemBlock::create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
     _ = std::make_unique<__MemBlock>();
-    _->create(renderer, block_size, memory_requirements, memory_properties, memory_type, resource_usage);
+    _->create(block_size, memory_requirements, memory_properties, memory_type, resource_usage);
 
     return StatusCode::SUCCESS;
 }

@@ -33,7 +33,7 @@ public:
     MemHeap(MemHeap&& other);
     MemHeap& operator=(MemHeap&& other);
 
-    MemBlock* create_block(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlock* create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
     MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 };
 

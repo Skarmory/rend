@@ -21,7 +21,7 @@ struct MemHeap::__MemHeap
     __MemHeap(__MemHeap&& other);
     __MemHeap& operator=(__MemHeap&& other);
 
-    MemBlock* create_block(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlock* create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
     MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     size_t                _available_bytes { 0 };
@@ -56,12 +56,11 @@ MemHeap::__MemHeap& MemHeap::__MemHeap::operator=(MemHeap::__MemHeap&& other)
     return *this;
 }
 
-// TODO: Get rid of renderer dep injection
-MemBlock* MemHeap::__MemHeap::create_block(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+MemBlock* MemHeap::__MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
     MemBlock& block = _mem_blocks.emplace_back();
 
-    if(block.create(renderer, block_size, memory_requirements, memory_properties, memory_type, resource_usage) != StatusCode::SUCCESS)
+    if(block.create(block_size, memory_requirements, memory_properties, memory_type, resource_usage) != StatusCode::SUCCESS)
     {
         return &block;
     }
@@ -114,9 +113,9 @@ MemHeap& MemHeap::operator=(MemHeap&& other)
     return *this;
 }
 
-MemBlock* MemHeap::create_block(Renderer& renderer, size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+MemBlock* MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
-    return _->create_block(renderer, block_size, memory_requirements, memory_properties, memory_type, resource_usage);
+    return _->create_block(block_size, memory_requirements, memory_properties, memory_type, resource_usage);
 }
 
 MemBlock* MemHeap::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
