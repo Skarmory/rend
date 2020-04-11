@@ -10,6 +10,42 @@ namespace rend::core
 
 typedef uint32_t DataArrayHandle;
 
+static const DataArrayHandle invalid_handle { UINT_MAX };
+
+template<class DataItemType>
+class DataArray;
+
+template<class DataItemType>
+class DataAccessor
+{
+public:
+    DataAccessor(DataArrayHandle handle, DataArray<DataItemType>& array)
+        : _handle(handle)
+        , _array(&array)
+    {
+    }
+
+    DataItemType* operator->(void)
+    {
+        return _array->get(_handle);
+    }
+
+    DataItemType& operator*(void)
+    {
+        return *_array->get(_handle);
+    }
+
+    void release(void)
+    {
+        _array->deallocate(_handle);
+        _handle = invalid_handle;
+    }
+
+private:
+    DataArrayHandle          _handle;
+    DataArray<DataItemType>* _array;
+};
+
 template<class DataItemType>
 class DataArray
 {
@@ -56,6 +92,8 @@ public:
             return;
         }
 
+        item.data.~DataItemType();
+
         item.handle = _free_head;
         _free_head = idx;
 
@@ -76,6 +114,19 @@ public:
         }
 
         return &item.data;
+    }
+
+    bool check_valid(DataArrayHandle handle)
+    {
+        uint32_t idx = _get_idx(handle);
+        if(idx > _capacity)
+        {
+            return false;
+        }
+
+        const auto& item = _items[idx];
+
+        return _get_key(handle) == _get_key(item.handle);
     }
 
     DataArray(const DataArray&)            = delete;
@@ -108,7 +159,6 @@ private:
 
 /* Data */
 public:
-    static const DataArrayHandle invalid_handle { UINT_MAX };
     static const DataArrayHandle idx_mask       { 0xffff };
     static const DataArrayHandle key_mask       { 0xffff0000 };
 
@@ -128,6 +178,12 @@ private:
 
     static const size_t   _c_default_capacity { 1024 };
 };
+
+template<class DataItemType>
+DataAccessor<DataItemType> make_accessor(DataArray<DataItemType>& array)
+{
+    return { array.allocate(), array };
+}
 
 }
 
