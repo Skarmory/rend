@@ -6,6 +6,7 @@
 #include <cassert>
 
 using namespace rend;
+using namespace rend::core;
 using namespace rend::vkal;
 using namespace rend::vkal::memory;
 
@@ -25,18 +26,13 @@ StatusCode GPUMemoryInterface::create(const PhysicalDevice& gpu)
     return StatusCode::SUCCESS;
 }
 
-MemBlock* GPUMemoryInterface::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, ResourceUsage resource_usage)
+MemBlockAccessor GPUMemoryInterface::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, ResourceUsage resource_usage)
 {
-    VkMemoryType type = _find_memory_type(memory_requirements.memoryTypeBits, memory_properties);
-    if(type.heapIndex == VK_MAX_MEMORY_HEAPS)
-    {
-        // No memory type found -- this is what we like to call critically bad
-        // TODO: Logging? RIPing?
-        return nullptr;
-    }
+    VkMemoryType memory_type = _find_memory_type(memory_requirements.memoryTypeBits, memory_properties);
 
-    MemHeap*  heap  = &_heaps[type.heapIndex];
-    MemBlock* block = heap->find_block(memory_requirements, memory_properties, type, resource_usage);
+    MemHeap* heap  = &_heaps[memory_type.heapIndex];
+    //MemBlock* block = heap->find_block(memory_requirements, memory_properties, type, resource_usage);
+    MemBlockAccessor block = heap->create_block(block_size, memory_requirements, memory_properties, memory_type, resource_usage);
 
     return block;
 }
