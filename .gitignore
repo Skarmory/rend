@@ -1,3 +1,7 @@
 *.so
 *.o
 *.d
+rend/*
+*3rd*
+.vs
+*.sln
