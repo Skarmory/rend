@@ -9,6 +9,7 @@ namespace rend::vkal::memory
 {
 
 class MemAlloc;
+class MemAllocatorBase;
 class MemBlock;
 
 /*
@@ -20,18 +21,18 @@ class MemHandle
     friend class PoolAllocator;
 
 public:
-    MemHandle(MemAlloc& alloc, uint32_t index);
+    MemHandle(MemAllocatorBase& allocator, size_t index);
     ~MemHandle(void) = default;
 
     MemAlloc* operator->(void);
 
-    uint32_t generation(void) const;
-    uint32_t index(void) const;
+    size_t generation(void) const;
+    size_t index(void) const;
 
 private:
-    uint32_t  _generation { 0 };
-    uint32_t  _index      { 0 };
-    MemAlloc* _allocation { nullptr };
+    MemAllocatorBase* _allocator  { nullptr };
+    size_t            _generation { 0 };
+    size_t            _index      { 0 };
 };
 
 /*
@@ -46,6 +47,8 @@ public:
     virtual MemHandle allocate(size_t size_bytes) = 0;
     virtual void      deallocate(MemHandle handle) = 0;
     MemBlock*         block(void) const;
+
+    MemAlloc* get_alloc(size_t index);
 
 protected:
     std::vector<MemHandle> _handles;

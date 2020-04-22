@@ -10,23 +10,23 @@ using namespace rend::vkal::memory;
 
 /* ----- MemHandle ----- */
 
-MemHandle::MemHandle(MemAlloc& alloc, uint32_t index)
-    : _index(index)
-    , _allocation(&alloc)
+MemHandle::MemHandle(MemAllocatorBase& allocator, size_t index)
+    : _allocator(&allocator)
+    , _index(index)
 {
 }
 
 MemAlloc* MemHandle::operator->(void)
 {
-    return _allocation;
+    return _allocator->get_alloc(_index);
 }
 
-uint32_t MemHandle::generation(void) const
+size_t MemHandle::generation(void) const
 {
     return _generation;
 }
 
-uint32_t MemHandle::index(void) const
+size_t MemHandle::index(void) const
 {
     return _index;
 }
@@ -41,6 +41,11 @@ MemAllocatorBase::MemAllocatorBase(MemBlock& block)
 MemBlock* MemAllocatorBase::block(void) const
 {
     return _block;
+}
+
+MemAlloc* MemAllocatorBase::get_alloc(size_t index)
+{
+    return _block->get_alloc(index);
 }
 
 /* ----- PoolAllocator ----- */
@@ -59,13 +64,13 @@ PoolAllocator::PoolAllocator(MemBlock& block, size_t alloc_size)
     // Create mem allocs and a free list of indices
     for(uint32_t idx = 0; idx < allocs_count; ++idx)
     {
-        _handles.push_back(MemHandle(*block.create_mem_alloc(offset, alloc_size), idx));
+        _handles.push_back(MemHandle(*this, block.create_mem_alloc(offset, alloc_size)));
         _free_list.push_back(idx);
         offset += alloc_size;
     }
 }
 
-MemHandle PoolAllocator::allocate(size_t bytes)
+MemHandle PoolAllocator::allocate([[maybe_unused]] size_t bytes)
 {
     assert(!_free_list.empty() && "Pool allocator is out of free allocs!");
 
