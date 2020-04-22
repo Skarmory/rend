@@ -1,5 +1,5 @@
 CC=g++
-CPPFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -Iinclude/core -DGLFW_WINDOW
+CPPFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -Iinclude/core -Iinclude/core/data_structures -DGLFW_WINDOW
 LDFLAGS=-lglfw -DGLFW_WINDOW
 NAME=librend.so
 
