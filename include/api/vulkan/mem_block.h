@@ -1,6 +1,7 @@
 #ifndef REND_MEM_BLOCK_H
 #define REND_MEM_BLOCK_H
 
+#include "data_array.h"
 #include "rend_defs.h"
 
 #include <memory>
@@ -12,6 +13,8 @@ namespace rend::vkal::memory
 class MemAlloc;
 class MemAllocStrategy;
 class MemHeap;
+
+typedef rend::core::DataAccessor<MemAlloc> MemAllocAccessor;
 
 /**
  * Holds info about a block of GPU memory.
@@ -38,13 +41,13 @@ public:
     StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     // Accessors
-    bool   compatible(const VkMemoryRequirements& memory_reqs, VkMemoryPropertyFlags memory_props, const VkMemoryType& memory_type, ResourceUsage resource_usage);
-    size_t capacity(void) const;
+    size_t           capacity(void) const;
+    bool             compatible(const VkMemoryRequirements& memory_reqs, VkMemoryPropertyFlags memory_props, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     // Mutators
-    MemAlloc* create_mem_alloc(uint32_t offset, size_t size_bytes);
-    bool      write(void* data, size_t size_bytes, uint32_t offset);
-    bool      write(void* data, size_t size_bytes, uint32_t offset, void* resource);
+    MemAllocAccessor create_mem_alloc(uint32_t offset, size_t size_bytes);
+    bool             write(void* data, size_t size_bytes, uint32_t offset);
+    bool             write(void* data, size_t size_bytes, uint32_t offset, void* resource);
 };
 
 }

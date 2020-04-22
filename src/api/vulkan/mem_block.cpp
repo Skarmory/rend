@@ -33,7 +33,7 @@ struct MemBlock::__MemBlock
 
     // Mutators
     StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
-    MemAlloc*  create_mem_alloc(uint32_t offset, size_t size_bytes);
+    size_t     create_mem_alloc(uint32_t offset, size_t size_bytes);
     bool       write(void* data, size_t size_bytes, uint32_t offset);
     bool       write(void* data, size_t size_bytes, uint32_t offset, void* resource);
 
@@ -45,13 +45,11 @@ struct MemBlock::__MemBlock
     VkMemoryRequirements  _memory_requirements { };
     VkMemoryPropertyFlags _memory_properties   { 0 };
     VkDeviceMemory        _vk_memory           { VK_NULL_HANDLE };
-    std::vector<MemAlloc> _allocs;
+    DataArray<MemAlloc>   _allocs;
 };
 
 MemBlock::__MemBlock::__MemBlock(void)
 {
-    //TODO: Need to implement better data structure to avoid invalidated pointers
-    _allocs.reserve(1024);
 }
 
 MemBlock::__MemBlock::__MemBlock(MemBlock::__MemBlock&& other)
@@ -123,6 +121,11 @@ StatusCode MemBlock::__MemBlock::create(size_t block_size, const VkMemoryRequire
     return StatusCode::SUCCESS;
 }
 
+size_t MemBlock::__MemBlock::capacity(void) const
+{
+    return _capacity_bytes;
+}
+
 bool MemBlock::__MemBlock::compatible(const VkMemoryRequirements& memory_requirements, VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage) const
 {
     return ((resource_usage == _resource_usage) &&
@@ -131,15 +134,9 @@ bool MemBlock::__MemBlock::compatible(const VkMemoryRequirements& memory_require
             (memory_requirements.alignment == _memory_requirements.alignment));
 }
 
-size_t MemBlock::__MemBlock::capacity(void) const
+MemAllocAccessor MemBlock::__MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
 {
-    return _capacity_bytes;
-}
-
-MemAlloc* MemBlock::__MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
-{
-    _allocs.emplace_back(offset, size_bytes);
-    return &_allocs.back();
+    return make_accessor(_allocs);
 }
 
 bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset)
@@ -210,7 +207,7 @@ size_t MemBlock::capacity(void) const
     return _->_capacity_bytes;
 }
 
-MemAlloc* MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
+MemAllocAccessor MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
 {
     return _->create_mem_alloc(offset, size_bytes);
 }
