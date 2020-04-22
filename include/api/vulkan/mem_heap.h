@@ -1,17 +1,21 @@
 #ifndef REND_MEM_HEAP_H
 #define REND_MEM_HEAP_H
 
+#include "data_array.h"
 #include "rend_defs.h"
 
 #include <memory>
 #include <vector>
 #include <vulkan.h>
 
+
 namespace rend::vkal::memory
 {
 
 class MemBlock; 
 class Renderer;
+
+typedef rend::core::DataAccessor<MemBlock> MemBlockAccessor;
 
 /*
  * Abstraction of a Vulkan memory heap.
@@ -33,8 +37,8 @@ public:
     MemHeap(MemHeap&& other);
     MemHeap& operator=(MemHeap&& other);
 
-    MemBlock* create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
-    MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlockAccessor create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    //MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 };
 
 }

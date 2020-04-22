@@ -1,10 +1,12 @@
 #include "mem_heap.h"
 
+#include "data_array.h"
 #include "mem_block.h"
 
 #include <cassert>
 
 using namespace rend;
+using namespace rend::core;
 using namespace rend::vkal;
 using namespace rend::vkal::memory;
 
@@ -21,19 +23,17 @@ struct MemHeap::__MemHeap
     __MemHeap(__MemHeap&& other);
     __MemHeap& operator=(__MemHeap&& other);
 
-    MemBlock* create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
-    MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlockAccessor create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    //MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
-    size_t                _available_bytes { 0 };
-    size_t                _used_bytes      { 0 };
-    std::vector<MemBlock> _mem_blocks;
+    size_t              _available_bytes { 0 };
+    size_t              _used_bytes      { 0 };
+    DataArray<MemBlock> _mem_blocks;
 };
 
 MemHeap::__MemHeap::__MemHeap(size_t available_bytes)
     : _available_bytes(available_bytes)
 {
-    //TODO: Need to implement better data structure to avoid invalidated pointers
-    _mem_blocks.reserve(1024);
 }
 
 MemHeap::__MemHeap::__MemHeap(MemHeap::__MemHeap&& other)
@@ -58,32 +58,35 @@ MemHeap::__MemHeap& MemHeap::__MemHeap::operator=(MemHeap::__MemHeap&& other)
     return *this;
 }
 
-MemBlock* MemHeap::__MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+MemBlockAccessor MemHeap::__MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
-    MemBlock& block = _mem_blocks.emplace_back();
+    //MemBlock& block = _mem_blocks.emplace_back()/////;
 
-    if(block.create(block_size, memory_requirements, memory_properties, memory_type, resource_usage) != StatusCode::SUCCESS)
+    MemBlockAccessor block = make_accessor(_mem_blocks);
+
+    if(block->create(block_size, memory_requirements, memory_properties, memory_type, resource_usage) == StatusCode::SUCCESS)
     {
-        return &block;
+        return block;
     }
 
     assert(true && "Memory error: Failed to create MemBlock");
 
-    return nullptr;
+    block.release();
+    return block;
 }
 
-MemBlock* MemHeap::__MemHeap::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
-{
-    for(MemBlock& block : _mem_blocks)
-    {
-        if(block.compatible(memory_requirements, memory_properties, memory_type, resource_usage))
-        {
-            return &block;
-        }
-    }
-
-    return nullptr;
-}
+//MemBlock* MemHeap::__MemHeap::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+//{
+//    for(MemBlock& block : _mem_blocks)
+//    {
+//        if(block.compatible(memory_requirements, memory_properties, memory_type, resource_usage))
+//        {
+//            return &block;
+//        }
+//    }
+//
+//    return nullptr;
+//}
 
 /* ----- MemHeap -----*/
 
@@ -115,12 +118,12 @@ MemHeap& MemHeap::operator=(MemHeap&& other)
     return *this;
 }
 
-MemBlock* MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+DataAccessor<MemBlock> MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
     return _->create_block(block_size, memory_requirements, memory_properties, memory_type, resource_usage);
 }
 
-MemBlock* MemHeap::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
-{
-    return _->find_block(memory_requirements, memory_properties, memory_type, resource_usage);
-}
+//MemBlock* MemHeap::find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+//{
+//    return _->find_block(memory_requirements, memory_properties, memory_type, resource_usage);
+//}
