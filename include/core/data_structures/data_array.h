@@ -4,6 +4,7 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 
 namespace rend::core
 {
@@ -53,7 +54,7 @@ public:
     DataArray(size_t capacity)
         : _capacity(capacity)
     {
-        _items = new DataArrayItem[capacity];
+        _items = static_cast<DataArrayItem*>(malloc(sizeof(DataArrayItem) * capacity));
     }
 
     DataArray(void)
@@ -63,18 +64,19 @@ public:
 
     ~DataArray(void)
     {
-        delete[] _items;
+        free(_items);
     }
 
     DataArrayHandle allocate(void)
     {
         uint32_t idx = _next_idx();
-        if( idx == invalid_handle)
+        if (idx == invalid_handle)
         {
             return invalid_handle;
         }
 
         DataArrayItem& item = _items[idx];
+        new (&item.data) DataItemType();
         item.handle = _make_handle(idx);
         ++_count;
 
@@ -87,7 +89,7 @@ public:
         uint32_t idx = _get_idx(handle);
 
         DataArrayItem& item = _items[idx];
-        if(key != _get_key(item.handle))
+        if (key != _get_key(item.handle))
         {
             return;
         }
@@ -108,7 +110,7 @@ public:
 
         DataArrayItem& item = _items[idx];
 
-        if(key != _get_key(item.handle))
+        if (key != _get_key(item.handle))
         {
             return nullptr;
         }
@@ -119,7 +121,7 @@ public:
     bool check_valid(DataArrayHandle handle)
     {
         uint32_t idx = _get_idx(handle);
-        if(idx > _capacity)
+        if (idx > _capacity)
         {
             return false;
         }
@@ -130,9 +132,49 @@ public:
     }
 
     DataArray(const DataArray&)            = delete;
-    DataArray(DataArray&&)                 = delete;
     DataArray& operator=(const DataArray&) = delete;
-    DataArray& operator=(DataArray&&)      = delete;
+
+    DataArray(DataArray&& other)
+    {
+        if (this != &other)
+        {
+            _items     = other._items;
+            _capacity  = other._capacity;
+            _max_used  = other._max_used;
+            _count     = other._count;
+            _next_key  = other._next_key;
+            _free_head = other._free_head;
+
+            other._items     = nullptr;
+            other._capacity  = 0;
+            other._max_used  = 0;
+            other._count     = 0;
+            other._next_key  = 1;
+            other._free_head = invalid_handle;
+        }
+    }
+
+    DataArray& operator=(DataArray&& other)
+    {
+        if (this != &other)
+        {
+            _items     = other._items;
+            _capacity  = other._capacity;
+            _max_used  = other._max_used;
+            _count     = other._count;
+            _next_key  = other._next_key;
+            _free_head = other._free_head;
+
+            other._items     = nullptr;
+            other._capacity  = 0;
+            other._max_used  = 0;
+            other._count     = 0;
+            other._next_key  = 1;
+            other._free_head = invalid_handle;
+        }
+
+        return *this;
+    }
 
 private:
    inline DataArrayHandle _get_key(DataArrayHandle handle) const { return handle & key_mask; }
@@ -143,7 +185,7 @@ private:
    {
        uint32_t idx { invalid_handle };
 
-        if(_free_head != invalid_handle)
+        if (_free_head != invalid_handle)
         {
             idx = _free_head;
             _free_head = _get_idx(_items[idx].handle);
