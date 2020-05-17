@@ -20,11 +20,8 @@ class MemAllocatorBase;
  */
 class MemAlloc
 {
-    friend class MemAllocatorBase;
-
 public:
-    MemAlloc(void) = default;
-    MemAlloc(uint32_t offset, size_t bytes);
+    MemAlloc(MemAllocatorBase& owner, uint32_t offset, size_t bytes);
     ~MemAlloc(void);
 
     MemAlloc(const MemAlloc& other)            = default;
@@ -36,14 +33,10 @@ public:
     size_t   size(void) const { return _size_bytes; }
     uint32_t offset(void) const { return _offset; }
 
-    // Mutators
-    bool write(void* data, size_t size_bytes);
-    bool write(void* data, size_t size_bytes, void* resource);
-
 private:
     uint32_t          _offset     { 0 };
     size_t            _size_bytes { 0 };
-    MemAllocatorBase* _allocator  { nullptr };
+    MemAllocatorBase* _owner      { nullptr };
 };
 
 }
