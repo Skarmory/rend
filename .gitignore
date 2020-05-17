@@ -5,3 +5,4 @@ rend/*
 *3rd*
 .vs
 *.sln
+/Win32/
