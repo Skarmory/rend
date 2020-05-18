@@ -48,7 +48,7 @@ struct Task
 struct LoadTask : public Task
 {
     void*         resource       { nullptr };
-    ResourceUsage resource_usage { NO_RESOURCE };
+    ResourceUsage resource_usage { ResourceUsage::NO_RESOURCE };
     void*         data           { nullptr };
     size_t        size_bytes     { 0 };
     uint32_t      offset         { 0 };
