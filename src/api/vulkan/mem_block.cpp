@@ -1,5 +1,6 @@
 #include "mem_block.h"
 
+#include "data_structures/data_array.h"
 #include "device_context.h"
 #include "logical_device.h"
 #include "mem_alloc.h"
@@ -11,6 +12,7 @@
 #include <vector>
 
 using namespace rend;
+using namespace rend::core;
 using namespace rend::vkal;
 using namespace rend::vkal::memory;
 
@@ -29,23 +31,20 @@ struct MemBlock::__MemBlock
 
     // Accessors
     bool      compatible(const VkMemoryRequirements& memory_reqs, VkMemoryPropertyFlags memory_props, const VkMemoryType& memory_type_index, ResourceUsage resource_usage) const;
-    size_t    capacity(void) const;
+    size_t    bytes(void) const;
 
     // Mutators
     StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
-    size_t     create_mem_alloc(uint32_t offset, size_t size_bytes);
     bool       write(void* data, size_t size_bytes, uint32_t offset);
     bool       write(void* data, size_t size_bytes, uint32_t offset, void* resource);
 
     // Member variables
-    size_t                _capacity_bytes      { 0 };
-    size_t                _used_bytes          { 0 };
-    ResourceUsage         _resource_usage      { NO_RESOURCE };
+    size_t                _bytes               { 0 };
+    ResourceUsage         _resource_usage      { ResourceUsage::NO_RESOURCE };
     VkMemoryType          _memory_type         { };
     VkMemoryRequirements  _memory_requirements { };
     VkMemoryPropertyFlags _memory_properties   { 0 };
     VkDeviceMemory        _vk_memory           { VK_NULL_HANDLE };
-    DataArray<MemAlloc>   _allocs;
 };
 
 MemBlock::__MemBlock::__MemBlock(void)
@@ -56,18 +55,15 @@ MemBlock::__MemBlock::__MemBlock(MemBlock::__MemBlock&& other)
 {
     if(this != &other)
     {
-        this->_capacity_bytes      = other._capacity_bytes;
-        this->_used_bytes          = other._used_bytes;
+        this->_bytes               = other._bytes;
         this->_resource_usage      = other._resource_usage;
         this->_memory_type         = other._memory_type;
         this->_memory_requirements = other._memory_requirements;
         this->_memory_properties   = other._memory_properties;
         this->_vk_memory           = other._vk_memory;
-        this->_allocs              = std::move(other._allocs);
 
-        other._capacity_bytes      = 0;
-        other._used_bytes          = 0;
-        other._resource_usage      = NO_RESOURCE;
+        other._bytes               = 0;
+        other._resource_usage      = ResourceUsage::NO_RESOURCE;
         other._memory_type         = {};
         other._memory_requirements = {};
         other._memory_properties   = 0;
@@ -79,18 +75,15 @@ MemBlock::__MemBlock& MemBlock::__MemBlock::operator=(MemBlock::__MemBlock&& oth
 {
     if(this != &other)
     {
-        this->_capacity_bytes      = other._capacity_bytes;
-        this->_used_bytes          = other._used_bytes;
+        this->_bytes               = other._bytes;
         this->_resource_usage      = other._resource_usage;
         this->_memory_type         = other._memory_type;
         this->_memory_requirements = other._memory_requirements;
         this->_memory_properties   = other._memory_properties;
         this->_vk_memory           = other._vk_memory;
-        this->_allocs              = std::move(other._allocs);
 
-        other._capacity_bytes      = 0;
-        other._used_bytes          = 0;
-        other._resource_usage      = NO_RESOURCE;
+        other._bytes               = 0;
+        other._resource_usage      = ResourceUsage::NO_RESOURCE;
         other._memory_type         = {};
         other._memory_requirements = {};
         other._memory_properties   = 0;
@@ -112,7 +105,7 @@ StatusCode MemBlock::__MemBlock::create(size_t block_size, const VkMemoryRequire
         return StatusCode::FAILURE;
     }
 
-    _capacity_bytes = block_size;
+    _bytes = block_size;
     _resource_usage = resource_usage;
     _memory_type = memory_type;
     _memory_requirements = memory_requirements;
@@ -121,9 +114,9 @@ StatusCode MemBlock::__MemBlock::create(size_t block_size, const VkMemoryRequire
     return StatusCode::SUCCESS;
 }
 
-size_t MemBlock::__MemBlock::capacity(void) const
+size_t MemBlock::__MemBlock::bytes(void) const
 {
-    return _capacity_bytes;
+    return _bytes;
 }
 
 bool MemBlock::__MemBlock::compatible(const VkMemoryRequirements& memory_requirements, VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage) const
@@ -134,11 +127,6 @@ bool MemBlock::__MemBlock::compatible(const VkMemoryRequirements& memory_require
             (memory_requirements.alignment == _memory_requirements.alignment));
 }
 
-MemAllocAccessor MemBlock::__MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
-{
-    return make_accessor(_allocs);
-}
-
 bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset)
 {
     // TODO: Check size can fit
@@ -147,8 +135,6 @@ bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset)
     memcpy(mapped, data, size_bytes);
     DeviceContext::instance().get_device()->unmap_memory(_vk_memory);
 
-    _used_bytes += size_bytes;
-
     return true;
 }
 
@@ -156,7 +142,6 @@ bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset,
 {
     auto& renderer = Renderer::instance();
     renderer.load(resource, _resource_usage, data, size_bytes, offset);
-    _used_bytes += size_bytes;
     return true;
 }
 
@@ -202,14 +187,9 @@ bool MemBlock::compatible(const VkMemoryRequirements& memory_requirements, VkMem
     return _->compatible(memory_requirements, memory_properties, memory_type, resource_usage);
 }
 
-size_t MemBlock::capacity(void) const
+size_t MemBlock::bytes(void) const
 {
-    return _->_capacity_bytes;
-}
-
-MemAllocAccessor MemBlock::create_mem_alloc(uint32_t offset, size_t size_bytes)
-{
-    return _->create_mem_alloc(offset, size_bytes);
+    return _->_bytes;
 }
 
 bool MemBlock::write(void* data, size_t size_bytes, uint32_t offset)

@@ -14,8 +14,6 @@ class MemAlloc;
 class MemAllocStrategy;
 class MemHeap;
 
-typedef rend::core::DataAccessor<MemAlloc> MemAllocAccessor;
-
 /**
  * Holds info about a block of GPU memory.
  * Creates MemAlloc instances from the GPU memory in a pooled manner.
@@ -41,11 +39,10 @@ public:
     StatusCode create(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     // Accessors
-    size_t           capacity(void) const;
+    size_t           bytes(void) const;
     bool             compatible(const VkMemoryRequirements& memory_reqs, VkMemoryPropertyFlags memory_props, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     // Mutators
-    MemAllocAccessor create_mem_alloc(uint32_t offset, size_t size_bytes);
     bool             write(void* data, size_t size_bytes, uint32_t offset);
     bool             write(void* data, size_t size_bytes, uint32_t offset, void* resource);
 };
