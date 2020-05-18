@@ -247,7 +247,7 @@ struct Synchronisation
     MemoryAccesses accesses;
 };
 
-enum ResourceUsage : uint32_t
+enum class ResourceUsage : uint32_t
 {
     NO_RESOURCE    = 0,
 
