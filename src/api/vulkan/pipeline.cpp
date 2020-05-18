@@ -240,7 +240,7 @@ void Pipeline::set_back_stencil(StencilOp fail_op, StencilOp success_op, Stencil
     _stencil_op_state_back.reference = reference;
 }
 
-void Pipeline::set_depth_bounds(uint32_t min, uint32_t max)
+void Pipeline::set_depth_bounds(float min, float max)
 {
     _min_depth_bound = min;
     _max_depth_bound = max;

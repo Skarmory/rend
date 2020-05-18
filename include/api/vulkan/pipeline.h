@@ -73,7 +73,7 @@ public:
     void set_stencil_test(bool enable);
     void set_front_stencil(StencilOp fail_op, StencilOp success_op, StencilOp depth_fail_op, CompareOp comp_op, uint32_t comp_mask, uint32_t write_mask, uint32_t reference);
     void set_back_stencil(StencilOp fail_op, StencilOp success_op, StencilOp depth_fail_op, CompareOp comp_op, uint32_t comp_mask, uint32_t write_mask, uint32_t reference);
-    void set_depth_bounds(uint32_t min, uint32_t max);
+    void set_depth_bounds(float min, float max);
 
     // Colour Blend State
     void set_logic_op(bool enable, LogicOp op);
@@ -177,8 +177,8 @@ private:
     bool           _stencil_test_enable { false };
     StencilOpState _stencil_op_state_front { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
     StencilOpState _stencil_op_state_back { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
-    uint32_t       _min_depth_bound { 0 };
-    uint32_t       _max_depth_bound { 1 };
+    float          _min_depth_bound { 0.0f };
+    float          _max_depth_bound { 1.0f };
 
     // Colour blend settings
     bool    _logic_op_enable { false };

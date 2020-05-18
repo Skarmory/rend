@@ -167,7 +167,7 @@ bool VulkanGPUTexture::_alloc_vk_memory(VkMemoryPropertyFlags memory_properties)
     if(_vk_memory == VK_NULL_HANDLE)
         return false;
 
-    _bytes = memory_reqs.size;
+    _bytes = static_cast<size_t>(memory_reqs.size);
 
     return true;
 }

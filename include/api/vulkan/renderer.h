@@ -31,12 +31,12 @@ class VertexBuffer;
 struct FrameResources
 {
     std::vector<UniformBuffer*> staging_buffers;
-    uint32_t                    swapchain_idx;
-    CommandBuffer*              command_buffer;
-    Semaphore*                  acquire_sem;
-    Semaphore*                  present_sem;
-    Fence*                      submit_fen;
-    Framebuffer*                framebuffer;
+    uint32_t                    swapchain_idx{ 0xdeadbeef };
+    CommandBuffer*              command_buffer{ nullptr };
+    Semaphore*                  acquire_sem{ nullptr };
+    Semaphore*                  present_sem{ nullptr };
+    Fence*                      submit_fen{ nullptr };
+    Framebuffer*                framebuffer{ nullptr };
 };
 
 struct Task

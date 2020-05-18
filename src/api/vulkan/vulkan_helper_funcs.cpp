@@ -738,8 +738,10 @@ VkSwapchainCreateInfoKHR vulkan_helpers::gen_swapchain_create_info(void)
 
 const char* vulkan_helpers::stringify(VkImageLayout layout)
 {
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
+#endif
     switch(layout)
     {
         case VK_IMAGE_LAYOUT_UNDEFINED: return "VK_IMAGE_LAYOUT_UNDEFINED";
@@ -760,7 +762,9 @@ const char* vulkan_helpers::stringify(VkImageLayout layout)
         case VK_IMAGE_LAYOUT_RANGE_SIZE: return "VK_IMAGE_LAYOUT_RANGE_SIZE";
         case VK_IMAGE_LAYOUT_MAX_ENUM: return "VK_IMAGE_LAYOUT_MAX_ENUM";
     }
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
     return "Unknown VkImageLayout";
 }

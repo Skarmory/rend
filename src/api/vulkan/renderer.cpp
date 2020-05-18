@@ -331,8 +331,10 @@ void ImageTransitionTask::execute(FrameResources& resources)
         }
     };
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
+#endif
 
     switch(image->get_layout())
     {
@@ -393,7 +395,9 @@ void ImageTransitionTask::execute(FrameResources& resources)
             std::cerr << "Transition: new layout is unsupported" << std::endl;
             return;
     }
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
     resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
