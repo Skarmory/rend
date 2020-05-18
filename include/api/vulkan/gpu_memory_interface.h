@@ -32,8 +32,8 @@ public:
     GPUMemoryInterface& operator=(const GPUMemoryInterface&) = delete;
     GPUMemoryInterface& operator=(GPUMemoryInterface&&)      = delete;
 
-    StatusCode                         create(const PhysicalDevice& gpu);
-    MemBlockAccessor create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, ResourceUsage resource_usage);
+    StatusCode     create(const PhysicalDevice& gpu);
+    MemBlockHandle create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, ResourceUsage resource_usage);
 
 private:
     VkMemoryType _find_memory_type(uint32_t memory_types, VkMemoryPropertyFlags props);
