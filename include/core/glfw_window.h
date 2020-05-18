@@ -43,7 +43,7 @@ private:
 
 #ifdef USE_VULKAN
     VulkanInstance* _vulkan_instance { nullptr };
-    VkSurfaceKHR    _vk_surface      { nullptr };
+    VkSurfaceKHR    _vk_surface      { VK_NULL_HANDLE };
 #endif
 };
 
