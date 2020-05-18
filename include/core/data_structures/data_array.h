@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <utility>
 
 namespace rend::core
 {
@@ -20,6 +21,7 @@ template<class DataItemType>
 class DataAccessor
 {
 public:
+    DataAccessor(void) {}
     DataAccessor(DataArrayHandle handle, DataArray<DataItemType>& array)
         : _handle(handle)
         , _array(&array)
@@ -43,8 +45,8 @@ public:
     }
 
 private:
-    DataArrayHandle          _handle;
-    DataArray<DataItemType>* _array;
+    DataArrayHandle          _handle{ 0 };
+    DataArray<DataItemType>* _array{ nullptr };
 };
 
 template<class DataItemType>
@@ -67,7 +69,8 @@ public:
         free(_items);
     }
 
-    DataArrayHandle allocate(void)
+    template<typename... Args>
+    DataArrayHandle allocate(Args&&... args)
     {
         uint32_t idx = _next_idx();
         if (idx == invalid_handle)
@@ -76,7 +79,7 @@ public:
         }
 
         DataArrayItem& item = _items[idx];
-        new (&item.data) DataItemType();
+        new (&item.data) DataItemType(std::forward<Args>(args)...);
         item.handle = _make_handle(idx);
         ++_count;
 
@@ -154,7 +157,7 @@ public:
         }
     }
 
-    DataArray& operator=(DataArray&& other)
+    DataArray& operator=(DataArray&& other) noexcept
     {
         if (this != &other)
         {
