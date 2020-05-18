@@ -15,7 +15,7 @@ namespace rend::vkal::memory
 class MemBlock; 
 class Renderer;
 
-typedef rend::core::DataAccessor<MemBlock> MemBlockAccessor;
+typedef rend::core::DataAccessor<MemBlock> MemBlockHandle;
 
 /*
  * Abstraction of a Vulkan memory heap.
@@ -34,10 +34,10 @@ public:
     MemHeap(const MemHeap& other) = delete;
     MemHeap& operator=(const MemHeap& other) = delete;
 
-    MemHeap(MemHeap&& other);
-    MemHeap& operator=(MemHeap&& other);
+    MemHeap(MemHeap&& other) noexcept;
+    MemHeap& operator=(MemHeap&& other) noexcept;
 
-    MemBlockAccessor create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlockHandle create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
     //MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 };
 

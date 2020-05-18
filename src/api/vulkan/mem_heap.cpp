@@ -20,10 +20,10 @@ struct MemHeap::__MemHeap
     __MemHeap(const __MemHeap&)            = delete;
     __MemHeap& operator=(const __MemHeap&) = delete;
 
-    __MemHeap(__MemHeap&& other);
-    __MemHeap& operator=(__MemHeap&& other);
+    __MemHeap(__MemHeap&& other) noexcept;
+    __MemHeap& operator=(__MemHeap&& other) noexcept;
 
-    MemBlockAccessor create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
+    MemBlockHandle create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
     //MemBlock* find_block(const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage);
 
     size_t              _available_bytes { 0 };
@@ -36,7 +36,7 @@ MemHeap::__MemHeap::__MemHeap(size_t available_bytes)
 {
 }
 
-MemHeap::__MemHeap::__MemHeap(MemHeap::__MemHeap&& other)
+MemHeap::__MemHeap::__MemHeap(MemHeap::__MemHeap&& other) noexcept
 {
     if(this != &other)
     {
@@ -46,7 +46,7 @@ MemHeap::__MemHeap::__MemHeap(MemHeap::__MemHeap&& other)
     }
 }
 
-MemHeap::__MemHeap& MemHeap::__MemHeap::operator=(MemHeap::__MemHeap&& other)
+MemHeap::__MemHeap& MemHeap::__MemHeap::operator=(MemHeap::__MemHeap&& other) noexcept
 {
     if(this != &other)
     {
@@ -58,11 +58,11 @@ MemHeap::__MemHeap& MemHeap::__MemHeap::operator=(MemHeap::__MemHeap&& other)
     return *this;
 }
 
-MemBlockAccessor MemHeap::__MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
+MemBlockHandle MemHeap::__MemHeap::create_block(size_t block_size, const VkMemoryRequirements& memory_requirements, const VkMemoryPropertyFlags memory_properties, const VkMemoryType& memory_type, ResourceUsage resource_usage)
 {
     //MemBlock& block = _mem_blocks.emplace_back()/////;
 
-    MemBlockAccessor block = make_accessor(_mem_blocks);
+    MemBlockHandle block = make_accessor(_mem_blocks);
 
     if(block->create(block_size, memory_requirements, memory_properties, memory_type, resource_usage) == StatusCode::SUCCESS)
     {
@@ -100,7 +100,7 @@ MemHeap::~MemHeap(void)
     // Default destructor won't work with unique_ptr
 }
 
-MemHeap::MemHeap(MemHeap&& other)
+MemHeap::MemHeap(MemHeap&& other) noexcept
 {
     if(this != &other)
     {
@@ -108,7 +108,7 @@ MemHeap::MemHeap(MemHeap&& other)
     }
 }
 
-MemHeap& MemHeap::operator=(MemHeap&& other)
+MemHeap& MemHeap::operator=(MemHeap&& other) noexcept
 {
     if(this != &other)
     {
