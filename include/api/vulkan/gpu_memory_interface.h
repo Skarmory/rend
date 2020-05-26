@@ -40,7 +40,7 @@ private:
 
 private:
     std::vector<MemHeap>  _heaps;
-    const PhysicalDevice* _gpu;
+    const PhysicalDevice* _gpu{ nullptr };
 };
 
 }
