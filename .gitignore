@@ -6,3 +6,4 @@ rend/*
 .vs
 *.sln
 /Win32/
+/x64/
