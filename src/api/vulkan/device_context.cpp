@@ -65,7 +65,10 @@ StatusCode DeviceContext::create(const char** extensions, uint32_t extension_cou
     // TODO: Need to implement my own window code.. relying on glfw is annoying because it causes so many
     //       cyclic dependencies.. like this..
     window.set_vulkan_instance(*_instance);
-    window.create_window();
+    if (!window.create_window())
+    {
+        return StatusCode::WINDOW_CREATE_FAILURE;
+    }
 
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
