@@ -38,7 +38,10 @@ enum class StatusCode
 
     // Memory
     MEMORY_ALLOC_FAILURE,
-    MEMORY_BIND_IMAGE_FAILURE
+    MEMORY_BIND_IMAGE_FAILURE,
+
+    // Window
+    WINDOW_CREATE_FAILURE
 };
 
 enum class Format
