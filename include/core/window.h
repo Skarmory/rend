@@ -10,8 +10,6 @@
 namespace rend
 {
 
-class VulkanInstance;
-
 #ifdef GLFW_WINDOW
 class Window : public GLFWWindow
 #endif

@@ -14,10 +14,6 @@ struct GLFWwindow;
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class VulkanInstance;
-#endif
-
 class GLFWWindow : public WindowBase
 {
 public:
@@ -32,7 +28,6 @@ public:
     StatusCode create_window_api(uint32_t width, uint32_t height, const char* title);
 
 #ifdef USE_VULKAN
-    void set_vulkan_instance(VulkanInstance& instance);
     VkSurfaceKHR get_vk_surface(void) const;
 #endif
 
@@ -42,7 +37,6 @@ private:
     GLFWwindow* _glfw_window { nullptr };
 
 #ifdef USE_VULKAN
-    VulkanInstance* _vulkan_instance { nullptr };
     VkSurfaceKHR    _vk_surface      { VK_NULL_HANDLE };
 #endif
 };

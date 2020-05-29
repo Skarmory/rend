@@ -5,11 +5,12 @@
 #include <GLFW/glfw3.h>
 
 using namespace rend;
+using namespace rend::vkal;
 
 GLFWWindow::~GLFWWindow(void)
 {
 #ifdef USE_VULKAN
-    _vulkan_instance->destroy_surface(_vk_surface);
+    VulkanInstance::instance().destroy_surface(_vk_surface);
 #endif
     glfwDestroyWindow(_glfw_window);
 }
@@ -23,7 +24,7 @@ StatusCode GLFWWindow::create_window_api(uint32_t width, uint32_t height, const 
         return StatusCode::FAILURE;
 
 #ifdef USE_VULKAN
-    if(glfwCreateWindowSurface(_vulkan_instance->get_handle(), _glfw_window, nullptr, &_vk_surface) != VK_SUCCESS)
+    if(glfwCreateWindowSurface(VulkanInstance::instance().get_handle(), _glfw_window, nullptr, &_vk_surface) != VK_SUCCESS)
         return StatusCode::FAILURE;
 #endif
 
@@ -31,11 +32,6 @@ StatusCode GLFWWindow::create_window_api(uint32_t width, uint32_t height, const 
 }
 
 #ifdef USE_VULKAN
-void GLFWWindow::set_vulkan_instance(VulkanInstance& instance)
-{
-    _vulkan_instance = &instance;
-}
-
 VkSurfaceKHR GLFWWindow::get_vk_surface(void) const
 {
     return _vk_surface;
