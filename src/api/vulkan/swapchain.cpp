@@ -7,6 +7,7 @@
 #include "render_target.h"
 #include "semaphore.h"
 #include "window.h"
+#include "window_context.h"
 #include "vulkan_helper_funcs.h"
 
 #include <cassert>
@@ -126,7 +127,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
-    create_info.surface               = DeviceContext::instance().get_window()->get_vk_surface();
+    create_info.surface               = WindowContext::instance().window()->get_vk_surface();
     create_info.minImageCount         = _image_count;
     create_info.imageFormat           = _surface_format.format;
     create_info.imageColorSpace       = _surface_format.colorSpace;
