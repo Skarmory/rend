@@ -18,7 +18,7 @@ public:
     PhysicalDevice(void);
     ~PhysicalDevice(void);
 
-    bool create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device, Window& window);
+    bool create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device);
     bool create_logical_device(const VkQueueFlags queue_flags);
 
     LogicalDevice*                          get_logical_device(void) const;

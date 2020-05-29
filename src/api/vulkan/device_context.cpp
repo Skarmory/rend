@@ -10,6 +10,7 @@
 
 using namespace rend;
 using namespace rend::core;
+using namespace rend::vkal;
 using namespace rend::vkal::memory;
 
 DeviceContext::~DeviceContext(void)
@@ -39,12 +40,7 @@ LogicalDevice* DeviceContext::get_device(void) const
     return _logical_device;
 }
 
-Window* DeviceContext::get_window(void) const
-{
-    return _window;
-}
-
-StatusCode DeviceContext::create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window& window)
+StatusCode DeviceContext::create(void)
 {
     assert(!initialised());
 
@@ -53,35 +49,18 @@ StatusCode DeviceContext::create(const char** extensions, uint32_t extension_cou
         return StatusCode::ALREADY_CREATED;
     }
 
-    // Create Vulkan instance
-    _instance = new VulkanInstance;
-    if( StatusCode code { _instance->create_instance(extensions, extension_count, layers, layer_count) }; code != StatusCode::SUCCESS)
-    {
-        delete _instance;
-        return StatusCode::INSTANCE_CREATE_FAILURE;
-    }
-
-    // Initialise Window
-    // TODO: Need to implement my own window code.. relying on glfw is annoying because it causes so many
-    //       cyclic dependencies.. like this..
-    window.set_vulkan_instance(*_instance);
-    if (!window.create_window())
-    {
-        return StatusCode::WINDOW_CREATE_FAILURE;
-    }
-
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
-    _instance->enumerate_physical_devices(physical_devices);
+    VulkanInstance::instance().enumerate_physical_devices(physical_devices);
+
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
         PhysicalDevice* pdev = new PhysicalDevice;
-        pdev->create_physical_device(physical_device_index, physical_devices[physical_device_index], window);
+        pdev->create_physical_device(physical_device_index, physical_devices[physical_device_index]);
         _physical_devices.push_back(pdev);
     }
 
-    _window = &window;
     create_resource();
 
     return StatusCode::SUCCESS;
@@ -98,7 +77,6 @@ void DeviceContext::destroy(void)
 
     _logical_device = nullptr;
     _chosen_gpu     = nullptr;
-    _window         = nullptr;
 
     destroy_resource();
 }

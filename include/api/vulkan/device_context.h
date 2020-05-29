@@ -8,7 +8,7 @@
 
 namespace rend::vkal::memory
 {
-class GPUMemoryInterface;
+	class GPUMemoryInterface;
 }
 
 namespace rend
@@ -16,8 +16,6 @@ namespace rend
 
 class PhysicalDevice;
 class LogicalDevice;
-class VulkanInstance;
-class Window;
 
 class DeviceContext : public core::Resource
 {
@@ -32,9 +30,8 @@ public:
     PhysicalDevice*                         gpu(void) const;
     rend::vkal::memory::GPUMemoryInterface* memory_interface(void) const;
     LogicalDevice*                          get_device(void) const;
-    Window*                                 get_window(void) const;
 
-    StatusCode create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count, Window& window);
+    StatusCode create(void);
     void       destroy(void);
 
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
@@ -49,10 +46,8 @@ private:
 private:
     std::vector<PhysicalDevice*>             _physical_devices;
     rend::vkal::memory::GPUMemoryInterface*  _memory_interface  { nullptr };
-    VulkanInstance*                          _instance          { nullptr };
     LogicalDevice*                           _logical_device    { nullptr };
     PhysicalDevice*                          _chosen_gpu        { nullptr };
-    Window*                                  _window            { nullptr };
 };
 
 }

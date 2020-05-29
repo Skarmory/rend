@@ -3,6 +3,7 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "window.h"
+#include "window_context.h"
 
 using namespace rend;
 
@@ -78,10 +79,16 @@ bool PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
     return true;
 }
 
-bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device, Window& window)
+bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
     if(_vk_physical_device != VK_NULL_HANDLE)
         return false;
+
+    auto* window = WindowContext::instance().window();
+    if (!window)
+    {
+        return false;
+    }
 
     _physical_device_index = physical_device_index;
     _vk_physical_device = physical_device;
@@ -90,7 +97,7 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
-    VkSurfaceKHR surface = window.get_vk_surface();
+    VkSurfaceKHR surface = window->get_vk_surface();
     if(!_find_queue_families(surface))
         return false;
 
@@ -158,8 +165,11 @@ const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(v
 
 VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
 {
-    VkSurfaceCapabilitiesKHR caps;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, DeviceContext::instance().get_window()->get_vk_surface(), &caps);
+    VkSurfaceCapabilitiesKHR caps{};
+
+    auto* window = WindowContext::instance().window();
+
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, window->get_vk_surface(), &caps);
 
     return caps;
 }
