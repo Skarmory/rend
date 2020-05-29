@@ -1,15 +1,18 @@
 #include "vulkan_instance.h"
 
 using namespace rend;
-
-VulkanInstance::VulkanInstance(void)
-    : _vk_instance(VK_NULL_HANDLE)
-{
-}
+using namespace rend::vkal;
 
 VulkanInstance::~VulkanInstance(void)
 {
     vkDestroyInstance(_vk_instance, nullptr);
+}
+
+VulkanInstance& VulkanInstance::instance(void)
+{
+    static VulkanInstance s_instance;
+
+    return s_instance;
 }
 
 StatusCode VulkanInstance::create_instance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)

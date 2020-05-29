@@ -7,19 +7,18 @@
 #include <vector>
 #include <vulkan.h>
 
-namespace rend
+namespace rend::vkal
 {
 
 class VulkanInstance
 {
 public:
-    VulkanInstance(void);
-    ~VulkanInstance(void);
-
     VulkanInstance(const VulkanInstance&)           = delete;
     VulkanInstance(VulkanInstance&&)                = delete;
     VulkanInstance operator=(const VulkanInstance&) = delete;
     VulkanInstance operator=(VulkanInstance&&)      = delete;
+
+    static VulkanInstance& instance(void);
 
     StatusCode create_instance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
 
@@ -29,7 +28,10 @@ public:
     VkInstance get_handle(void) const;
 
 private:
-    VkInstance _vk_instance;
+    VulkanInstance(void) = default;
+    ~VulkanInstance(void);
+
+    VkInstance _vk_instance{ VK_NULL_HANDLE };
 };
 
 }
