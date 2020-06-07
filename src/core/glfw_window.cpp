@@ -20,12 +20,16 @@ StatusCode GLFWWindow::create_window_api(uint32_t width, uint32_t height, const 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     _glfw_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    if(!_glfw_window)
+    if (!_glfw_window)
+    {
         return StatusCode::FAILURE;
+    }
 
 #ifdef USE_VULKAN
-    if(glfwCreateWindowSurface(VulkanInstance::instance().get_handle(), _glfw_window, nullptr, &_vk_surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(VulkanInstance::instance().get_handle(), _glfw_window, nullptr, &_vk_surface) != VK_SUCCESS)
+    {
         return StatusCode::FAILURE;
+    }
 #endif
 
     return StatusCode::SUCCESS;

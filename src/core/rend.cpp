@@ -9,6 +9,7 @@
 
 void rend::init_rend(Window& window)
 {
+#ifdef USE_VULKAN
 	std::vector<const char*> extensions =
 	{
 		"VK_KHR_surface"
@@ -27,6 +28,7 @@ void rend::init_rend(Window& window)
 	// Init singletons
 	auto& vk_instance = rend::vkal::VulkanInstance::instance();
 	vk_instance.create_instance(extensions.data(), extensions.size(), layers.data(), layers.size());
+#endif
 
 	auto& window_context = WindowContext::instance();
 	window.create_window();

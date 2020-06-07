@@ -34,10 +34,10 @@ public:
     GLFWwindow* get_glfw_handle(void) const;
 
 private:
-    GLFWwindow* _glfw_window { nullptr };
+    GLFWwindow* _glfw_window{ nullptr };
 
 #ifdef USE_VULKAN
-    VkSurfaceKHR    _vk_surface      { VK_NULL_HANDLE };
+    VkSurfaceKHR _vk_surface{ VK_NULL_HANDLE };
 #endif
 };
 
