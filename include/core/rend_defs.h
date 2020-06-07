@@ -41,7 +41,8 @@ enum class StatusCode
     MEMORY_BIND_IMAGE_FAILURE,
 
     // Window
-    WINDOW_CREATE_FAILURE
+    WINDOW_CREATE_FAILURE,
+    WINDOW_NOT_CREATED
 };
 
 enum class Format
