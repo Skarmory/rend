@@ -37,3 +37,15 @@ void rend::init_rend(Window& window)
 	auto& context = DeviceContext::instance();
 	context.create();
 }
+
+void rend::destroy_rend(void)
+{
+	DeviceContext::instance().destroy();
+
+	delete WindowContext::instance().window();
+	WindowContext::instance().set_window(nullptr);
+
+#ifdef USE_VULKAN
+	rend::vkal::VulkanInstance::instance().destroy_instance();
+#endif
+}
