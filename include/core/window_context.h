@@ -7,13 +7,14 @@ namespace rend
 {
 	class Window;
 
+	// TODO: Don't like this at all, but meh... it'll do for now
 	class WindowContext
 	{
 	public:
 		static WindowContext& instance(void);
 
 		Window* window(void);
-		void    set_window(Window& window);
+		void    set_window(Window* window);
 
 	private:
 		WindowContext(void) = default;

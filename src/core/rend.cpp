@@ -32,7 +32,7 @@ void rend::init_rend(Window& window)
 
 	auto& window_context = WindowContext::instance();
 	window.create_window();
-	window_context.set_window(window);
+	window_context.set_window(&window);
 
 	auto& context = DeviceContext::instance();
 	context.create();

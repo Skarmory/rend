@@ -21,7 +21,7 @@ Window* WindowContext::window(void)
 	return _window;
 }
 
-void WindowContext::set_window(Window& window)
+void WindowContext::set_window(Window* window)
 {
-	_window = &window;
+	_window = window;
 }
