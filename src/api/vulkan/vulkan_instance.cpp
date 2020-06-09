@@ -5,7 +5,7 @@ using namespace rend::vkal;
 
 VulkanInstance::~VulkanInstance(void)
 {
-    vkDestroyInstance(_vk_instance, nullptr);
+    destroy_instance();
 }
 
 VulkanInstance& VulkanInstance::instance(void)
@@ -46,6 +46,11 @@ StatusCode VulkanInstance::create_instance(const char** extensions, uint32_t ext
     }
 
     return StatusCode::SUCCESS;
+}
+
+void VulkanInstance::destroy_instance(void)
+{
+    vkDestroyInstance(_vk_instance, nullptr);
 }
 
 void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices)

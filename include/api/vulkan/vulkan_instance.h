@@ -21,6 +21,7 @@ public:
     static VulkanInstance& instance(void);
 
     StatusCode create_instance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
+    void       destroy_instance(void);
 
     void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
     void destroy_surface(VkSurfaceKHR surface);
