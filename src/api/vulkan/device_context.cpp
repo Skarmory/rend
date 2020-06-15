@@ -1,6 +1,7 @@
 #include "device_context.h"
 
 #include "gpu_memory_interface.h"
+#include "logical_device.h"
 #include "physical_device.h"
 #include "window.h"
 #include "vulkan_instance.h"
@@ -124,6 +125,15 @@ StatusCode DeviceContext::create_device(const VkQueueFlags desired_queues)
     _logical_device = _chosen_gpu->get_logical_device();
 
     return StatusCode::SUCCESS;
+}
+
+BufferHandle DeviceContext::create_buffer(VkBufferCreateInfo& create_info)
+{
+    VkBuffer buffer = _logical_device->create_buffer(create_info);
+
+    BufferHandle handle = _vk_buffers.allocate(buffer);
+
+    return handle;
 }
 
 PhysicalDevice* DeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)

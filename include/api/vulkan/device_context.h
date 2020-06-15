@@ -1,6 +1,7 @@
 #ifndef REND_DEVICE_CONTEXT_H
 #define REND_DEVICE_CONTEXT_H
 
+#include "data_array.h"
 #include "resource.h"
 
 #include <vulkan.h>
@@ -16,6 +17,8 @@ namespace rend
 
 class PhysicalDevice;
 class LogicalDevice;
+
+typedef DataArrayHandle BufferHandle;
 
 class DeviceContext : public core::Resource
 {
@@ -37,6 +40,8 @@ public:
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 
+    BufferHandle create_buffer(VkBufferCreateInfo& create_info);
+
 private:
     DeviceContext(void) = default;
     ~DeviceContext(void);
@@ -48,6 +53,8 @@ private:
     rend::vkal::memory::GPUMemoryInterface*  _memory_interface  { nullptr };
     LogicalDevice*                           _logical_device    { nullptr };
     PhysicalDevice*                          _chosen_gpu        { nullptr };
+
+    DataArray<VkBuffer> _vk_buffers;
 };
 
 }
