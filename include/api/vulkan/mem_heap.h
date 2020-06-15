@@ -15,7 +15,7 @@ namespace rend::vkal::memory
 class MemBlock; 
 class Renderer;
 
-typedef rend::core::DataAccessor<MemBlock> MemBlockHandle;
+typedef rend::DataAccessor<MemBlock> MemBlockHandle;
 
 /*
  * Abstraction of a Vulkan memory heap.

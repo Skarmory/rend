@@ -17,7 +17,7 @@ PoolAllocator::PoolAllocator(size_t capacity, const VkMemoryRequirements& memory
     uint32_t offset{ 0 };
     for (size_t i{ 0 }; i < _max_allocs; ++i)
     {
-        rend::core::DataArrayHandle handle = _allocs.allocate(*this, offset, alloc_size);
+        rend::DataArrayHandle handle = _allocs.allocate(*this, offset, alloc_size);
         _free_handles.push_back(handle);
     }
 }

@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <utility>
 
-namespace rend::core
+namespace rend
 {
 
 typedef uint32_t DataArrayHandle;

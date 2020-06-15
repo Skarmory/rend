@@ -16,7 +16,7 @@ class MemAlloc;
 class MemBlock;
 
 typedef uint32_t MemHandle;
-typedef rend::core::DataAccessor<MemBlock> MemBlockHandle;
+typedef rend::DataAccessor<MemBlock> MemBlockHandle;
 
 /*
  * Base class for memory allocators.
@@ -33,7 +33,7 @@ public:
 
 protected:
     MemBlockHandle                  _block;
-    rend::core::DataArray<MemAlloc> _allocs;
+    rend::DataArray<MemAlloc> _allocs;
 };
 
 }
