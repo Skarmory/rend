@@ -4,12 +4,13 @@
 #include "logical_device.h"
 #include "descriptor_set_layout.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
 PipelineLayout::~PipelineLayout(void)
 {
-    DeviceContext::instance().get_device()->destroy_pipeline_layout(_vk_layout);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_pipeline_layout(_vk_layout);
 }
 
 StatusCode PipelineLayout::create_pipeline_layout(void)
@@ -31,7 +32,7 @@ StatusCode PipelineLayout::create_pipeline_layout(void)
     create_info.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
     create_info.pPushConstantRanges = _push_constant_ranges.data();
 
-    _vk_layout = DeviceContext::instance().get_device()->create_pipeline_layout(create_info);
+    _vk_layout = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_pipeline_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
     {

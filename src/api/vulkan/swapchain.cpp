@@ -9,6 +9,7 @@
 #include "window.h"
 #include "window_context.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 #include <cassert>
 #include <limits>
@@ -24,7 +25,7 @@ Swapchain::~Swapchain(void)
         delete rt;
     }
 
-    DeviceContext::instance().get_device()->destroy_swapchain(_vk_swapchain);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_swapchain(_vk_swapchain);
 }
 
 VkFormat Swapchain::get_format(void) const
@@ -68,14 +69,14 @@ StatusCode Swapchain::create_swapchain(uint32_t desired_images)
 
 StatusCode Swapchain::recreate(void)
 {
-    DeviceContext::instance().get_device()->wait_idle();
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
     _destroy_image_views();
     return _create_swapchain(_image_count);
 }
 
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    VkResult result = DeviceContext::instance().get_device()->acquire_next_image(
+    VkResult result = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->acquire_next_image(
         this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
     );
 
@@ -93,7 +94,7 @@ StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
     std::vector<VkResult> results(1);
-    if(DeviceContext::instance().get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+    if(static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
     {
         return StatusCode::FAILURE;
     }
@@ -108,7 +109,7 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
 
 StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 {
-    const PhysicalDevice& physical_device = DeviceContext::instance().get_device()->get_physical_device();
+    const PhysicalDevice& physical_device = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->get_physical_device();
 
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
 
@@ -140,7 +141,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     create_info.presentMode           = _present_mode;
     create_info.oldSwapchain          = old_swapchain;
 
-    _vk_swapchain = DeviceContext::instance().get_device()->create_swapchain(create_info);
+    _vk_swapchain = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_swapchain(create_info);
     if(_vk_swapchain == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
@@ -148,7 +149,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
     if(old_swapchain != VK_NULL_HANDLE)
     {
-        DeviceContext::instance().get_device()->destroy_swapchain(old_swapchain);
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_swapchain(old_swapchain);
     }
 
     return _get_images();
@@ -158,14 +159,14 @@ void Swapchain::_destroy_image_views(void)
 {
     for(size_t idx = 0; idx < _render_targets.size(); idx++)
     {
-        DeviceContext::instance().get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
     }
 }
 
 StatusCode Swapchain::_get_images(void)
 {
     std::vector<VkImage> images;
-    DeviceContext::instance().get_device()->get_swapchain_images(this, images);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->get_swapchain_images(this, images);
     _render_targets.resize(images.size());
 
     for(size_t idx = 0; idx < images.size(); idx++)
@@ -189,7 +190,7 @@ StatusCode Swapchain::_get_images(void)
         image_view_info.subresourceRange.baseArrayLayer = 0;
         image_view_info.subresourceRange.layerCount     = 1;
 
-        VkImageView view = DeviceContext::instance().get_device()->create_image_view(image_view_info);
+        VkImageView view = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_image_view(image_view_info);
         if(view == VK_NULL_HANDLE)
         {
             return StatusCode::FAILURE;

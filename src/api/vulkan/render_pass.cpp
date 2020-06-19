@@ -5,12 +5,13 @@
 #include "logical_device.h"
 #include "render_target.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
 RenderPass::~RenderPass(void)
 {
-    DeviceContext::instance().get_device()->destroy_render_pass(_vk_render_pass);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_render_pass(_vk_render_pass);
 }
 
 StatusCode RenderPass::create_render_pass(void)
@@ -72,7 +73,7 @@ StatusCode RenderPass::create_render_pass(void)
     create_info.dependencyCount = static_cast<uint32_t>(subpass_deps.size());
     create_info.pDependencies   = subpass_deps.data();
 
-    _vk_render_pass = DeviceContext::instance().get_device()->create_render_pass(create_info);
+    _vk_render_pass = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_render_pass(create_info);
 
     if(_vk_render_pass == VK_NULL_HANDLE)
         return StatusCode::FAILURE;

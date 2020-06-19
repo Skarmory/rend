@@ -15,6 +15,7 @@
 #include "vertex_buffer.h"
 #include "vulkan_instance.h"
 #include "depth_buffer.h"
+#include "vulkan_device_context.h"
 
 #include <assert.h>
 #include <cstring>
@@ -40,7 +41,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
         return StatusCode::ALREADY_CREATED;
     }
 
-    auto& context = DeviceContext::instance();
+    auto& context = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     context.choose_gpu(desired_features);
     context.create_device(desired_queues);
 
@@ -48,7 +49,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     _swapchain->create_swapchain(3);
 
     _command_pool = new CommandPool;
-    _command_pool->create_command_pool(DeviceContext::instance().get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    _command_pool->create_command_pool(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
@@ -79,7 +80,7 @@ StatusCode Renderer::destroy(void)
         return StatusCode::RESOURCE_NOT_CREATED;
     }
 
-    DeviceContext::instance().get_device()->wait_idle();
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
 
     while(!_task_queue.empty())
     {
@@ -163,7 +164,7 @@ FrameResources& Renderer::start_frame(void)
 void Renderer::end_frame(FrameResources& frame_res)
 {
     frame_res.submit_fen->reset();
-    DeviceContext::instance().get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
@@ -196,7 +197,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
 
     if(resources.command_buffer->recorded())
     {
-        DeviceContext::instance().get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
         load_fence->wait();
     }
 
@@ -240,6 +241,7 @@ void LoadTask::execute(FrameResources& resources)
 
     VkDeviceMemory memory = VK_NULL_HANDLE;
     void* mapped = NULL;
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     if(is_device_local)
     {
@@ -303,9 +305,9 @@ void LoadTask::execute(FrameResources& resources)
             }
         }
 
-        DeviceContext::instance().get_device()->map_memory(memory, size_bytes, 0, &mapped);
+        ctx.get_device()->map_memory(memory, size_bytes, 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        DeviceContext::instance().get_device()->unmap_memory(memory);
+        ctx.get_device()->unmap_memory(memory);
     }
 }
 

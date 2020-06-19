@@ -5,6 +5,7 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
@@ -15,7 +16,7 @@ DescriptorPool::~DescriptorPool(void)
         delete dset;
     }
 
-    DeviceContext::instance().get_device()->destroy_descriptor_pool(_vk_pool);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_descriptor_pool(_vk_pool);
 }
 
 StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
@@ -55,7 +56,7 @@ StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
     create_info.pPoolSizes    = pool_sizes.data();
 
-    _vk_pool = DeviceContext::instance().get_device()->create_descriptor_pool(create_info);
+    _vk_pool = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_descriptor_pool(create_info);
     if(_vk_pool == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
@@ -139,7 +140,7 @@ std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<Descripto
     for(DescriptorSetLayout* layout : layouts)
         vk_layouts.push_back(layout->get_handle());
 
-    vk_sets = DeviceContext::instance().get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
+    vk_sets = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
 
     for(VkDescriptorSet vk_set : vk_sets)
     {

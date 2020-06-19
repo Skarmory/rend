@@ -3,12 +3,14 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
 VulkanShader::~VulkanShader(void)
 {
-    DeviceContext::instance().get_device()->destroy_shader_module(_vk_module);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_shader_module(_vk_module);
 }
 
 VkShaderModule VulkanShader::get_handle(void) const
@@ -29,7 +31,8 @@ StatusCode VulkanShader::create_shader_api(const void* code, uint32_t size_bytes
     info.codeSize = size_bytes;
     info.pCode = static_cast<const uint32_t*>(code);
 
-    _vk_module = DeviceContext::instance().get_device()->create_shader_module(info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_module = ctx.get_device()->create_shader_module(info);
     if(_vk_module == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;

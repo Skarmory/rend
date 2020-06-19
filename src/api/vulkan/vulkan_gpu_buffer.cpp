@@ -1,6 +1,7 @@
 #include "vulkan_gpu_buffer.h"
 
 #include "device_context.h"
+#include "vulkan_device_context.h"
 #include "logical_device.h"
 #include "vulkan_helper_funcs.h"
 
@@ -8,7 +9,7 @@ using namespace rend;
 
 VulkanGPUBuffer::~VulkanGPUBuffer(void)
 {
-    auto& context = DeviceContext::instance();
+    auto& context = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     context.get_device()->free_memory(_vk_memory);
     context.get_device()->destroy_buffer(_vk_buffer);
 }
@@ -35,7 +36,7 @@ VkMemoryPropertyFlags VulkanGPUBuffer::get_memory_properties(void) const
 
 StatusCode VulkanGPUBuffer::create_buffer(size_t size_bytes, VkMemoryPropertyFlags memory_properties, VkBufferUsageFlags buffer_usage)
 {
-    auto& context = DeviceContext::instance();
+    auto& context = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     uint32_t queue_family_index = context.get_device()->get_queue_family(QueueType::GRAPHICS)->get_index();
 
     VkBufferCreateInfo create_info    = vulkan_helpers::gen_buffer_create_info();

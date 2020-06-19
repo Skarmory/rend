@@ -5,6 +5,7 @@
 #include "logical_device.h"
 #include "queue_family.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 #include <utility>
 #include <iostream>
@@ -23,7 +24,7 @@ CommandPool::~CommandPool(void)
 {
     free_all();
 
-    DeviceContext::instance().get_device()->destroy_command_pool(_vk_command_pool);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_command_pool(_vk_command_pool);
 }
 
 bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_reset)
@@ -35,7 +36,7 @@ bool CommandPool::create_command_pool(const QueueFamily* queue_family, bool can_
     create_info.flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0);
     create_info.queueFamilyIndex = queue_family->get_index();
 
-    _vk_command_pool = DeviceContext::instance().get_device()->create_command_pool(create_info);
+    _vk_command_pool = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_command_pool(create_info);
     if(_vk_command_pool == VK_NULL_HANDLE)
         return false;
 
@@ -52,7 +53,7 @@ std::vector<CommandBuffer*> CommandPool::allocate_command_buffers(uint32_t count
 
     VkCommandBufferLevel level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-    std::vector<VkCommandBuffer> vk_buffers = DeviceContext::instance().get_device()->allocate_command_buffers(count, level, _vk_command_pool);
+    std::vector<VkCommandBuffer> vk_buffers = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->allocate_command_buffers(count, level, _vk_command_pool);
     if(vk_buffers.empty())
         return {};
 
@@ -92,7 +93,7 @@ void CommandPool::free_command_buffers(const std::vector<CommandBuffer*>& comman
     }
 
     if(vk_buffers.size() > 0)
-        DeviceContext::instance().get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
 }
 
 void CommandPool::free_command_buffer(CommandBuffer* command_buffer)
@@ -111,7 +112,7 @@ void CommandPool::free_all(void)
         delete buffer;
     }
 
-    DeviceContext::instance().get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->free_command_buffers(vk_buffers, _vk_command_pool);
 
     _command_buffers.clear();
 }

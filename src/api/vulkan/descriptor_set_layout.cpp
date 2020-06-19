@@ -3,12 +3,13 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
 DescriptorSetLayout::~DescriptorSetLayout(void)
 {
-    DeviceContext::instance().get_device()->destroy_descriptor_set_layout(_vk_layout);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_descriptor_set_layout(_vk_layout);
 }
 
 StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
@@ -22,7 +23,7 @@ StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
     create_info.bindingCount = static_cast<uint32_t>(_bindings.size());
     create_info.pBindings    = _bindings.data();
 
-    _vk_layout = DeviceContext::instance().get_device()->create_descriptor_set_layout(create_info);
+    _vk_layout = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_descriptor_set_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
     {

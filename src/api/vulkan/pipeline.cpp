@@ -6,6 +6,7 @@
 #include "render_pass.h"
 #include "shader.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 #include <cstring>
 
@@ -13,7 +14,7 @@ using namespace rend;
 
 Pipeline::~Pipeline(void)
 {
-    DeviceContext::instance().get_device()->destroy_pipeline(_vk_pipeline);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_pipeline(_vk_pipeline);
 }
 
 StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
@@ -67,7 +68,7 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
     pipeline_create_info.basePipelineHandle  = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex   = 0;
 
-    _vk_pipeline = DeviceContext::instance().get_device()->create_pipeline(pipeline_create_info);
+    _vk_pipeline = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_pipeline(pipeline_create_info);
 
     if(_vk_pipeline == VK_NULL_HANDLE)
     {

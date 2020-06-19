@@ -6,6 +6,7 @@
 #include "mem_alloc.h"
 #include "renderer.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 #include <cassert>
 #include <cstring>
@@ -98,7 +99,7 @@ StatusCode MemBlock::__MemBlock::create(size_t block_size, const VkMemoryRequire
     info.allocationSize       = block_size;
     info.memoryTypeIndex      = _memory_type.heapIndex;
 
-    _vk_memory = DeviceContext::instance().get_device()->allocate_memory(info);
+    _vk_memory = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->allocate_memory(info);
     if(_vk_memory == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
@@ -128,11 +129,12 @@ bool MemBlock::__MemBlock::compatible(const VkMemoryRequirements& memory_require
 
 bool MemBlock::__MemBlock::write(void* data, size_t size_bytes, uint32_t offset)
 {
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     // TODO: Check size can fit
     void* mapped { nullptr };
-    DeviceContext::instance().get_device()->map_memory(_vk_memory, size_bytes, offset, &mapped);
+    ctx.get_device()->map_memory(_vk_memory, size_bytes, offset, &mapped);
     memcpy(mapped, data, size_bytes);
-    DeviceContext::instance().get_device()->unmap_memory(_vk_memory);
+    ctx.get_device()->unmap_memory(_vk_memory);
 
     return true;
 }

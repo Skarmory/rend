@@ -5,6 +5,7 @@
 #include "vulkan_gpu_buffer.h"
 #include "vulkan_gpu_texture.h"
 #include "vulkan_uniform_buffer.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
@@ -108,7 +109,7 @@ void DescriptorSet::update(void)
         vk_write_descs.push_back(write_desc);
     }
 
-    DeviceContext::instance().get_device()->update_descriptor_sets(vk_write_descs);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->update_descriptor_sets(vk_write_descs);
 }
 
 DescriptorSet::Binding* DescriptorSet::_find_binding(uint32_t slot)

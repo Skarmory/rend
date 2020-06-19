@@ -6,6 +6,7 @@
 #include "render_pass.h"
 #include "render_target.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 using namespace rend;
 
@@ -97,7 +98,7 @@ StatusCode Framebuffer::_create(const std::vector<VkImageView>& attachments, VkE
     create_info.height = dimensions.height;
     create_info.layers = dimensions.depth;
 
-    _vk_framebuffer = DeviceContext::instance().get_device()->create_framebuffer(create_info);
+    _vk_framebuffer = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_framebuffer(create_info);
     if(_vk_framebuffer == VK_NULL_HANDLE)
         return StatusCode::FAILURE;
 
@@ -106,7 +107,7 @@ StatusCode Framebuffer::_create(const std::vector<VkImageView>& attachments, VkE
 
 void Framebuffer::_destroy(void)
 {
-    DeviceContext::instance().get_device()->destroy_framebuffer(_vk_framebuffer);
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_framebuffer(_vk_framebuffer);
 }
 
 void Framebuffer::on_end_render_pass(void)
