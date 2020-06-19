@@ -1,6 +1,7 @@
 #ifndef REND_DEFS_H
 #define REND_DEFS_H
 
+#include <climits>
 #include <cstdint>
 
 #define UU(x) ((void)x)
@@ -263,6 +264,13 @@ enum class ResourceUsage : uint32_t
     // Texture types
     TEXTURE_2D     = BIT(4)
 };
+
+typedef uint32_t HandleType;
+typedef HandleType MemoryHandle;
+typedef HandleType BufferHandle;
+typedef BufferHandle VertexBufferHandle;
+
+const HandleType NULL_HANDLE = UINT_MAX;
 
 }
 
