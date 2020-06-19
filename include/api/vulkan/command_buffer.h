@@ -16,6 +16,7 @@ class IndexBuffer;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
+class VertexBuffer;
 
 class CommandBuffer
 {
@@ -46,6 +47,7 @@ public:
     void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
     void bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize offset, VkIndexType index_type);
     void bind_vertex_buffers(uint32_t first_binding, const std::vector<VulkanGPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
+    void bind_vertex_buffers(uint32_t first_binding, const std::vector<VertexBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
 
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);
     void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
@@ -54,6 +56,7 @@ public:
 
     void copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image);
     void copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VulkanGPUBuffer& dst);
+    void copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VertexBuffer& dst);
     void blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst);
 
     void transition_image(VulkanGPUTexture& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage);

@@ -8,9 +8,11 @@
 #include "pipeline_layout.h"
 #include "render_pass.h"
 #include "vulkan_helper_funcs.h"
+#include "vulkan_device_context.h"
 
 #include "vulkan_index_buffer.h"
 #include "index_buffer.h"
+#include "vertex_buffer.h"
 
 #include <iostream>
 
@@ -183,6 +185,23 @@ void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vecto
     vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
 }
 
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VertexBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
+{
+    _recorded = true;
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    std::vector<VkBuffer> vk_buffers;
+    vk_buffers.reserve(buffers.size());
+
+    for (auto* buf : buffers)
+    {
+        vk_buffers.push_back(ctx.get_buffer(buf->get_handle()));
+    }
+
+    vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
+}
+
 void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data)
 {
     _recorded = true;
@@ -225,6 +244,24 @@ void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const Vulk
     };
 
     vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst.get_handle(), 1, &copy);
+}
+
+void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VertexBuffer& dst)
+{
+    _recorded = true;
+
+    VkBufferCopy copy =
+    {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size      = src.bytes()
+    };
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    auto dst_api_handle = ctx.get_buffer(dst.get_handle());
+
+    vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst_api_handle, 1, &copy);
 }
 
 void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst)
