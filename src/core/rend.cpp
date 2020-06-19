@@ -1,6 +1,7 @@
 #include "rend.h"
 
 #include "device_context.h"
+#include "vulkan_device_context.h"
 #include "vulkan_instance.h"
 #include "window.h"
 #include "window_context.h"
@@ -34,8 +35,8 @@ void rend::init_rend(Window& window)
 	window.create_window();
 	window_context.set_window(&window);
 
-	auto& context = DeviceContext::instance();
-	context.create();
+	DeviceContext* ctx = new VulkanDeviceContext;
+	ctx->create();
 }
 
 void rend::destroy_rend(void)
