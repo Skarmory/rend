@@ -106,7 +106,7 @@ public:
         handle = invalid_handle;
     }
 
-    DataItemType* get(DataArrayHandle handle)
+    DataItemType* get(DataArrayHandle handle) const
     {
         uint32_t key = _get_key(handle);
         uint32_t idx = _get_idx(handle);
@@ -121,7 +121,7 @@ public:
         return &item.data;
     }
 
-    bool check_valid(DataArrayHandle handle)
+    bool check_valid(DataArrayHandle handle) const
     {
         uint32_t idx = _get_idx(handle);
         if (idx > _capacity)
