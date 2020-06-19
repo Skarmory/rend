@@ -1,19 +1,19 @@
 #include "vertex_buffer.h"
 
-#include "rend_defs.h"
+#include "device_context.h"
 
 using namespace rend;
 
+VertexBufferHandle VertexBuffer::get_handle() const
+{
+	return _handle;
+}
+
 bool VertexBuffer::create_vertex_buffer(uint32_t vertices_count, size_t vertex_size)
 {
-    if(create_vertex_buffer_api(vertices_count, vertex_size) != StatusCode::SUCCESS)
-    {
-        // TODO: Log stuff
-        return false;
-    }
+	auto& ctx = DeviceContext::instance();
 
-    _count = vertices_count;
-    _vertex_bytes = vertex_size;
+	_handle = ctx.create_vertex_buffer(vertices_count, vertex_size);
 
-    return true;
+	return _handle != NULL_HANDLE;
 }
