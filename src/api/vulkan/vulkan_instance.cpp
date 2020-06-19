@@ -3,11 +3,6 @@
 using namespace rend;
 using namespace rend::vkal;
 
-VulkanInstance::~VulkanInstance(void)
-{
-    destroy_instance();
-}
-
 VulkanInstance& VulkanInstance::instance(void)
 {
     static VulkanInstance s_instance;

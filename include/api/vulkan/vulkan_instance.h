@@ -30,7 +30,7 @@ public:
 
 private:
     VulkanInstance(void) = default;
-    ~VulkanInstance(void);
+    ~VulkanInstance(void) = default;
 
     VkInstance _vk_instance{ VK_NULL_HANDLE };
 };
