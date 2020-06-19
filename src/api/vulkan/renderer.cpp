@@ -250,13 +250,17 @@ void LoadTask::execute(FrameResources& resources)
 
         memory = staging_buffer->get_memory();
 
-        DeviceContext::instance().get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
+        ctx.get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
-        DeviceContext::instance().get_device()->unmap_memory(memory);
+        ctx.get_device()->unmap_memory(memory);
 
         switch(resource_usage)
         {
             case ResourceUsage::VERTEX_BUFFER:
+            {
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VertexBuffer*>(resource));
+                break;
+            }
             case ResourceUsage::INDEX_BUFFER:
             case ResourceUsage::UNIFORM_BUFFER:
             {
