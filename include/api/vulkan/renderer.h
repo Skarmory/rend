@@ -68,7 +68,7 @@ struct ImageTransitionTask : public Task
     virtual void execute(FrameResources& resources) override;
 };
 
-class Renderer : public rend::core::Resource
+class Renderer : public rend::Resource
 {
 public:
     Renderer(const Renderer&)            = delete;

@@ -3,7 +3,7 @@
 
 #include "rend_defs.h"
 
-namespace rend::core
+namespace rend
 {
 
 class Resource

@@ -12,7 +12,6 @@
 #include <vector>
 
 using namespace rend;
-using namespace rend::core;
 using namespace rend::vkal;
 using namespace rend::vkal::memory;
 
