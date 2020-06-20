@@ -10,7 +10,7 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
-#include "vulkan_index_buffer.h"
+#include "gpu_buffer_base.h"
 #include "index_buffer.h"
 #include "vertex_buffer.h"
 
@@ -169,7 +169,9 @@ void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize of
 {
     _recorded = true;
 
-    vkCmdBindIndexBuffer(_vk_command_buffer, buffer.get_handle(), offset, index_type);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    vkCmdBindIndexBuffer(_vk_command_buffer,  ctx.get_buffer(buffer.get_handle()), offset, index_type);
 }
 
 void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VulkanGPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
@@ -232,21 +234,7 @@ void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const Vu
     vkCmdCopyBufferToImage(_vk_command_buffer, buffer.get_handle(), image.get_handle(), image.get_layout(), 1, &copy);
 }
 
-void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VulkanGPUBuffer& dst)
-{
-    _recorded = true;
-
-    VkBufferCopy copy =
-    {
-        .srcOffset = 0,
-        .dstOffset = 0,
-        .size      = src.bytes()
-    };
-
-    vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst.get_handle(), 1, &copy);
-}
-
-void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const VertexBuffer& dst)
+void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst)
 {
     _recorded = true;
 
@@ -259,9 +247,24 @@ void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const Vert
 
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
-    auto dst_api_handle = ctx.get_buffer(dst.get_handle());
+    vkCmdCopyBuffer(_vk_command_buffer, ctx.get_buffer(src.get_handle()), ctx.get_buffer(dst.get_handle()), 1, &copy);
+}
 
-    vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), dst_api_handle, 1, &copy);
+void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const GPUBufferBase& dst)
+{
+    _recorded = true;
+
+    VkBufferCopy copy =
+    {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size      = src.bytes()
+    };
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), ctx.get_buffer(dst.get_handle()), 1, &copy);
+
 }
 
 void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst)
