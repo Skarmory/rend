@@ -1,18 +1,19 @@
 #include "index_buffer.h"
 
-#include "rend_defs.h"
+#include "device_context.h"
 
 using namespace rend;
 
 bool IndexBuffer::create_index_buffer(uint32_t indices_count, size_t index_size)
 {
-    if(create_index_buffer_api(indices_count, index_size) != StatusCode::SUCCESS)
-    {
-        // TODO: Log stuff
-        return false;
-    }
+	auto& ctx = DeviceContext::instance();
 
-    _count = indices_count;
+	_handle = ctx.create_index_buffer(indices_count, index_size);
 
-    return true;
+	if (_handle != NULL_HANDLE)
+	{
+		_bytes = indices_count * index_size;
+	}
+
+	return _handle;
 }

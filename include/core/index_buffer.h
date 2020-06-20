@@ -1,21 +1,16 @@
 #ifndef REND_INDEX_BUFFER_H
 #define REND_INDEX_BUFFER_H
 
-#ifdef USE_VULKAN
-#include "vulkan_index_buffer.h"
-#endif
-
 #include <cstdint>
 #include <cstddef>
+
+#include "gpu_buffer_base.h"
+#include "rend_defs.h"
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class IndexBuffer : public VulkanIndexBuffer
-#else
-class IndexBuffer
-#endif
+class IndexBuffer : public GPUBufferBase
 {
 public:
     IndexBuffer(void) = default;
