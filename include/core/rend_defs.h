@@ -269,6 +269,7 @@ typedef uint32_t HandleType;
 typedef HandleType MemoryHandle;
 typedef HandleType BufferHandle;
 typedef BufferHandle VertexBufferHandle;
+typedef BufferHandle IndexBufferHandle;
 
 const HandleType NULL_HANDLE = UINT_MAX;
 
