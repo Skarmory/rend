@@ -111,33 +111,20 @@ StatusCode VulkanDeviceContext::create_device(const VkQueueFlags desired_queues)
 
 VertexBufferHandle VulkanDeviceContext::create_vertex_buffer(uint32_t vertices_count, size_t vertex_size)
 {
-    uint32_t queue_family_index = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
+    return static_cast<IndexBufferHandle>(_create_buffer_internal(
+        vertices_count * vertex_size,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
+}
 
-    VkBufferCreateInfo create_info    = vulkan_helpers::gen_buffer_create_info();
-    create_info.size                  = vertex_size * vertices_count;
-    create_info.usage                 = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    create_info.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
-    create_info.queueFamilyIndexCount = 1;
-    create_info.pQueueFamilyIndices   = &queue_family_index;
-
-    VkBuffer buffer = _logical_device->create_buffer(create_info);
-
-    VkMemoryRequirements memory_reqs = _logical_device->get_buffer_memory_reqs(buffer);
-
-    VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
-    alloc_info.allocationSize = vertex_size * vertices_count;
-    alloc_info.memoryTypeIndex = _logical_device->find_memory_type(memory_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-    VkDeviceMemory memory = _logical_device->allocate_memory(alloc_info);
-
-    _logical_device->bind_buffer_memory(buffer, memory);
-
-    VertexBufferHandle vb_handle = _vk_buffers.allocate(buffer);
-    MemoryHandle mem_handle = _vk_memorys.allocate(memory);
-
-    _vb_to_memory[vb_handle] = mem_handle;
-
-    return vb_handle;
+IndexBufferHandle VulkanDeviceContext::create_index_buffer(uint32_t indices_count, size_t index_size)
+{
+    return static_cast<IndexBufferHandle>(_create_buffer_internal(
+        indices_count * index_size,
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    ));
 }
 
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
@@ -145,9 +132,9 @@ VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
     return *_vk_buffers.get(handle);
 }
 
-VkDeviceMemory VulkanDeviceContext::get_memory(VertexBufferHandle vb_handle) const
+VkDeviceMemory VulkanDeviceContext::get_memory(BufferHandle vb_handle) const
 {
-    MemoryHandle mem_handle = _vb_to_memory.at(vb_handle);
+    MemoryHandle mem_handle = _buffer_to_memory.at(vb_handle);
     return *_vk_memorys.get(mem_handle);
 }
 
@@ -160,4 +147,36 @@ PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDevic
     }
 
     return nullptr;
+}
+
+BufferHandle VulkanDeviceContext::_create_buffer_internal(size_t bytes, VkBufferUsageFlags usage, VkMemoryPropertyFlags memory_properties)
+{
+    uint32_t queue_family_index = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
+
+    VkBufferCreateInfo create_info    = vulkan_helpers::gen_buffer_create_info();
+    create_info.size                  = bytes;
+    create_info.usage                 = usage;
+    create_info.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    create_info.queueFamilyIndexCount = 1;
+    create_info.pQueueFamilyIndices   = &queue_family_index;
+
+    VkBuffer buffer = _logical_device->create_buffer(create_info);
+
+    VkMemoryRequirements memory_reqs = _logical_device->get_buffer_memory_reqs(buffer);
+
+    VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
+    alloc_info.allocationSize = bytes;
+    alloc_info.memoryTypeIndex = _logical_device->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
+
+    VkDeviceMemory memory = _logical_device->allocate_memory(alloc_info);
+
+    _logical_device->bind_buffer_memory(buffer, memory);
+
+    BufferHandle handle = _vk_buffers.allocate(buffer);
+    MemoryHandle mem_handle = _vk_memorys.allocate(memory);
+
+    _buffer_to_memory[handle] = mem_handle;
+
+    return handle;
+
 }

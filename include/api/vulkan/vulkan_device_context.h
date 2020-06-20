@@ -41,13 +41,16 @@ public:
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 
-    VertexBufferHandle create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
+    [[nodiscard]] VertexBufferHandle create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
+    [[nodiscard]] IndexBufferHandle  create_index_buffer(uint32_t indices_count, size_t index_size) override;
 
-    VkBuffer get_buffer(VertexBufferHandle handle) const;
-    VkDeviceMemory get_memory(VertexBufferHandle handle) const;
+    VkBuffer       get_buffer(VertexBufferHandle handle) const;
+    VkDeviceMemory get_memory(BufferHandle handle) const;
 
 private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
+
+    BufferHandle _create_buffer_internal(size_t bytes, VkBufferUsageFlags usage, VkMemoryPropertyFlags memory_properties);
 
 private:
     std::vector<PhysicalDevice*>             _physical_devices;
@@ -57,7 +60,7 @@ private:
 
     DataArray<VkBuffer> _vk_buffers;
     DataArray<VkDeviceMemory> _vk_memorys;
-    std::unordered_map<VertexBufferHandle, MemoryHandle> _vb_to_memory;
+    std::unordered_map<BufferHandle, MemoryHandle> _buffer_to_memory;
 };
 
 }
