@@ -259,14 +259,14 @@ void LoadTask::execute(FrameResources& resources)
         switch(resource_usage)
         {
             case ResourceUsage::VERTEX_BUFFER:
+            case ResourceUsage::INDEX_BUFFER:
             {
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VertexBuffer*>(resource));
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<GPUBufferBase*>(resource));
                 break;
             }
-            case ResourceUsage::INDEX_BUFFER:
             case ResourceUsage::UNIFORM_BUFFER:
             {
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanGPUBuffer*>(resource));
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanUniformBuffer*>(resource));
                 break;
             }
             case ResourceUsage::TEXTURE_2D:
