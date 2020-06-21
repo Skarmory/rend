@@ -270,6 +270,7 @@ typedef HandleType MemoryHandle;
 typedef HandleType BufferHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
+typedef BufferHandle UniformBufferHandle;
 
 const HandleType NULL_HANDLE = UINT_MAX;
 
