@@ -13,7 +13,9 @@ bool VertexBuffer::create_vertex_buffer(uint32_t vertices_count, size_t vertex_s
 	if (_handle != NULL_HANDLE)
 	{
 		_bytes = vertices_count * vertex_size;
+
+		return true;
 	}
 
-	return _handle;
+	return false;
 }
