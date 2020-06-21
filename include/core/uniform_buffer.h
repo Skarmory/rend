@@ -4,18 +4,13 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifdef USE_VULKAN
-#include "vulkan_uniform_buffer.h"
-#endif
+#include "gpu_buffer_base.h"
+#include "rend_defs.h"
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class UniformBuffer : public VulkanUniformBuffer
-#elif
-class UniformBuffer
-#endif
+class UniformBuffer : public GPUBufferBase
 {
 public:
     UniformBuffer(void) = default;
