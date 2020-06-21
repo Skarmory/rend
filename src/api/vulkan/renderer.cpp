@@ -225,7 +225,7 @@ void LoadTask::execute(FrameResources& resources)
         }
         case ResourceUsage::UNIFORM_BUFFER:
         {
-            is_device_local = static_cast<UniformBuffer*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            is_device_local = false;
             break;
         }
         case ResourceUsage::TEXTURE_2D:
@@ -250,7 +250,7 @@ void LoadTask::execute(FrameResources& resources)
 
         resources.staging_buffers.push_back(staging_buffer);
 
-        memory = staging_buffer->get_memory();
+        memory = ctx.get_memory(staging_buffer->get_handle());
 
         ctx.get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
@@ -260,13 +260,9 @@ void LoadTask::execute(FrameResources& resources)
         {
             case ResourceUsage::VERTEX_BUFFER:
             case ResourceUsage::INDEX_BUFFER:
-            {
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<GPUBufferBase*>(resource));
-                break;
-            }
             case ResourceUsage::UNIFORM_BUFFER:
             {
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<VulkanUniformBuffer*>(resource));
+                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<GPUBufferBase*>(resource));
                 break;
             }
             case ResourceUsage::TEXTURE_2D:
@@ -294,7 +290,7 @@ void LoadTask::execute(FrameResources& resources)
             case ResourceUsage::INDEX_BUFFER:
             case ResourceUsage::UNIFORM_BUFFER:
             {
-                memory = static_cast<VulkanGPUBuffer*>(resource)->get_memory();
+                memory = ctx.get_memory(static_cast<GPUBufferBase*>(resource)->get_handle());
                 break;
             }
 
