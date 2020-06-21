@@ -2,9 +2,9 @@
 
 #include "device_context.h"
 #include "logical_device.h"
+#include "uniform_buffer.h"
 #include "vulkan_gpu_buffer.h"
 #include "vulkan_gpu_texture.h"
-#include "vulkan_uniform_buffer.h"
 #include "vulkan_device_context.h"
 
 using namespace rend;
@@ -36,7 +36,7 @@ void DescriptorSet::describe(uint32_t binding, VulkanGPUTexture* texture)
     }
 }
 
-void DescriptorSet::describe(uint32_t binding, VulkanUniformBuffer* buffer)
+void DescriptorSet::describe(uint32_t binding, UniformBuffer* buffer)
 {
     Binding* _binding = _find_binding(binding);
     if(_binding)
@@ -92,12 +92,14 @@ void DescriptorSet::update(void)
 
             case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
             {
-                VulkanGPUBuffer* buffer = std::get<VulkanGPUBuffer*>(binding.bound_resource);
+                UniformBuffer* buffer = std::get<UniformBuffer*>(binding.bound_resource);
 
                 uint32_t idx = vk_buffer_infos.size();
 
+                auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
                 vk_buffer_infos.push_back({
-                    buffer->get_handle(), 0, buffer->bytes()
+                    ctx.get_buffer(buffer->get_handle()), 0, buffer->bytes()
                 });
 
                 write_desc.pBufferInfo = &vk_buffer_infos[idx];
