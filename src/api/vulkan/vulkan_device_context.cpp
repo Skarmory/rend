@@ -127,6 +127,15 @@ IndexBufferHandle VulkanDeviceContext::create_index_buffer(uint32_t indices_coun
     ));
 }
 
+UniformBufferHandle VulkanDeviceContext::create_uniform_buffer(size_t bytes)
+{
+    return static_cast<UniformBufferHandle>(_create_buffer_internal(
+        bytes,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    ));
+}
+
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
 {
     return *_vk_buffers.get(handle);

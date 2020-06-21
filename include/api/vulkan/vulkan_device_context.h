@@ -41,8 +41,9 @@ public:
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 
-    [[nodiscard]] VertexBufferHandle create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
-    [[nodiscard]] IndexBufferHandle  create_index_buffer(uint32_t indices_count, size_t index_size) override;
+    [[nodiscard]] VertexBufferHandle  create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
+    [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
+    [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
 
     VkBuffer       get_buffer(VertexBufferHandle handle) const;
     VkDeviceMemory get_memory(BufferHandle handle) const;
