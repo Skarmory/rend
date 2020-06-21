@@ -211,7 +211,7 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
 
-void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image)
+void CommandBuffer::copy_buffer_to_image(const GPUBufferBase& buffer, const VulkanGPUTexture& image)
 {
     _recorded = true;
 
@@ -231,7 +231,8 @@ void CommandBuffer::copy_buffer_to_image(const VulkanGPUBuffer& buffer, const Vu
         .imageExtent            = image.get_extent()
     };
 
-    vkCmdCopyBufferToImage(_vk_command_buffer, buffer.get_handle(), image.get_handle(), image.get_layout(), 1, &copy);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    vkCmdCopyBufferToImage(_vk_command_buffer, ctx.get_buffer(buffer.get_handle()), image.get_handle(), image.get_layout(), 1, &copy);
 }
 
 void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst)
@@ -248,23 +249,6 @@ void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBuf
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     vkCmdCopyBuffer(_vk_command_buffer, ctx.get_buffer(src.get_handle()), ctx.get_buffer(dst.get_handle()), 1, &copy);
-}
-
-void CommandBuffer::copy_buffer_to_buffer(const VulkanGPUBuffer& src, const GPUBufferBase& dst)
-{
-    _recorded = true;
-
-    VkBufferCopy copy =
-    {
-        .srcOffset = 0,
-        .dstOffset = 0,
-        .size      = src.bytes()
-    };
-
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-
-    vkCmdCopyBuffer(_vk_command_buffer, src.get_handle(), ctx.get_buffer(dst.get_handle()), 1, &copy);
-
 }
 
 void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst)

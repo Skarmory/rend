@@ -55,9 +55,8 @@ public:
 
     void push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data);
 
-    void copy_buffer_to_image(const VulkanGPUBuffer& buffer, const VulkanGPUTexture& image);
+    void copy_buffer_to_image(const GPUBufferBase& buffer, const VulkanGPUTexture& image);
     void copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst);
-    void copy_buffer_to_buffer(const VulkanGPUBuffer& src, const GPUBufferBase& dst);
     void blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst);
 
     void transition_image(VulkanGPUTexture& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage);
