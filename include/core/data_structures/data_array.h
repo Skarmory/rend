@@ -222,6 +222,37 @@ private:
     DataArrayHandle _free_head { invalid_handle };
 
     static const size_t   _c_default_capacity { 1024 };
+
+/* ITERATOR */
+public:
+
+    class iterator
+    {
+    public:
+        iterator(DataArrayItem* items) : _items(items) {}
+
+        iterator operator++(void)
+        {
+            ++_items;
+            return *this;
+        }
+
+        bool operator!=(const iterator& other)
+        {
+            return _items != other._items;
+        }
+
+        const DataArrayHandle& operator*(void)
+        {
+            return _items->handle;
+        }
+
+    private:
+        DataArrayItem* _items{ nullptr };
+    };
+
+    iterator begin(void) { return iterator(_items); }
+    iterator end(void)   { return iterator(_items + _capacity); }
 };
 
 template<class DataItemType>
