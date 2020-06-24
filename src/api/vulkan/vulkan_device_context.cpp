@@ -67,6 +67,14 @@ void VulkanDeviceContext::destroy(void)
         }
     }
 
+    for (auto& handle : _vk_memorys)
+    {
+        if (_vk_memorys.check_valid(handle))
+        {
+            _logical_device->free_memory(*_vk_memorys.get(handle));
+        }
+    }
+
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
     {
         delete _physical_devices[physical_device_index];
