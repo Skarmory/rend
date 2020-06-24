@@ -213,7 +213,7 @@ BufferHandle VulkanDeviceContext::_create_buffer_internal(size_t bytes, VkBuffer
     VkMemoryRequirements memory_reqs = _logical_device->get_buffer_memory_reqs(buffer);
 
     VkMemoryAllocateInfo alloc_info = vulkan_helpers::gen_memory_allocate_info();
-    alloc_info.allocationSize = bytes;
+    alloc_info.allocationSize = memory_reqs.size;
     alloc_info.memoryTypeIndex = _logical_device->find_memory_type(memory_reqs.memoryTypeBits, memory_properties);
 
     VkDeviceMemory memory = _logical_device->allocate_memory(alloc_info);
