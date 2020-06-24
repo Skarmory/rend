@@ -23,7 +23,8 @@ void rend::init_rend(Window& window)
 
 	std::vector<const char*> layers =
 	{
-		"VK_LAYER_LUNARG_standard_validation"
+		"VK_LAYER_LUNARG_standard_validation",
+		"VK_LAYER_KHRONOS_validation"
 	};
 
 	// Init singletons
