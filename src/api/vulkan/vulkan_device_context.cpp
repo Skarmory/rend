@@ -59,6 +59,14 @@ StatusCode VulkanDeviceContext::create(void)
 
 void VulkanDeviceContext::destroy(void)
 {
+    for (auto& handle : _vk_buffers)
+    {
+        if (_vk_buffers.check_valid(handle))
+        {
+            _logical_device->destroy_buffer(*_vk_buffers.get(handle));
+        }
+    }
+
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
     {
         delete _physical_devices[physical_device_index];
