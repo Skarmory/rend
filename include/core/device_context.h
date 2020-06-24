@@ -21,6 +21,8 @@ public:
     [[nodiscard]] virtual IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) = 0;
     [[nodiscard]] virtual UniformBufferHandle create_uniform_buffer(size_t bytes) = 0;
 
+    virtual void destroy_buffer(BufferHandle handle) = 0;
+
 protected:
     static DeviceContext* _service;
 };

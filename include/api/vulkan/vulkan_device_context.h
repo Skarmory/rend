@@ -45,6 +45,8 @@ public:
     [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
 
+    void destroy_buffer(BufferHandle handle) override;
+
     VkBuffer       get_buffer(VertexBufferHandle handle) const;
     VkDeviceMemory get_memory(BufferHandle handle) const;
 

@@ -136,6 +136,29 @@ UniformBufferHandle VulkanDeviceContext::create_uniform_buffer(size_t bytes)
     ));
 }
 
+void VulkanDeviceContext::destroy_buffer(BufferHandle handle)
+{
+    MemoryHandle mem_handle = _buffer_to_memory[handle];
+    VkBuffer* buffer = _vk_buffers.get(handle);
+    VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
+
+    if (buffer)
+    {
+        _logical_device->destroy_buffer(*buffer);
+        _vk_buffers.deallocate(handle);
+    }
+
+    if (memory)
+    {
+        // TODO: Eventually I want to conserve memory usage and pack buffers
+        //       into memory blocks. So this will have to be removed.
+        _logical_device->free_memory(*memory);
+        _vk_memorys.deallocate(mem_handle);
+    }
+
+    _buffer_to_memory[handle] = NULL_HANDLE;
+}
+
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
 {
     return *_vk_buffers.get(handle);
