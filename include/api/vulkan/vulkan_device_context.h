@@ -44,8 +44,11 @@ public:
     [[nodiscard]] VertexBufferHandle  create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
     [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
+    [[nodiscard]] Texture2DHandle     create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format) override;
 
     void destroy_buffer(BufferHandle handle) override;
+    void destroy_texture(Texture2DHandle handle) override;
+    void destroy_image_view(Texture2DHandle handle);
 
     VkBuffer       get_buffer(VertexBufferHandle handle) const;
     VkImage        get_image(Texture2DHandle handle) const;
@@ -57,6 +60,10 @@ private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
 
     BufferHandle _create_buffer_internal(size_t bytes, VkBufferUsageFlags usage, VkMemoryPropertyFlags memory_properties);
+    VkImageView  _create_image_view(VkImage image, VkFormat format, VkImageViewType type, VkImageAspectFlags aspect, uint32_t mips, uint32_t layers);
+    VkSampler    _create_sampler(void);
+
+    void _destroy_sampler(TextureHandle handle);
 
 private:
     std::vector<PhysicalDevice*>             _physical_devices;
