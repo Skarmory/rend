@@ -212,9 +212,27 @@ Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t 
     return handle;
 }
 
+Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
+{
+    Texture2DHandle image_handle = _vk_images.allocate(swapchain_image);
+
+    VkImage* image = _vk_images.get(image_handle);
+    VkImageView view = _create_image_view(*image, format, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1);
+    TextureViewHandle view_handle = _vk_image_views.allocate(view);
+    _texture_handle_to_view_handle[image_handle] = view_handle;
+
+    return image_handle;
+}
+
 void VulkanDeviceContext::destroy_buffer(BufferHandle handle)
 {
-    MemoryHandle mem_handle = _buffer_to_memory[handle];
+    auto it = _handle_to_memory_handle.find(handle);
+    if (it == _handle_to_memory_handle.end())
+    {
+        return;
+    }
+
+    MemoryHandle mem_handle = it->second;
     VkBuffer* buffer = _vk_buffers.get(handle);
     VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
 

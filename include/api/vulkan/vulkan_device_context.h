@@ -45,6 +45,7 @@ public:
     [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
     [[nodiscard]] Texture2DHandle     create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format) override;
+    [[nodiscard]] Texture2DHandle     register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
     void destroy_texture(Texture2DHandle handle) override;
