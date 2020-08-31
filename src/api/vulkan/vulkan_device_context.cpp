@@ -180,9 +180,26 @@ VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
     return *_vk_buffers.get(handle);
 }
 
-VkDeviceMemory VulkanDeviceContext::get_memory(BufferHandle vb_handle) const
+VkImage VulkanDeviceContext::get_image(Texture2DHandle handle) const
 {
-    MemoryHandle mem_handle = _buffer_to_memory.at(vb_handle);
+    return *_vk_images.get(handle);
+}
+
+VkImageView VulkanDeviceContext::get_image_view(Texture2DHandle handle) const
+{
+    TextureViewHandle view_handle = _texture_handle_to_view_handle.at(handle);
+    return *_vk_image_views.get(view_handle);
+}
+
+VkSampler VulkanDeviceContext::get_sampler(Texture2DHandle handle) const
+{
+    SamplerHandle sampler_handle = _texture_handle_to_sampler_handle.at(handle);
+    return *_vk_samplers.get(sampler_handle);
+}
+
+VkDeviceMemory VulkanDeviceContext::get_memory(HandleType handle) const
+{
+    MemoryHandle mem_handle = _handle_to_memory_handle.at(handle);
     return *_vk_memorys.get(mem_handle);
 }
 

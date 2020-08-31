@@ -48,7 +48,10 @@ public:
     void destroy_buffer(BufferHandle handle) override;
 
     VkBuffer       get_buffer(VertexBufferHandle handle) const;
-    VkDeviceMemory get_memory(BufferHandle handle) const;
+    VkImage        get_image(Texture2DHandle handle) const;
+    VkImageView    get_image_view(Texture2DHandle handle) const;
+    VkSampler      get_sampler(Texture2DHandle handle) const;
+    VkDeviceMemory get_memory(HandleType handle) const;
 
 private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
@@ -62,8 +65,13 @@ private:
     PhysicalDevice*                          _chosen_gpu        { nullptr };
 
     DataArray<VkBuffer> _vk_buffers;
+    DataArray<VkImage> _vk_images;
+    DataArray<VkImageView> _vk_image_views;
+    DataArray<VkSampler> _vk_samplers;
     DataArray<VkDeviceMemory> _vk_memorys;
-    std::unordered_map<BufferHandle, MemoryHandle> _buffer_to_memory;
+    std::unordered_map<HandleType, MemoryHandle> _handle_to_memory_handle;
+    std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;
+    std::unordered_map<Texture2DHandle, SamplerHandle> _texture_handle_to_sampler_handle;
 };
 
 }
