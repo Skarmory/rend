@@ -164,7 +164,7 @@ void Pipeline::set_line_width(float width)
     _line_width = width;
 }
 
-void Pipeline::set_samples(uint32_t samples)
+void Pipeline::set_samples(MSAASamples samples)
 {
     _samples = samples;
 }

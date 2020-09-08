@@ -58,7 +58,7 @@ public:
     void set_line_width(float width);
 
     // Multisample State
-    void set_samples(uint32_t samples);
+    void set_samples(MSAASamples samples);
     void set_sample_shading(bool enable);
     void set_min_sample_shading(float min_sample_shading);
     void set_sample_mask(uint32_t sample_mask);
@@ -162,12 +162,12 @@ private:
     float       _line_width { 1.0f };
 
     // Multisample state settings
-    uint32_t _samples { 1 };
-    bool     _sample_shading_enable { false };
-    float    _min_sample_shading { 0.0f };
-    uint32_t _sample_mask { 1 };
-    bool     _alpha_to_coverage_enable { false };
-    bool     _alpha_to_one_enable { false };
+    MSAASamples _samples { MSAASamples::MSAA_1X };
+    bool        _sample_shading_enable { false };
+    float       _min_sample_shading { 0.0f };
+    uint32_t    _sample_mask { 1 };
+    bool        _alpha_to_coverage_enable { false };
+    bool        _alpha_to_one_enable { false };
 
     // Depth stencil settings
     bool           _depth_test_enable { true };
