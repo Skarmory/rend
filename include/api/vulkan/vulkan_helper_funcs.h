@@ -29,16 +29,19 @@ VkPrimitiveTopology     convert_topology(Topology topology);
 VkPolygonMode           convert_polygon_mode(PolygonMode mode);
 VkFrontFace             convert_front_face(FrontFace face);
 VkCullModeFlagBits      convert_cull_mode(CullMode mode);
-VkSampleCountFlagBits   convert_sample_count(uint32_t count);
+VkSampleCountFlagBits   convert_sample_count(MSAASamples samples);
 VkCompareOp             convert_compare_op(CompareOp compare_op);
 VkStencilOp             convert_stencil_op(StencilOp stencil_op);
 VkLogicOp               convert_logic_op(LogicOp logic_op);
 VkBlendFactor           convert_blend_factor(BlendFactor factor);
 VkBlendOp               convert_blend_op(BlendOp op);
 VkDynamicState          convert_dynamic_state(DynamicState state);
+VkBufferUsageFlags      convert_buffer_usage_flags(BufferUsage usage);
+VkImageUsageFlags       convert_image_usage_flags(ImageUsage usage);
 
 ImageLayout             convert_image_layout(VkImageLayout layout);
 uint32_t                convert_sample_count(VkSampleCountFlagBits samples);
+Format                  convert_format(VkFormat format);
 
 VkMemoryAllocateInfo                   gen_memory_allocate_info(void);
 VkSamplerCreateInfo                    gen_sampler_create_info(void);

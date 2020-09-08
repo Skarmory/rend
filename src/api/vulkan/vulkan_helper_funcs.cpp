@@ -271,22 +271,18 @@ VkCullModeFlagBits vulkan_helpers::convert_cull_mode(CullMode mode)
     return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
 }
 
-VkSampleCountFlagBits vulkan_helpers::convert_sample_count(uint32_t count)
+VkSampleCountFlagBits vulkan_helpers::convert_sample_count(MSAASamples samples)
 {
-    if(count <= 1)
-        return VK_SAMPLE_COUNT_1_BIT;
-    if(count <= 2)
-        return VK_SAMPLE_COUNT_2_BIT;
-    if(count <= 4)
-        return VK_SAMPLE_COUNT_4_BIT;
-    if(count <= 8)
-        return VK_SAMPLE_COUNT_8_BIT;
-    if(count <= 16)
-        return VK_SAMPLE_COUNT_16_BIT;
-    if(count <= 32)
-        return VK_SAMPLE_COUNT_32_BIT;
-    if(count <= 64)
-        return VK_SAMPLE_COUNT_64_BIT;
+    switch(samples)
+    {
+        case MSAASamples::MSAA_1X: return VK_SAMPLE_COUNT_1_BIT;
+        case MSAASamples::MSAA_2X: return VK_SAMPLE_COUNT_2_BIT;
+        case MSAASamples::MSAA_4X: return VK_SAMPLE_COUNT_4_BIT;
+        case MSAASamples::MSAA_8X: return VK_SAMPLE_COUNT_8_BIT;
+        case MSAASamples::MSAA_16X: return VK_SAMPLE_COUNT_16_BIT;
+        case MSAASamples::MSAA_32X: return VK_SAMPLE_COUNT_32_BIT;
+        case MSAASamples::MSAA_64X: return VK_SAMPLE_COUNT_64_BIT;
+    }
 
     return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
 }
@@ -461,10 +457,78 @@ uint32_t vulkan_helpers::convert_sample_count(VkSampleCountFlagBits samples)
         case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM:
             std::cerr << "Invalid VkSampleCountFlagBits (" << stringify(samples) << ") for conversion" << std::endl;
             assert("Invalid conversion" || true);
-            return 1;
     }
 
     return 1;
+}
+
+Format vulkan_helpers::convert_format(VkFormat format)
+{
+    switch (format)
+    {
+        case VK_FORMAT_R8G8B8A8_UNORM: return Format::R8G8B8A8;
+        case VK_FORMAT_B8G8R8A8_UNORM: return Format::B8G8R8A8;
+        case VK_FORMAT_R16G16B16A16_SFLOAT: return Format::R16G16B16A16_SFLOAT;
+        case VK_FORMAT_R32G32B32_SFLOAT: return Format::R32G32B32_SFLOAT;
+        case VK_FORMAT_R32G32_SFLOAT: return Format::R32G32_SFLOAT;
+        case VK_FORMAT_D24_UNORM_S8_UINT: return Format::D24_S8;
+        default:
+            std::cerr << "Unsupported VkFormat passed for conversion: enum number " << format << std::endl;
+            assert("Unsupported VkFormat" || true);
+    }
+
+    return Format::R8G8B8A8;
+}
+
+VkBufferUsageFlags vulkan_helpers::convert_buffer_usage_flags(BufferUsage usage)
+{
+    VkImageUsageFlags ret{ 0 };
+    uint32_t value{ (uint32_t)usage };
+    uint32_t check{ 1 };
+
+    while (value != 0 && check != 0)
+    {
+        if (value & check)
+        {
+            switch (static_cast<BufferUsage>(check))
+            {
+                case BufferUsage::TRANSFER_SRC: ret |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+                case BufferUsage::TRANSFER_DST: ret |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+                case BufferUsage::VERTEX_BUFFER: ret |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; break;
+                case BufferUsage::INDEX_BUFFER: ret |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT; break;
+                case BufferUsage::UNIFORM_BUFFER: ret |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+            }
+        }
+
+        check = check << 1;
+    }
+
+    return ret;
+}
+
+VkImageUsageFlags vulkan_helpers::convert_image_usage_flags(ImageUsage usage)
+{
+    VkImageUsageFlags ret{ 0 };
+    ImageUsage check{ 1 };
+
+    while (usage != ImageUsage::NONE && check != ImageUsage::NONE)
+    {
+        if ((usage & check) != ImageUsage::NONE)
+        {
+            switch (check)
+            {
+                case ImageUsage::TRANSFER_SRC: ret |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; break;
+                case ImageUsage::TRANSFER_DST: ret |= VK_IMAGE_USAGE_TRANSFER_DST_BIT; break;
+                case ImageUsage::SAMPLED: ret |= VK_IMAGE_USAGE_SAMPLED_BIT; break;
+                case ImageUsage::DEPTH_STENCIL: ret |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT; break;
+                case ImageUsage::COLOUR_ATTACHMENT: ret |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; break;
+            }
+        }
+
+        check = check << 1;
+    }
+
+    return ret;
 }
 
 VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
