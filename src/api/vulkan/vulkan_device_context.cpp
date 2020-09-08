@@ -30,10 +30,10 @@ PhysicalDevice* VulkanDeviceContext::gpu(void) const
     return _chosen_gpu;
 }
 
-GPUMemoryInterface* VulkanDeviceContext::memory_interface(void) const
-{
-    return _memory_interface;
-}
+//GPUMemoryInterface* VulkanDeviceContext::memory_interface(void) const
+//{
+//    return _memory_interface;
+//}
 
 LogicalDevice* VulkanDeviceContext::get_device(void) const
 {
@@ -118,8 +118,8 @@ StatusCode VulkanDeviceContext::create_device(const VkQueueFlags desired_queues)
         return StatusCode::CONTEXT_DEVICE_CREATE_FAILURE;
     }
 
-    _memory_interface = new GPUMemoryInterface;
-    _memory_interface->create(*_chosen_gpu);
+    //_memory_interface = new GPUMemoryInterface;
+    //_memory_interface->create(*_chosen_gpu);
     _logical_device = _chosen_gpu->get_logical_device();
 
     return StatusCode::SUCCESS;

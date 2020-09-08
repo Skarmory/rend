@@ -32,7 +32,7 @@ public:
     VulkanDeviceContext& operator=(VulkanDeviceContext&&)      = delete;
 
     PhysicalDevice*                         gpu(void) const;
-    rend::vkal::memory::GPUMemoryInterface* memory_interface(void) const;
+    //rend::vkal::memory::GPUMemoryInterface* memory_interface(void) const;
     LogicalDevice*                          get_device(void) const;
 
     StatusCode create(void) override;
@@ -68,7 +68,7 @@ private:
 
 private:
     std::vector<PhysicalDevice*>             _physical_devices;
-    rend::vkal::memory::GPUMemoryInterface*  _memory_interface  { nullptr };
+    //rend::vkal::memory::GPUMemoryInterface*  _memory_interface  { nullptr };
     LogicalDevice*                           _logical_device    { nullptr };
     PhysicalDevice*                          _chosen_gpu        { nullptr };
 
