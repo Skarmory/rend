@@ -1,16 +1,12 @@
 #ifndef REND_SAMPLED_TEXTURE_H
 #define REND_SAMPLED_TEXTURE_H
 
-#ifdef USE_VULKAN
-#include "vulkan_sampled_texture.h"
-#endif
+#include "gpu_texture_base.h"
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class SampledTexture : public VulkanSampledTexture
-#endif
+class SampledTexture : public GPUTextureBase
 {
 public:
     SampledTexture(void) = default;
