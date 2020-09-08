@@ -1,16 +1,14 @@
 #ifndef REND_DEPTH_BUFFER_H
 #define REND_DEPTH_BUFFER_H
 
-#ifdef USE_VULKAN
-#include "vulkan_depth_buffer.h"
-#endif
+#include "gpu_texture_base.h"
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class DepthBuffer : public VulkanDepthBuffer
-#endif
+// TODO: Does this really need to be its own class? Probably not.. Get rid of it once
+// initial refactoring is complete
+class DepthBuffer : public GPUTextureBase
 {
 public:
     DepthBuffer(void) = default;
@@ -22,7 +20,6 @@ public:
     DepthBuffer& operator=(DepthBuffer&&)      = delete;
 
     bool create_depth_buffer(uint32_t width, uint32_t height);
-    void destroy_depth_buffer(void);
 };
 
 }
