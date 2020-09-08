@@ -18,6 +18,12 @@ VulkanDeviceContext::VulkanDeviceContext(void)
 {
     assert(_service == nullptr);
     _service = this;
+
+    _vk_buffers.set_unique_key(_data_array_unique_key++);
+    _vk_images.set_unique_key(_data_array_unique_key++);
+    _vk_image_views.set_unique_key(_data_array_unique_key++);
+    _vk_samplers.set_unique_key(_data_array_unique_key++);
+    _vk_memorys.set_unique_key(_data_array_unique_key++);
 }
 
 VulkanDeviceContext::~VulkanDeviceContext(void)
