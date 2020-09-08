@@ -26,12 +26,12 @@ public:
     Swapchain& operator=(Swapchain&&)      = delete;
 
     // Accessors
-    VkFormat                    get_format(void) const;
-    std::vector<RenderTarget*>& get_render_targets(void);
-    RenderTarget&               get_render_target(uint32_t idx);
-    VkExtent2D                  get_extent(void) const;
-    VkSwapchainKHR              get_handle(void) const;
-    uint32_t                    get_current_image_index(void) const;
+    Format                       get_format(void) const;
+    std::vector<Texture2DHandle> get_back_buffer_handles(void);
+    Texture2DHandle              get_back_buffer_handle(uint32_t idx);
+    VkExtent2D                   get_extent(void) const;
+    VkSwapchainKHR               get_handle(void) const;
+    uint32_t                     get_current_image_index(void) const;
 
     // Mutators
     StatusCode create_swapchain(uint32_t desired_images);
@@ -54,8 +54,7 @@ private:
     VkPresentModeKHR   _present_mode { VK_PRESENT_MODE_IMMEDIATE_KHR };
     VkSwapchainKHR     _vk_swapchain { VK_NULL_HANDLE };
     VkExtent2D         _vk_extent {};
-
-    std::vector<RenderTarget*> _render_targets;
+    std::vector<Texture2DHandle> _swapchain_image_handles;
 };
 
 }

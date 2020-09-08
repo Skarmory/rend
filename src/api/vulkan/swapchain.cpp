@@ -16,32 +16,36 @@
 
 using namespace rend;
 
+namespace
+{
+}
+
 Swapchain::~Swapchain(void)
 {
-    //_destroy_image_views();
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
-    for(RenderTarget* rt : _render_targets)
+    for(auto handle : _swapchain_image_handles)
     {
-        delete rt;
+        ctx.destroy_image_view(handle);
+        ctx.unregister_swapchain_image(handle);
     }
 
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_swapchain(_vk_swapchain);
+    ctx.get_device()->destroy_swapchain(_vk_swapchain);
 }
 
-VkFormat Swapchain::get_format(void) const
+Format Swapchain::get_format(void) const
 {
-    return _surface_format.format;
+    return vulkan_helpers::convert_format(_surface_format.format);
 }
 
-std::vector<RenderTarget*>& Swapchain::get_render_targets(void)
+std::vector<Texture2DHandle> Swapchain::get_back_buffer_handles(void)
 {
-    return _render_targets;
+    return _swapchain_image_handles;
 }
 
-RenderTarget& Swapchain::get_render_target(uint32_t idx)
+Texture2DHandle Swapchain::get_back_buffer_handle(uint32_t idx)
 {
-    assert(idx < _render_targets.size());
-    return *_render_targets[idx];
+    return _swapchain_image_handles[idx];
 }
 
 VkExtent2D Swapchain::get_extent(void) const
@@ -157,57 +161,24 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
 void Swapchain::_destroy_image_views(void)
 {
-    for(size_t idx = 0; idx < _render_targets.size(); idx++)
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    for(auto handle : _swapchain_image_handles)
     {
-        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_image_view(_render_targets[idx]->_vk_image_view);
+        ctx.destroy_image_view(handle);
     }
 }
 
 StatusCode Swapchain::_get_images(void)
 {
-    std::vector<VkImage> images;
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->get_swapchain_images(this, images);
-    _render_targets.resize(images.size());
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
-    for(size_t idx = 0; idx < images.size(); idx++)
+    std::vector<VkImage> tmp_swapchain_images;
+    ctx.get_device()->get_swapchain_images(this, tmp_swapchain_images);
+
+    for(size_t idx = 0; idx < tmp_swapchain_images.size(); idx++)
     {
-        if(!_render_targets[idx])
-        {
-            _render_targets[idx] = new RenderTarget;
-        }
-
-        VkImageViewCreateInfo image_view_info = vulkan_helpers::gen_image_view_create_info();
-        image_view_info.image                           = images[idx];
-        image_view_info.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-        image_view_info.format                          = _surface_format.format;
-        image_view_info.components.r                    = VK_COMPONENT_SWIZZLE_IDENTITY;
-        image_view_info.components.g                    = VK_COMPONENT_SWIZZLE_IDENTITY;
-        image_view_info.components.b                    = VK_COMPONENT_SWIZZLE_IDENTITY;
-        image_view_info.components.a                    = VK_COMPONENT_SWIZZLE_IDENTITY;
-        image_view_info.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        image_view_info.subresourceRange.baseMipLevel   = 0;
-        image_view_info.subresourceRange.levelCount     = 1;
-        image_view_info.subresourceRange.baseArrayLayer = 0;
-        image_view_info.subresourceRange.layerCount     = 1;
-
-        VkImageView view = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_image_view(image_view_info);
-        if(view == VK_NULL_HANDLE)
-        {
-            return StatusCode::FAILURE;
-        }
-
-        _render_targets[idx]->create_texture_base(_vk_extent.width, _vk_extent.height, 0, Format::B8G8R8A8);
-        _render_targets[idx]->_vk_image        = images[idx];
-        _render_targets[idx]->_vk_image_view   = view;
-        _render_targets[idx]->_vk_type         = VK_IMAGE_TYPE_2D;
-        _render_targets[idx]->_vk_format       = _surface_format.format;
-        _render_targets[idx]->_mip_levels      = 1;
-        _render_targets[idx]->_array_layers    = 1;
-        _render_targets[idx]->_vk_sample_count = VK_SAMPLE_COUNT_1_BIT;
-        _render_targets[idx]->_vk_tiling       = VK_IMAGE_TILING_OPTIMAL;
-        _render_targets[idx]->_vk_usage        = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        _render_targets[idx]->_vk_layout       = VK_IMAGE_LAYOUT_UNDEFINED;
-        _render_targets[idx]->_swapchain_image = true;
+        _swapchain_image_handles.push_back(ctx.register_swapchain_image(tmp_swapchain_images[idx], _surface_format.format));
     }
 
     return StatusCode::SUCCESS;
