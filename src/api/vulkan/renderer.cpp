@@ -2,20 +2,23 @@
 
 #include "command_pool.h"
 #include "command_buffer.h"
+#include "depth_buffer.h"
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
-#include "vulkan_gpu_texture.h"
 #include "index_buffer.h"
 #include "logical_device.h"
 #include "render_pass.h"
+#include "render_target.h"
+#include "sampled_texture.h"
 #include "semaphore.h"
 #include "swapchain.h"
 #include "uniform_buffer.h"
 #include "vertex_buffer.h"
+#include "vulkan_helper_funcs.h"
 #include "vulkan_instance.h"
-#include "depth_buffer.h"
 #include "vulkan_device_context.h"
+#include "gpu_texture_base.h"
 
 #include <assert.h>
 #include <cstring>
@@ -120,13 +123,19 @@ RenderPass* Renderer::get_default_render_pass(void) const
     return _default_render_pass;
 }
 
-void Renderer::load(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset)
+void Renderer::load(GPUTextureBase* texture, ImageUsage type, void* data, size_t bytes, uint32_t offset)
 {
-    LoadTask* task = new LoadTask(resource, type, data, bytes, offset);
+    ImageLoadTask* task = new ImageLoadTask(texture, type, data, bytes, offset);
     _task_queue.push(task);
 }
 
-void Renderer::transition(VulkanGPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
+void Renderer::load(GPUBufferBase* buffer, BufferUsage type, void* data, size_t bytes, uint32_t offset)
+{
+    BufferLoadTask* task = new BufferLoadTask(buffer, type, data, bytes, offset);
+    _task_queue.push(task);
+}
+
+void Renderer::transition(SampledTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
 {
     ImageTransitionTask* task = new ImageTransitionTask(texture, src, dst, final_layout);
     _task_queue.push(task);
@@ -212,36 +221,36 @@ void Renderer::_process_task_queue(FrameResources& resources)
     resources.staging_buffers.clear();
 }
 
-void LoadTask::execute(FrameResources& resources)
+void ImageLoadTask::execute(FrameResources& resources)
 {
-    bool is_device_local = false;
-    switch(resource_usage)
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    void* mapped = NULL;
+
+    UniformBuffer* staging_buffer = new UniformBuffer;
+    staging_buffer->create_uniform_buffer(size_bytes);
+    resources.staging_buffers.push_back(staging_buffer);
+
+    VkDeviceMemory memory = ctx.get_memory(staging_buffer->get_handle());
+    ctx.get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
+    memcpy(mapped, data, size_bytes);
+    ctx.get_device()->unmap_memory(memory);
+
+    resources.command_buffer->copy_buffer_to_image(*staging_buffer, *image);
+}
+
+void BufferLoadTask::execute(FrameResources& resources)
+{
+    // TODO: This should be based on the memory properties, not the resource
+    bool is_device_local{ false };
+    if ((buffer_usage & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE ||
+        (buffer_usage & BufferUsage::INDEX_BUFFER)  != BufferUsage::NONE)
     {
-        case ResourceUsage::VERTEX_BUFFER:
-        case ResourceUsage::INDEX_BUFFER:
-        {
-            is_device_local = true;
-            break;
-        }
-        case ResourceUsage::UNIFORM_BUFFER:
-        {
-            is_device_local = false;
-            break;
-        }
-        case ResourceUsage::TEXTURE_2D:
-        {
-            is_device_local = static_cast<VulkanGPUTexture*>(resource)->get_memory_properties() & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            break;
-        }
-        case ResourceUsage::NO_RESOURCE:
-        {
-            break;
-        }
+        is_device_local = true;
     }
 
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     VkDeviceMemory memory = VK_NULL_HANDLE;
     void* mapped = NULL;
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     if(is_device_local)
     {
@@ -256,50 +265,11 @@ void LoadTask::execute(FrameResources& resources)
         memcpy(mapped, data, size_bytes);
         ctx.get_device()->unmap_memory(memory);
 
-        switch(resource_usage)
-        {
-            case ResourceUsage::VERTEX_BUFFER:
-            case ResourceUsage::INDEX_BUFFER:
-            case ResourceUsage::UNIFORM_BUFFER:
-            {
-                resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *static_cast<GPUBufferBase*>(resource));
-                break;
-            }
-            case ResourceUsage::TEXTURE_2D:
-            {
-                resources.command_buffer->copy_buffer_to_image(*staging_buffer, *static_cast<VulkanGPUTexture*>(resource));
-                break;
-            }
-            case ResourceUsage::NO_RESOURCE:
-            {
-                break;
-            }
-        }
+        resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *buffer);
     }
     else
     {
-        switch(resource_usage)
-        {
-            case ResourceUsage::NO_RESOURCE:
-            {
-                assert(true && "LoadTask::execute, No resource usage specified.");
-                break;
-            }
-
-            case ResourceUsage::VERTEX_BUFFER:
-            case ResourceUsage::INDEX_BUFFER:
-            case ResourceUsage::UNIFORM_BUFFER:
-            {
-                memory = ctx.get_memory(static_cast<GPUBufferBase*>(resource)->get_handle());
-                break;
-            }
-
-            case ResourceUsage::TEXTURE_2D:
-            {
-                memory = static_cast<VulkanGPUTexture*>(resource)->get_memory();
-                break;
-            }
-        }
+        memory = ctx.get_memory(buffer->get_handle());
 
         ctx.get_device()->map_memory(memory, size_bytes, 0, &mapped);
         memcpy(mapped, data, size_bytes);
@@ -309,6 +279,7 @@ void LoadTask::execute(FrameResources& resources)
 
 void ImageTransitionTask::execute(FrameResources& resources)
 {
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     std::vector<VkImageMemoryBarrier> barriers(1);
     VkImageMemoryBarrier* barrier = barriers.data();
 
@@ -318,11 +289,11 @@ void ImageTransitionTask::execute(FrameResources& resources)
         .pNext               = nullptr,
         .srcAccessMask       = 0,
         .dstAccessMask       = 0,
-        .oldLayout           = image->get_layout(),
+        .oldLayout           = vulkan_helpers::convert_image_layout(image->layout()),
         .newLayout           = final_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image               = image->get_handle(),
+        .image               = ctx.get_image(image->get_handle()),
         .subresourceRange    =
         {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -338,7 +309,7 @@ void ImageTransitionTask::execute(FrameResources& resources)
 #pragma GCC diagnostic ignored "-Wswitch"
 #endif
 
-    switch(image->get_layout())
+    switch(vulkan_helpers::convert_image_layout(image->layout()))
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             barrier->srcAccessMask = 0; break;
@@ -403,7 +374,7 @@ void ImageTransitionTask::execute(FrameResources& resources)
 
     resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
-    image->transition(final_layout);
+    image->layout(vulkan_helpers::convert_image_layout(final_layout));
 }
 
 void Renderer::_create_default_depth_buffer(VkExtent2D extent)
@@ -419,7 +390,12 @@ void Renderer::_create_default_renderpass(void)
 {
     _default_render_pass = new RenderPass;
 
-    uint32_t colour_attach = _default_render_pass->add_attachment_description(_swapchain->get_render_target(0), LoadOp::CLEAR, StoreOp::STORE, ImageLayout::PRESENT);
+    uint32_t colour_attach = _default_render_pass->add_attachment_description(
+        _swapchain->get_format(), rend::MSAASamples::MSAA_1X,
+        LoadOp::CLEAR, StoreOp::STORE, LoadOp::DONT_CARE, StoreOp::DONT_CARE,
+        ImageLayout::UNDEFINED, ImageLayout::PRESENT
+    );
+
     uint32_t depth_attach  = _default_render_pass->add_attachment_description(*_default_depth_buffer, LoadOp::CLEAR, StoreOp::STORE, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
 
     _default_render_pass->add_subpass(
@@ -435,7 +411,7 @@ void Renderer::_create_default_renderpass(void)
 
 void Renderer::_create_default_framebuffers(bool recreate)
 {
-    const std::vector<RenderTarget*>& targets = _swapchain->get_render_targets();
+    const std::vector<Texture2DHandle> targets = _swapchain->get_back_buffer_handles();
 
     VkExtent2D swapchain_extent = _swapchain->get_extent();
     VkExtent3D framebuffer_dims = { swapchain_extent.width, swapchain_extent.height, 1 };
@@ -451,7 +427,7 @@ void Renderer::_create_default_framebuffers(bool recreate)
     {
         _default_framebuffers[idx] = new Framebuffer;
         _default_framebuffers[idx]->set_depth_buffer(*_default_depth_buffer);
-        _default_framebuffers[idx]->add_render_target(*targets[idx]);
+        _default_framebuffers[idx]->add_render_target(targets[idx]);
         _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, framebuffer_dims);
     }
 }

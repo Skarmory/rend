@@ -17,7 +17,6 @@ class CommandBuffer;
 class Fence;
 class Framebuffer;
 class DepthBuffer;
-class VulkanGPUTexture;
 class RenderPass;
 class Semaphore;
 class Swapchain;
@@ -25,8 +24,11 @@ class UniformBuffer;
 class VulkanInstance;
 class Window;
 
+class GPUBufferBase;
+class GPUTextureBase;
 class IndexBuffer;
 class VertexBuffer;
+class SampledTexture;
 
 struct FrameResources
 {
@@ -45,27 +47,41 @@ struct Task
     virtual void execute(FrameResources& resources) = 0;
 };
 
-struct LoadTask : public Task
+struct BufferLoadTask : public Task
 {
-    void*         resource       { nullptr };
-    ResourceUsage resource_usage { ResourceUsage::NO_RESOURCE };
-    void*         data           { nullptr };
-    size_t        size_bytes     { 0 };
-    uint32_t      offset         { 0 };
+    GPUBufferBase* buffer{ nullptr };
+    BufferUsage    buffer_usage{ 0 };
+    void*          data{ nullptr };
+    size_t         size_bytes{ 0 };
+    uint32_t       offset{ 0 };
 
-    LoadTask(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset) : resource(resource), resource_usage(type), data(data), size_bytes(bytes), offset(offset) {}
-    virtual void execute(FrameResources& resources) override;
+    BufferLoadTask(GPUBufferBase* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset)
+        : buffer(buffer), buffer_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
+    void execute(FrameResources& resources) override;
+};
+
+struct ImageLoadTask : public Task
+{
+    GPUTextureBase* image{ nullptr };
+    ImageUsage      image_usage{ 0 };
+    void*           data{ nullptr };
+    size_t          size_bytes{ 0 };
+    uint32_t        offset{ 0 };
+
+    ImageLoadTask(GPUTextureBase* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset)
+        : image(texture), image_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
+    void execute(FrameResources& resources) override;
 };
 
 struct ImageTransitionTask : public Task
 {
-    VulkanGPUTexture*    image;
+    SampledTexture*      image;
     VkPipelineStageFlags src;
     VkPipelineStageFlags dst;
     VkImageLayout        final_layout;
 
-    ImageTransitionTask(VulkanGPUTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
-    virtual void execute(FrameResources& resources) override;
+    ImageTransitionTask(SampledTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
+    void execute(FrameResources& resources) override;
 };
 
 class Renderer : public rend::Resource
@@ -84,8 +100,9 @@ public:
     RenderPass* get_default_render_pass(void) const;
 
     // Resource functions
-    void load(void* resource, ResourceUsage type, void* data, size_t bytes, uint32_t offset);
-    void transition(VulkanGPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
+    void load(GPUTextureBase* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset);
+    void load(GPUBufferBase* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset);
+    void transition(SampledTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions
     FrameResources& start_frame(void);
