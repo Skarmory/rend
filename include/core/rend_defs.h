@@ -263,14 +263,45 @@ struct Synchronisation
     MemoryAccesses accesses;
 };
 
-enum class ResourceUsage : uint32_t
+enum class BufferUsage : uint32_t
 {
-    NO_RESOURCE    = 0,
+    NONE           = 0,
+    TRANSFER_SRC   = BIT(0),
+    TRANSFER_DST   = BIT(1),
+    VERTEX_BUFFER  = BIT(2),
+    INDEX_BUFFER   = BIT(3),
+    UNIFORM_BUFFER = BIT(4)
+};
 
-    // Buffer types
-    VERTEX_BUFFER  = BIT(0),
-    INDEX_BUFFER   = BIT(1),
-    UNIFORM_BUFFER = BIT(2),
+inline BufferUsage operator|(BufferUsage lhs, BufferUsage rhs)
+{
+    using T = std::underlying_type_t<BufferUsage>;
+    return static_cast<BufferUsage>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline BufferUsage& operator|=(BufferUsage& lhs, BufferUsage rhs)
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+inline BufferUsage operator&(BufferUsage lhs, BufferUsage rhs)
+{
+    using T = std::underlying_type_t<BufferUsage>;
+    return static_cast<BufferUsage>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+inline BufferUsage& operator&=(BufferUsage& lhs, BufferUsage rhs)
+{
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+inline BufferUsage operator<<(BufferUsage lhs, int rhs)
+{
+    using T = std::underlying_type_t<BufferUsage>;
+    return static_cast<BufferUsage>(static_cast<T>(lhs) << rhs);
+}
 
     // Texture types
     TEXTURE_2D     = BIT(4)
