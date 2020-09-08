@@ -1,28 +1,26 @@
 #ifndef REND_RENDER_TARGET_H
 #define REND_RENDER_TARGET_H
 
-#ifdef USE_VULKAN
-#include "vulkan_render_target.h"
-#endif
+#include "gpu_texture_base.h"
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
-class RenderTarget : public VulkanRenderTarget
-#endif
+// TODO: Does this really need to be its own class? Probably not.. Get rid of it once
+// initial refactoring is complete
+
+class RenderTarget : public GPUTextureBase
 {
 public:
-    RenderTarget(void);
-    ~RenderTarget(void);
+    RenderTarget(void) = default;
+    ~RenderTarget(void) = default;
 
     RenderTarget(const RenderTarget&)            = delete;
     RenderTarget(RenderTarget&&)                 = delete;
     RenderTarget& operator=(const RenderTarget&) = delete;
     RenderTarget& operator=(RenderTarget&&)      = delete;
 
-    bool create_render_target(uint32_t width, uint32_t height, Format format);
-    void destroy_render_target(void);
+    bool create_render_target(uint32_t width, uint32_t height, Format format, MSAASamples samples);
 };
 
 }

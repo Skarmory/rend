@@ -1,33 +1,25 @@
 #include "render_target.h"
 
+#include "device_context.h"
+#include "vulkan_device_context.h"
+
 using namespace rend;
 
-RenderTarget::RenderTarget(void)
-    :
-#ifdef USE_VULKAN
-        VulkanRenderTarget()
-#endif
+bool RenderTarget::create_render_target(uint32_t width, uint32_t height, Format format, MSAASamples samples)
 {
-}
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
-RenderTarget::~RenderTarget(void)
-{
-    destroy_render_target();
-}
+    _handle = ctx.create_texture_2d(width, height, 1, 1, format, ImageUsage::COLOUR_ATTACHMENT);
 
-bool RenderTarget::create_render_target(uint32_t width, uint32_t height, Format format)
-{
-    create_texture_base(width, height, 1, format);
-
-    if(create_render_target_api(width, height, format) != StatusCode::SUCCESS)
+    if(_handle == NULL_HANDLE)
     {
         return false;
     }
 
-    return true;
-}
+    _width = width;
+    _height = height;
+    _format = format;
+    _samples = samples;
 
-void RenderTarget::destroy_render_target(void)
-{
-    destroy_texture_api();
+    return true;
 }
