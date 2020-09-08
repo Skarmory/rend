@@ -15,12 +15,14 @@ Framebuffer::~Framebuffer(void)
     _destroy();
 }
 
-bool Framebuffer::add_render_target(RenderTarget& target)
+bool Framebuffer::add_render_target(Texture2DHandle target)
 {
-    if(_vk_framebuffer != VK_NULL_HANDLE)
+    if (_vk_framebuffer != VK_NULL_HANDLE)
+    {
         return false;
+    }
 
-    _render_targets.push_back(&target);
+    _render_targets.push_back(target);
 
     return true;
 }
@@ -37,15 +39,24 @@ bool Framebuffer::set_depth_buffer(DepthBuffer& buffer)
 
 StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions)
 {
-    if(_vk_framebuffer != VK_NULL_HANDLE)
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    if (_vk_framebuffer != VK_NULL_HANDLE)
+    {
         return StatusCode::ALREADY_CREATED;
+    }
 
     std::vector<VkImageView> attachments;
-    for(RenderTarget* target : _render_targets)
-        attachments.push_back(target->get_view());
 
-    if(_depth_buffer)
-        attachments.push_back(_depth_buffer->get_view());
+    for (Texture2DHandle target : _render_targets)
+    {
+        attachments.push_back(ctx.get_image_view(target));
+    }
+
+    if (_depth_buffer)
+    {
+        attachments.push_back(ctx.get_image_view(_depth_buffer->get_handle()));
+    }
 
     _render_pass = &render_pass;
 
@@ -54,15 +65,24 @@ StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExte
 
 StatusCode Framebuffer::recreate(VkExtent3D dimensions)
 {
-    if(_vk_framebuffer == VK_NULL_HANDLE)
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    if (_vk_framebuffer == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     std::vector<VkImageView> attachments;
-    for(RenderTarget* target : _render_targets)
-        attachments.push_back(target->get_view());
 
-    if(_depth_buffer)
-        attachments.push_back(_depth_buffer->get_view());
+    for (Texture2DHandle target : _render_targets)
+    {
+        attachments.push_back(ctx.get_image_view(target));
+    }
+
+    if (_depth_buffer)
+    {
+        attachments.push_back(ctx.get_image_view(_depth_buffer->get_handle()));
+    }
 
     _destroy();
     return _create(attachments, dimensions);
@@ -76,11 +96,6 @@ VkFramebuffer Framebuffer::get_handle(void) const
 const RenderPass* Framebuffer::get_render_pass(void) const
 {
     return _render_pass;
-}
-
-const std::vector<RenderTarget*>& Framebuffer::get_render_targets(void) const
-{
-    return _render_targets;
 }
 
 const DepthBuffer* Framebuffer::get_depth_buffer(void) const
@@ -112,14 +127,18 @@ void Framebuffer::_destroy(void)
 
 void Framebuffer::on_end_render_pass(void)
 {
-    const std::vector<VkAttachmentDescription>& descs = _render_pass->get_attachment_descs();
-    for(uint32_t colour_attach_idx = 0; colour_attach_idx < _render_targets.size(); ++colour_attach_idx)
-    {
-        _render_targets[colour_attach_idx]->transition(descs[colour_attach_idx].finalLayout);
-    }
+    //const std::vector<VkAttachmentDescription>& descs = _render_pass->get_attachment_descs();
+    //for(uint32_t colour_attach_idx = 0; colour_attach_idx < _render_targets.size(); ++colour_attach_idx)
+    //{
+    //    _render_targets[colour_attach_idx]->transition(
+    //        vulkan_helpers::convert_image_layout(descs[colour_attach_idx].finalLayout)
+    //    );
+    //}
 
-    if(_depth_buffer)
-    {
-        _depth_buffer->transition(descs.back().finalLayout);
-    }
+    //if(_depth_buffer)
+    //{
+    //    _depth_buffer->transition(
+    //        vulkan_helpers::convert_image_layout(descs.back().finalLayout)
+    //    );
+    //}
 }

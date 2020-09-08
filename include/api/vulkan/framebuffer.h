@@ -27,13 +27,12 @@ public:
     StatusCode create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
     StatusCode recreate(VkExtent3D dimensions);
 
-    bool add_render_target(RenderTarget& target);
+    bool add_render_target(Texture2DHandle target);
     bool set_depth_buffer(DepthBuffer& buffer);
 
-    VkFramebuffer                     get_handle(void) const;
-    const RenderPass*                 get_render_pass(void) const;
-    const std::vector<RenderTarget*>& get_render_targets(void) const;
-    const DepthBuffer*                get_depth_buffer(void) const;
+    VkFramebuffer      get_handle(void) const;
+    const RenderPass*  get_render_pass(void) const;
+    const DepthBuffer* get_depth_buffer(void) const;
 
     void on_end_render_pass(void);
 
@@ -42,10 +41,10 @@ private:
     void _destroy(void);
 
 private:
-    const RenderPass*          _render_pass { nullptr };
-    std::vector<RenderTarget*> _render_targets;
-    DepthBuffer*               _depth_buffer { nullptr };
-    VkFramebuffer              _vk_framebuffer { VK_NULL_HANDLE };
+    const RenderPass*            _render_pass { nullptr };
+    DepthBuffer*                 _depth_buffer { nullptr };
+    std::vector<Texture2DHandle> _render_targets;
+    VkFramebuffer                _vk_framebuffer { VK_NULL_HANDLE };
 };
 
 }
