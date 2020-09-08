@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <cstdint>
+#include <type_traits>
 
 #define UU(x) ((void)x)
 #define BIT(x) (static_cast<uint32_t>(1 << x))
@@ -303,9 +304,45 @@ inline BufferUsage operator<<(BufferUsage lhs, int rhs)
     return static_cast<BufferUsage>(static_cast<T>(lhs) << rhs);
 }
 
-    // Texture types
-    TEXTURE_2D     = BIT(4)
+enum class ImageUsage : uint32_t
+{
+    NONE              = 0,
+    TRANSFER_SRC      = BIT(0),
+    TRANSFER_DST      = BIT(1),
+    SAMPLED           = BIT(2),
+    DEPTH_STENCIL     = BIT(3),
+    COLOUR_ATTACHMENT = BIT(4),
 };
+
+inline ImageUsage operator|(ImageUsage lhs, ImageUsage rhs)
+{
+    using T = std::underlying_type_t<ImageUsage>;
+    return static_cast<ImageUsage>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline ImageUsage& operator|=(ImageUsage& lhs, ImageUsage rhs)
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+inline ImageUsage operator&(ImageUsage lhs, ImageUsage rhs)
+{
+    using T = std::underlying_type_t<ImageUsage>;
+    return static_cast<ImageUsage>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+inline ImageUsage& operator&=(ImageUsage& lhs, ImageUsage rhs)
+{
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+inline ImageUsage operator<<(ImageUsage lhs, int rhs)
+{
+    using T = std::underlying_type_t<ImageUsage>;
+    return static_cast<ImageUsage>(static_cast<T>(lhs) << rhs);
+}
 
 typedef uint64_t HandleType;
 typedef HandleType MemoryHandle;
