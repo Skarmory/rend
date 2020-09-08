@@ -172,7 +172,7 @@ Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t 
     VkExtent3D vk_extent = VkExtent3D{ width, height, 1 };
     VkImageType vk_type = vulkan_helpers::find_image_type(vk_extent);
     VkFormat vk_format = vulkan_helpers::convert_format(format);
-    VkImageUsageFlags vk_usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    VkImageUsageFlags vk_usage = vulkan_helpers::convert_image_usage_flags(usage);
     VkImageViewType vk_view_type = vulkan_helpers::find_image_view_type(vk_type, false, false);
     VkImageAspectFlags vk_aspect = vulkan_helpers::find_image_aspects(vk_format);
 
