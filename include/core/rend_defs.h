@@ -56,6 +56,17 @@ enum class Format
     D24_S8
 };
 
+enum class MSAASamples
+{
+    MSAA_1X,
+    MSAA_2X,
+    MSAA_4X,
+    MSAA_8X,
+    MSAA_16X,
+    MSAA_32X,
+    MSAA_64X
+};
+
 enum class ShaderType
 {
     VERTEX,
