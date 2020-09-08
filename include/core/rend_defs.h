@@ -347,9 +347,13 @@ inline ImageUsage operator<<(ImageUsage lhs, int rhs)
 typedef uint64_t HandleType;
 typedef HandleType MemoryHandle;
 typedef HandleType BufferHandle;
+typedef HandleType TextureHandle;
+typedef HandleType TextureViewHandle;
+typedef HandleType SamplerHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
+typedef TextureHandle Texture2DHandle;
 
 constexpr HandleType NULL_HANDLE = std::numeric_limits<uint64_t>::max();
 
