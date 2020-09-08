@@ -11,7 +11,7 @@ class GPUBufferBase : public GPUResource
 {
 public:
     GPUBufferBase(void) = default;
-    ~GPUBufferBase(void) = default;
+    ~GPUBufferBase(void);
 
     GPUBufferBase(const GPUBufferBase&)            = delete;
     GPUBufferBase(GPUBufferBase&&)                 = delete;
