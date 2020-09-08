@@ -152,7 +152,7 @@ UniformBufferHandle VulkanDeviceContext::create_uniform_buffer(size_t bytes)
     ));
 }
 
-Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format)
+Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format, ImageUsage usage)
 {
     VkExtent3D vk_extent = VkExtent3D{ width, height, 1 };
     VkImageType vk_type = vulkan_helpers::find_image_type(vk_extent);
@@ -224,22 +224,22 @@ Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_
     return image_handle;
 }
 
-void VulkanDeviceContext::destroy_buffer(BufferHandle handle)
+void VulkanDeviceContext::destroy_buffer(BufferHandle buffer_handle)
 {
-    auto it = _handle_to_memory_handle.find(handle);
+    auto it = _handle_to_memory_handle.find(buffer_handle);
     if (it == _handle_to_memory_handle.end())
     {
         return;
     }
 
     MemoryHandle mem_handle = it->second;
-    VkBuffer* buffer = _vk_buffers.get(handle);
+    VkBuffer* buffer = _vk_buffers.get(buffer_handle);
     VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
 
     if (buffer)
     {
         _logical_device->destroy_buffer(*buffer);
-        _vk_buffers.deallocate(handle);
+        _vk_buffers.deallocate(buffer_handle);
     }
 
     if (memory)
@@ -250,42 +250,42 @@ void VulkanDeviceContext::destroy_buffer(BufferHandle handle)
         _vk_memorys.deallocate(mem_handle);
     }
 
-    _handle_to_memory_handle.erase(handle);
+    _handle_to_memory_handle.erase(buffer_handle);
 }
 
-void VulkanDeviceContext::destroy_texture(Texture2DHandle handle)
+void VulkanDeviceContext::destroy_texture(Texture2DHandle texture_handle)
 {
-    _destroy_sampler(handle);
-    destroy_image_view(handle);
+    _destroy_sampler(texture_handle);
+    destroy_image_view(texture_handle);
 
-    auto it = _handle_to_memory_handle.find(handle);
+    auto it = _handle_to_memory_handle.find(texture_handle);
     if (it == _handle_to_memory_handle.end())
     {
         return;
     }
 
     MemoryHandle mem_handle = it->second;
-    VkImage* image = _vk_images.get(handle);
-    VkDeviceMemory* memory = _vk_memorys.get(handle);
+    VkImage* image = _vk_images.get(texture_handle);
+    VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
 
     if (image)
     {
         _logical_device->destroy_image(*image);
-        _vk_images.deallocate(handle);
+        _vk_images.deallocate(texture_handle);
     }
 
     if (memory)
     {
         _logical_device->free_memory(*memory);
-        _vk_memorys.deallocate(handle);
+        _vk_memorys.deallocate(mem_handle);
     }
 
-    _handle_to_memory_handle.erase(handle);
+    _handle_to_memory_handle.erase(texture_handle);
 }
 
-void VulkanDeviceContext::destroy_image_view(Texture2DHandle handle)
+void VulkanDeviceContext::destroy_image_view(Texture2DHandle texture_handle)
 {
-    auto it = _texture_handle_to_view_handle.find(handle);
+    auto it = _texture_handle_to_view_handle.find(texture_handle);
     if (it == _texture_handle_to_view_handle.end())
     {
         return;
@@ -300,7 +300,25 @@ void VulkanDeviceContext::destroy_image_view(Texture2DHandle handle)
         _vk_image_views.deallocate(view_handle);
     }
 
-    _texture_handle_to_view_handle.erase(handle);
+    _texture_handle_to_view_handle.erase(texture_handle);
+}
+
+void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_handle)
+{
+    auto it = _texture_handle_to_view_handle.find(swapchain_handle);
+    if (it != _texture_handle_to_view_handle.end())
+    {
+        TextureViewHandle view_handle = it->second;
+        VkImageView* image_view = _vk_image_views.get(view_handle);
+        if (image_view)
+        {
+            _logical_device->destroy_image_view(*image_view);
+            _vk_image_views.deallocate(view_handle);
+        }
+    }
+
+    _texture_handle_to_view_handle.erase(swapchain_handle);
+    _vk_images.deallocate(swapchain_handle);
 }
 
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
