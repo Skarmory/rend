@@ -65,20 +65,29 @@ StatusCode VulkanDeviceContext::create(void)
 
 void VulkanDeviceContext::destroy(void)
 {
-    for (auto& handle : _vk_buffers)
-    {
-        if (_vk_buffers.check_valid(handle))
-        {
-            _logical_device->destroy_buffer(*_vk_buffers.get(handle));
-        }
-    }
-
     for (auto& handle : _vk_memorys)
     {
-        if (_vk_memorys.check_valid(handle))
-        {
-            _logical_device->free_memory(*_vk_memorys.get(handle));
-        }
+        _logical_device->free_memory(*_vk_memorys.get(handle));
+    }
+
+    for (auto& handle : _vk_buffers)
+    {
+        _logical_device->destroy_buffer(*_vk_buffers.get(handle));
+    }
+
+    for (auto& handle : _vk_samplers)
+    {
+        _logical_device->destroy_sampler(*_vk_samplers.get(handle));
+    }
+
+    for (auto& handle : _vk_image_views)
+    {
+        _logical_device->destroy_image_view(*_vk_image_views.get(handle));
+    }
+
+    for (auto& handle : _vk_images)
+    {
+        _logical_device->destroy_image(*_vk_images.get(handle));
     }
 
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
