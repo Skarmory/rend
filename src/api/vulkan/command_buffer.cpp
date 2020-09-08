@@ -2,8 +2,6 @@
 
 #include "descriptor_set.h"
 #include "framebuffer.h"
-#include "vulkan_gpu_buffer.h"
-#include "vulkan_gpu_texture.h"
 #include "pipeline.h"
 #include "pipeline_layout.h"
 #include "render_pass.h"
@@ -11,6 +9,7 @@
 #include "vulkan_device_context.h"
 
 #include "gpu_buffer_base.h"
+#include "gpu_texture_base.h"
 #include "index_buffer.h"
 #include "vertex_buffer.h"
 
@@ -174,19 +173,6 @@ void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize of
     vkCmdBindIndexBuffer(_vk_command_buffer,  ctx.get_buffer(buffer.get_handle()), offset, index_type);
 }
 
-void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VulkanGPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
-{
-    _recorded = true;
-
-    std::vector<VkBuffer> vk_buffers;
-    vk_buffers.reserve(buffers.size());
-
-    for(VulkanGPUBuffer* buf : buffers)
-        vk_buffers.push_back(buf->get_handle());
-
-    vkCmdBindVertexBuffers(_vk_command_buffer, first_binding, static_cast<uint32_t>(buffers.size()), vk_buffers.data(), offsets.data());
-}
-
 void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VertexBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
     _recorded = true;
@@ -211,28 +197,35 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
 
-void CommandBuffer::copy_buffer_to_image(const GPUBufferBase& buffer, const VulkanGPUTexture& image)
+void CommandBuffer::copy_buffer_to_image(const GPUBufferBase& buffer, const GPUTextureBase& image)
 {
     _recorded = true;
 
     VkBufferImageCopy copy =
     {
         .bufferOffset           = 0,
-        .bufferRowLength        = image.get_extent().width,
-        .bufferImageHeight      = image.get_extent().height,
+        .bufferRowLength        = image.width(),
+        .bufferImageHeight      = image.height(),
         .imageSubresource       =
             {
                 .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel       = 0,
                 .baseArrayLayer = 0,
-                .layerCount     = image.get_array_layers()
+                .layerCount     = image.layers()
             },
         .imageOffset            = { 0, 0, 0 },
-        .imageExtent            = image.get_extent()
+        .imageExtent            = VkExtent3D{ image.width(), image.height(), image.depth() }
     };
 
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    vkCmdCopyBufferToImage(_vk_command_buffer, ctx.get_buffer(buffer.get_handle()), image.get_handle(), image.get_layout(), 1, &copy);
+    vkCmdCopyBufferToImage(
+        _vk_command_buffer,
+        ctx.get_buffer(buffer.get_handle()),
+        ctx.get_image(image.get_handle()),
+        vulkan_helpers::convert_image_layout(image.layout()),
+        1,
+        &copy
+    );
 }
 
 void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst)
@@ -251,15 +244,15 @@ void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBuf
     vkCmdCopyBuffer(_vk_command_buffer, ctx.get_buffer(src.get_handle()), ctx.get_buffer(dst.get_handle()), 1, &copy);
 }
 
-void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTexture& dst)
+void CommandBuffer::blit_image(const GPUTextureBase& src, const GPUTextureBase& dst)
 {
     _recorded = true;
 
     VkImageBlit blit = {};
-    blit.srcSubresource.aspectMask     = vulkan_helpers::find_image_aspects(src.get_vk_format());
+    blit.srcSubresource.aspectMask     = vulkan_helpers::find_image_aspects(vulkan_helpers::convert_format(src.format()));
     blit.srcSubresource.mipLevel       = 0;
     blit.srcSubresource.baseArrayLayer = 0;
-    blit.srcSubresource.layerCount     = src.get_array_layers();
+    blit.srcSubresource.layerCount     = src.layers();
 
     blit.srcOffsets[0].x = 0;
     blit.srcOffsets[0].y = 0;
@@ -268,10 +261,10 @@ void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTextu
     blit.srcOffsets[1].y = src.height();
     blit.srcOffsets[1].z = 1;
 
-    blit.dstSubresource.aspectMask     = vulkan_helpers::find_image_aspects(dst.get_vk_format());
+    blit.dstSubresource.aspectMask     = vulkan_helpers::find_image_aspects(vulkan_helpers::convert_format(dst.format()));
     blit.dstSubresource.mipLevel       = 0;
     blit.dstSubresource.baseArrayLayer = 0;
-    blit.dstSubresource.layerCount     = dst.get_array_layers();
+    blit.dstSubresource.layerCount     = dst.layers();
 
     blit.dstOffsets[0].x = 0;
     blit.dstOffsets[0].y = 0;
@@ -280,13 +273,25 @@ void CommandBuffer::blit_image(const VulkanGPUTexture& src, const VulkanGPUTextu
     blit.dstOffsets[1].y = dst.height();
     blit.dstOffsets[1].z = 1;
 
-    vkCmdBlitImage(_vk_command_buffer, src.get_handle(), src.get_layout(), dst.get_handle(), dst.get_layout(), 1, &blit, VK_FILTER_LINEAR);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    vkCmdBlitImage(
+        _vk_command_buffer,
+        ctx.get_image(src.get_handle()),
+        vulkan_helpers::convert_image_layout(src.layout()),
+        ctx.get_image(dst.get_handle()),
+        vulkan_helpers::convert_image_layout(dst.layout()),
+        1,
+        &blit,
+        VK_FILTER_LINEAR
+    );
 }
 
-void CommandBuffer::transition_image(VulkanGPUTexture& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage)
+void CommandBuffer::transition_image(GPUTextureBase& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage)
 {
     std::vector<VkImageMemoryBarrier> barriers(1);
     VkImageMemoryBarrier& barrier = barriers[0];
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     barrier = VkImageMemoryBarrier
     {
@@ -294,11 +299,11 @@ void CommandBuffer::transition_image(VulkanGPUTexture& image, VkImageLayout tran
         .pNext               = nullptr,
         .srcAccessMask       = 0,
         .dstAccessMask       = 0,
-        .oldLayout           = image.get_layout(),
+        .oldLayout           = vulkan_helpers::convert_image_layout(image.layout()),
         .newLayout           = transition_to,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image               = image.get_handle(),
+        .image               = ctx.get_image(image.get_handle()),
         .subresourceRange    =
         {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -309,7 +314,7 @@ void CommandBuffer::transition_image(VulkanGPUTexture& image, VkImageLayout tran
         }
     };
 
-    switch(image.get_layout())
+    switch(vulkan_helpers::convert_image_layout(image.layout()))
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             barrier.srcAccessMask = 0; break;
@@ -336,7 +341,7 @@ void CommandBuffer::transition_image(VulkanGPUTexture& image, VkImageLayout tran
         case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
         case VK_IMAGE_LAYOUT_RANGE_SIZE:
         case VK_IMAGE_LAYOUT_MAX_ENUM:
-            std::cerr << "Image transition error: src layout " << vulkan_helpers::stringify(image.get_layout()) << " is not supported" << std::endl;
+            std::cerr << "Image transition error: src layout " << vulkan_helpers::stringify(vulkan_helpers::convert_image_layout(image.layout())) << " is not supported" << std::endl;
             return;
     }
 
@@ -373,7 +378,7 @@ void CommandBuffer::transition_image(VulkanGPUTexture& image, VkImageLayout tran
 
     pipeline_barrier(src_stage, dst_stage, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
 
-    image.transition(transition_to);
+    image.layout(vulkan_helpers::convert_image_layout(transition_to));
 }
 
 void CommandBuffer::pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers)
