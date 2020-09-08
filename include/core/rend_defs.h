@@ -1,7 +1,7 @@
 #ifndef REND_DEFS_H
 #define REND_DEFS_H
 
-#include <climits>
+#include <limits>
 #include <cstdint>
 
 #define UU(x) ((void)x)
@@ -265,14 +265,14 @@ enum class ResourceUsage : uint32_t
     TEXTURE_2D     = BIT(4)
 };
 
-typedef uint32_t HandleType;
+typedef uint64_t HandleType;
 typedef HandleType MemoryHandle;
 typedef HandleType BufferHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
 
-const HandleType NULL_HANDLE = UINT_MAX;
+constexpr HandleType NULL_HANDLE = std::numeric_limits<uint64_t>::max();
 
 }
 
