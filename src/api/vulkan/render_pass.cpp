@@ -81,14 +81,14 @@ StatusCode RenderPass::create_render_pass(void)
     return StatusCode::SUCCESS;
 }
 
-uint32_t RenderPass::add_attachment_description(Format format, uint32_t samples, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout initial, ImageLayout final)
+uint32_t RenderPass::add_attachment_description(Format format, MSAASamples samples, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout initial, ImageLayout final)
 {
     uint32_t attach_slot = _vk_attach_descs.size();
 
     VkAttachmentDescription desc;
     desc.flags          = 0;
     desc.format         = vulkan_helpers::convert_format(format);
-    desc.samples        = static_cast<VkSampleCountFlagBits>(samples);
+    desc.samples        = vulkan_helpers::convert_sample_count(samples);
     desc.loadOp         = vulkan_helpers::convert_load_op(load_op);
     desc.storeOp        = vulkan_helpers::convert_store_op(store_op);
     desc.stencilLoadOp  = vulkan_helpers::convert_load_op(s_load_op);
@@ -105,12 +105,12 @@ uint32_t RenderPass::add_attachment_description(const RenderTarget& target, Load
 {
     return add_attachment_description(
         target.format(),
-        vulkan_helpers::convert_sample_count(target.get_sample_count()),
+        target.samples(),
         load_op,
         store_op,
         LoadOp::DONT_CARE,
         StoreOp::DONT_CARE,
-        vulkan_helpers::convert_image_layout(target.get_layout()),
+        target.layout(),
         final
     );
 }
@@ -119,12 +119,12 @@ uint32_t RenderPass::add_attachment_description(const DepthBuffer& target, LoadO
 {
     return add_attachment_description(
         target.format(),
-        vulkan_helpers::convert_sample_count(target.get_sample_count()),
+        target.samples(),
         load_op,
         store_op,
         load_op,
         store_op,
-        vulkan_helpers::convert_image_layout(target.get_layout()),
+        target.layout(),
         final
     );
 }
@@ -133,12 +133,12 @@ uint32_t RenderPass::add_attachment_description(const DepthBuffer&  target, Load
 {
     return add_attachment_description(
         target.format(),
-        vulkan_helpers::convert_sample_count(target.get_sample_count()),
+        target.samples(),
         load_op,
         store_op,
         s_load_op,
         s_store_op,
-        vulkan_helpers::convert_image_layout(target.get_layout()),
+        target.layout(),
         final
     );
 }
