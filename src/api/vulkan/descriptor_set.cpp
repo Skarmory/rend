@@ -3,8 +3,7 @@
 #include "device_context.h"
 #include "logical_device.h"
 #include "uniform_buffer.h"
-#include "vulkan_gpu_buffer.h"
-#include "vulkan_gpu_texture.h"
+#include "sampled_texture.h"
 #include "vulkan_device_context.h"
 
 using namespace rend;
@@ -20,7 +19,7 @@ VkDescriptorSet DescriptorSet::get_handle(void) const
     return _vk_set;
 }
 
-void DescriptorSet::describe(uint32_t binding, VulkanGPUTexture* texture)
+void DescriptorSet::describe(uint32_t binding, SampledTexture* texture)
 {
     Binding* _binding = _find_binding(binding);
     if(_binding)
@@ -54,6 +53,8 @@ void DescriptorSet::describe(uint32_t binding, UniformBuffer* buffer)
 
 void DescriptorSet::update(void)
 {
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
     std::vector<VkWriteDescriptorSet> vk_write_descs;
     std::vector<VkDescriptorImageInfo> vk_image_infos;
     std::vector<VkDescriptorBufferInfo> vk_buffer_infos;
@@ -77,12 +78,14 @@ void DescriptorSet::update(void)
             case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
             case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             {
-                VulkanGPUTexture* texture = std::get<VulkanGPUTexture*>(binding.bound_resource);
+                SampledTexture* texture = std::get<SampledTexture*>(binding.bound_resource);
 
                 uint32_t idx = vk_image_infos.size();
 
                 vk_image_infos.push_back({
-                    texture->get_sampler(), texture->get_view(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                    ctx.get_sampler(texture->get_handle()),
+                    ctx.get_image_view(texture->get_handle()),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
                 });
 
                 write_desc.pImageInfo = &vk_image_infos[idx];
@@ -95,8 +98,6 @@ void DescriptorSet::update(void)
                 UniformBuffer* buffer = std::get<UniformBuffer*>(binding.bound_resource);
 
                 uint32_t idx = vk_buffer_infos.size();
-
-                auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
                 vk_buffer_infos.push_back({
                     ctx.get_buffer(buffer->get_handle()), 0, buffer->bytes()

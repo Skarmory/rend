@@ -9,7 +9,7 @@ namespace rend
 {
 
 class UniformBuffer;
-class VulkanGPUTexture;
+class SampledTexture;
 
 class DescriptorSet
 {
@@ -27,7 +27,7 @@ public:
     VkDescriptorSet get_handle(void) const;
 
     // Describe binding for given image(s) to given binding point at given array elem
-    void describe(uint32_t binding, VulkanGPUTexture* texture);
+    void describe(uint32_t binding, SampledTexture* texture);
 
     // Describe binding for given buffer(s) to given binding point at given array elem
     void describe(uint32_t binding, UniformBuffer* buffer);
@@ -46,7 +46,7 @@ private:
     {
         uint32_t slot;
         VkDescriptorType type;
-        std::variant<VulkanGPUTexture*, UniformBuffer*> bound_resource;
+        std::variant<SampledTexture*, UniformBuffer*> bound_resource;
     };
 
     std::vector<Binding> _bindings;
