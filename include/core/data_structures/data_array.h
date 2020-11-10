@@ -66,7 +66,7 @@ public:
         set_unique_key(unique_key);
         _data = static_cast<DataItemType*>(malloc(sizeof(DataItemType) * capacity));
         _handles = static_cast<DataArrayHandle*>(malloc(sizeof(DataArrayHandle) * capacity));
-        for(int i = 0; i < capacity; ++i)
+        for(size_t i{ 0 }; i < capacity; ++i)
         {
             _handles[i] = invalid_handle;
         }

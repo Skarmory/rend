@@ -9,7 +9,7 @@
 namespace rend
 {
 
-class Shader : public VulkanShader
+class Shader
 {
 public:
     Shader(void) = default;
@@ -21,6 +21,14 @@ public:
     Shader& operator=(Shader&&)      = delete;
 
     bool create_shader(const void* code, uint32_t size_bytes, ShaderType type);
+
+    ShaderHandle get_handle(void) const;
+    ShaderType   get_type(void) const;
+
+private:
+    ShaderHandle _handle{ NULL_HANDLE };
+    size_t       _bytes{ 0 };
+    ShaderType   _type{ ShaderType::VERTEX };
 };
 
 }

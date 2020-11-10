@@ -24,6 +24,7 @@ VulkanDeviceContext::VulkanDeviceContext(void)
     _vk_image_views.set_unique_key(_data_array_unique_key++);
     _vk_samplers.set_unique_key(_data_array_unique_key++);
     _vk_memorys.set_unique_key(_data_array_unique_key++);
+    _vk_shaders.set_unique_key(_data_array_unique_key++);
 }
 
 VulkanDeviceContext::~VulkanDeviceContext(void)
@@ -88,6 +89,11 @@ void VulkanDeviceContext::destroy(void)
     for (auto& handle : _vk_images)
     {
         _logical_device->destroy_image(*_vk_images.get(handle));
+    }
+
+    for(auto& handle : _vk_shaders)
+    {
+        _logical_device->destroy_shader_module(*_vk_shaders.get(handle));
     }
 
     for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
@@ -227,6 +233,25 @@ Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t 
     return handle;
 }
 
+ShaderHandle VulkanDeviceContext::create_shader(const ShaderType type, const void* code, const size_t bytes)
+{
+    UU(type);
+
+    VkShaderModuleCreateInfo info = vulkan_helpers::gen_shader_module_create_info();
+    info.codeSize = bytes;
+    info.pCode = static_cast<const uint32_t*>(code);
+
+    VkShaderModule _vk_module = _logical_device->create_shader_module(info);
+    if(_vk_module == VK_NULL_HANDLE)
+    {
+        return NULL_HANDLE;
+    }
+
+    ShaderHandle handle = _vk_shaders.allocate(_vk_module);
+
+    return handle;
+}
+
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
 {
     Texture2DHandle image_handle = _vk_images.allocate(swapchain_image);
@@ -318,6 +343,15 @@ void VulkanDeviceContext::destroy_image_view(Texture2DHandle texture_handle)
     _texture_handle_to_view_handle.erase(texture_handle);
 }
 
+void VulkanDeviceContext::destroy_shader(ShaderHandle handle)
+{
+    VkShaderModule* module = _vk_shaders.get(handle);
+
+    _logical_device->destroy_shader_module(*module);
+
+    _vk_shaders.deallocate(handle);
+}
+
 void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_handle)
 {
     auto it = _texture_handle_to_view_handle.find(swapchain_handle);
@@ -362,6 +396,11 @@ VkDeviceMemory VulkanDeviceContext::get_memory(HandleType handle) const
 {
     MemoryHandle mem_handle = _handle_to_memory_handle.at(handle);
     return *_vk_memorys.get(mem_handle);
+}
+
+VkShaderModule VulkanDeviceContext::get_shader(const ShaderHandle handle) const
+{
+    return *_vk_shaders.get(handle);
 }
 
 PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)

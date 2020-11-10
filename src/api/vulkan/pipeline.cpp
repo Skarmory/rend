@@ -286,12 +286,14 @@ VkPipeline Pipeline::get_handle(void) const
 
 VkPipelineShaderStageCreateInfo Pipeline::_gen_shader_stage_create_info(Shader& shader)
 {
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
     VkPipelineShaderStageCreateInfo create_info = vulkan_helpers::gen_shader_stage_create_info();
-    create_info.module = shader.get_handle();
+    create_info.module = ctx.get_shader(shader.get_handle());
     create_info.pName = "main";
     create_info.pSpecializationInfo = nullptr;
 
-    switch(shader.shader_type())
+    switch(shader.get_type())
     {
         case ShaderType::VERTEX:
             create_info.stage = VK_SHADER_STAGE_VERTEX_BIT; break;

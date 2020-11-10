@@ -350,6 +350,7 @@ typedef HandleType BufferHandle;
 typedef HandleType TextureHandle;
 typedef HandleType TextureViewHandle;
 typedef HandleType SamplerHandle;
+typedef HandleType ShaderHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
