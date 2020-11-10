@@ -6,14 +6,20 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 namespace rend
 {
 
 typedef uint64_t DataArrayHandle;
+static const DataArrayHandle idx_mask{ 0xffffffff };
+static const DataArrayHandle key_mask{ 0x0000ffff00000000 };
+static const DataArrayHandle unique_key_mask{ 0xffff000000000000 };
 
-static const DataArrayHandle invalid_handle { std::numeric_limits<uint64_t>::max() };
+static const DataArrayHandle invalid_handle { unique_key_mask | key_mask | idx_mask };
+
+constexpr bool is_invalid_handle(DataArrayHandle handle) { return (handle & key_mask) == key_mask; }
 
 template<class DataItemType>
 class DataArray;
@@ -60,6 +66,10 @@ public:
         set_unique_key(unique_key);
         _data = static_cast<DataItemType*>(malloc(sizeof(DataItemType) * capacity));
         _handles = static_cast<DataArrayHandle*>(malloc(sizeof(DataArrayHandle) * capacity));
+        for(int i = 0; i < capacity; ++i)
+        {
+            _handles[i] = invalid_handle;
+        }
     }
 
     DataArray(void)
@@ -111,9 +121,19 @@ public:
         uint64_t idx = _get_idx(handle);
         _data[idx].~DataItemType();
 
-        uint32_t free_head_idx = _get_idx(_free_head);
-        _handles[idx] = _make_invalid_key_handle(free_head_idx);
-        _free_head = _make_invalid_key_handle(idx);
+        if( _free_head != invalid_handle )
+        {
+            // There are some open nodes on the free list
+            uint32_t free_head_idx = _get_idx(_free_head);
+            _handles[idx] = _make_invalid_key_handle(free_head_idx);
+            _free_head = _make_invalid_key_handle(idx);
+        }
+        else
+        {
+            // There are no open nodes on the free list
+            _handles[idx] = invalid_handle;
+            _free_head = _make_invalid_key_handle(idx);
+        }
 
         --_count;
         handle = invalid_handle;
@@ -242,14 +262,26 @@ private:
    {
        uint64_t idx { invalid_handle };
 
-       // Try grab from the free list, else open up a new index slot
         if (_free_head != invalid_handle)
         {
+            // There are open nodes on the free list
             idx = _get_idx(_free_head);
-            _free_head = _handles[idx];
+
+            if( _handles[idx] != invalid_handle)
+            {
+                // There is an open node to set the free list head to
+                uint32_t _next_free_head_idx = _get_idx(_handles[idx]);
+                _free_head = _handles[_next_free_head_idx];
+            }
+            else
+            {
+                // There are no open nodes to set the free list head to
+                _free_head = invalid_handle;
+            }
         }
         else
         {
+            // There are only closed nodes on the free list, open one up
             idx = _max_used;
             ++_max_used;
         }
@@ -258,11 +290,6 @@ private:
    }
 
 /* Data */
-public:
-    static const DataArrayHandle idx_mask{ 0xffffffff };
-    static const DataArrayHandle key_mask{ 0x0000ffff00000000 };
-    static const DataArrayHandle unique_key_mask{ 0xffff000000000000 };
-
 private:
     DataItemType*    _data{ nullptr };
     DataArrayHandle* _handles{ nullptr };
