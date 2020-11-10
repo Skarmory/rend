@@ -2,8 +2,8 @@
 #define REND_SHADER_H
 
 #include "rend_defs.h"
-#include "vulkan_shader.h"
 
+#include <cstddef>
 #include <cstdint>
 
 namespace rend
