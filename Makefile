@@ -1,6 +1,6 @@
 CC=g++
-CPPFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -Iinclude/core -Iinclude/core/data_structures -DGLFW_WINDOW
-LDFLAGS=-lglfw -DGLFW_WINDOW
+CPPFLAGS=-std=c++2a -fno-exceptions -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -Iinclude/api/vulkan -Iinclude/core -Iinclude/core/data_structures -isystem /usr/include/vulkan -DGLFW_WINDOW
+LDFLAGS=-lglfw -lvulkan -DGLFW_WINDOW
 NAME=librend.so
 
 SRCS=$(wildcard src/*.cpp)
@@ -12,17 +12,15 @@ OBJS=$(SRCS:.cpp=.o)
 
 DEPS=$(SRCS:.cpp=.d)
 
-.PHONY: clean default fullclean vulkan vulkan-debug
+.PHONY: clean default fullclean debug release
 
 default:
-	@echo "Specify a target. Options: vulkan, vulkan-debug"
+	@echo "Specify a target. Options: debug, release"
 
-vulkan-debug: CPPFLAGS += -g -DDEBUG
-vulkan-debug: vulkan
+debug: CPPFLAGS += -g -DDEBUG
+debug: release
 
-vulkan: CPPFLAGS += -DUSE_VULKAN -Iinclude/api/vulkan -isystem /usr/include/vulkan
-vulkan: LDFLAGS += -lvulkan
-vulkan: $(NAME)
+release: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CC) $(CPPFLAGS) $(OBJS) -o $(NAME) $(LDFLAGS)
