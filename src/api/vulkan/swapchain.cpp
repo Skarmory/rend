@@ -24,11 +24,7 @@ Swapchain::~Swapchain(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
-    for(auto handle : _swapchain_image_handles)
-    {
-        ctx.destroy_image_view(handle);
-        ctx.unregister_swapchain_image(handle);
-    }
+    _clean_up_images();
 
     ctx.get_device()->destroy_swapchain(_vk_swapchain);
 }
@@ -74,7 +70,7 @@ StatusCode Swapchain::create_swapchain(uint32_t desired_images)
 StatusCode Swapchain::recreate(void)
 {
     static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
-    _destroy_image_views();
+    _clean_up_images();
     return _create_swapchain(_image_count);
 }
 
@@ -159,20 +155,22 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     return _get_images();
 }
 
-void Swapchain::_destroy_image_views(void)
+void Swapchain::_clean_up_images(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     for(auto handle : _swapchain_image_handles)
     {
         ctx.destroy_image_view(handle);
+        ctx.unregister_swapchain_image(handle);
     }
+
+    _swapchain_image_handles.clear();
 }
 
 StatusCode Swapchain::_get_images(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-
     std::vector<VkImage> tmp_swapchain_images;
     ctx.get_device()->get_swapchain_images(this, tmp_swapchain_images);
 

@@ -6,6 +6,8 @@
 #include "rend_defs.h"
 #include "resource.h"
 
+#include <cstddef>
+
 namespace rend
 {
 

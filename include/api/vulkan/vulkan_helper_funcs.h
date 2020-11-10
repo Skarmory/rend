@@ -1,4 +1,3 @@
-#ifdef USE_VULKAN
 #ifndef REND_VULKAN_HELPER_FUNCS_H
 #define REND_VULKAN_HELPER_FUNCS_H
 
@@ -78,5 +77,4 @@ const char* stringify(VkSampleCountFlagBits sample_count);
 
 }
 
-#endif
 #endif

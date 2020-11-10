@@ -10,7 +10,6 @@
 
 void rend::init_rend(Window& window)
 {
-#ifdef USE_VULKAN
 	std::vector<const char*> extensions =
 	{
 		"VK_KHR_surface"
@@ -28,9 +27,8 @@ void rend::init_rend(Window& window)
 	};
 
 	// Init singletons
-	auto& vk_instance = rend::vkal::VulkanInstance::instance();
+	auto& vk_instance = VulkanInstance::instance();
 	vk_instance.create_instance(extensions.data(), extensions.size(), layers.data(), layers.size());
-#endif
 
 	auto& window_context = WindowContext::instance();
 	window.create_window();
@@ -47,7 +45,5 @@ void rend::destroy_rend(void)
 	delete WindowContext::instance().window();
 	WindowContext::instance().set_window(nullptr);
 
-#ifdef USE_VULKAN
-	rend::vkal::VulkanInstance::instance().destroy_instance();
-#endif
+	VulkanInstance::instance().destroy_instance();
 }

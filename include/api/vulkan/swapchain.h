@@ -41,7 +41,7 @@ public:
 
 private:
     StatusCode         _create_swapchain(uint32_t desired_images);
-    void               _destroy_image_views(void);
+    void               _clean_up_images(void);
     StatusCode         _get_images(void);
     VkSurfaceFormatKHR _find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats);
     VkPresentModeKHR   _find_present_mode(const std::vector<VkPresentModeKHR>& present_modes);

@@ -1,7 +1,7 @@
 #ifndef REND_VULKAN_DEVICE_CONTEXT_H
 #define REND_VULKAN_DEVICE_CONTEXT_H
 
-#include "core/data_structures/data_array.h"
+#include "data_array.h"
 #include "device_context.h"
 #include "rend_defs.h"
 #include "resource.h"

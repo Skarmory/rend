@@ -1,4 +1,3 @@
-#ifdef USE_VULKAN
 #ifndef REND_VULKAN_INSTANCE_H
 #define REND_VULKAN_INSTANCE_H
 
@@ -7,7 +6,7 @@
 #include <vector>
 #include <vulkan.h>
 
-namespace rend::vkal
+namespace rend
 {
 
 class VulkanInstance
@@ -37,5 +36,4 @@ private:
 
 }
 
-#endif
 #endif

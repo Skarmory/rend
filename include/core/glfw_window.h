@@ -5,9 +5,7 @@
 #include "rend_defs.h"
 #include "window_base.h"
 
-#ifdef USE_VULKAN
 #include <vulkan.h>
-#endif
 
 struct GLFWwindow;
 
@@ -27,18 +25,14 @@ public:
 
     StatusCode create_window_api(uint32_t width, uint32_t height, const char* title);
 
-#ifdef USE_VULKAN
     VkSurfaceKHR get_vk_surface(void) const;
-#endif
 
     GLFWwindow* get_glfw_handle(void) const;
 
 private:
     GLFWwindow* _glfw_window{ nullptr };
 
-#ifdef USE_VULKAN
     VkSurfaceKHR _vk_surface{ VK_NULL_HANDLE };
-#endif
 };
 
 }

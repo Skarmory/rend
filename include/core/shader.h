@@ -1,16 +1,15 @@
 #ifndef REND_SHADER_H
 #define REND_SHADER_H
 
-#ifdef USE_VULKAN
+#include "rend_defs.h"
 #include "vulkan_shader.h"
-#endif
+
+#include <cstdint>
 
 namespace rend
 {
 
-#ifdef USE_VULKAN
 class Shader : public VulkanShader
-#endif
 {
 public:
     Shader(void) = default;

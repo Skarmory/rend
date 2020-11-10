@@ -1,4 +1,3 @@
-#ifdef USE_VULKAN
 #ifndef REND_VULKAN_SHADER_H
 #define REND_VULKAN_SHADER_H
 
@@ -32,5 +31,4 @@ private:
 
 }
 
-#endif
 #endif

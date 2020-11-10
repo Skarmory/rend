@@ -1,7 +1,6 @@
 #include "vulkan_instance.h"
 
 using namespace rend;
-using namespace rend::vkal;
 
 VulkanInstance& VulkanInstance::instance(void)
 {
