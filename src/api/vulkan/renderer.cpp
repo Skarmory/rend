@@ -2,23 +2,22 @@
 
 #include "command_pool.h"
 #include "command_buffer.h"
-#include "depth_buffer.h"
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
 #include "index_buffer.h"
 #include "logical_device.h"
+#include "rend_defs.h"
 #include "render_pass.h"
 #include "render_target.h"
-#include "sampled_texture.h"
 #include "semaphore.h"
 #include "swapchain.h"
-#include "uniform_buffer.h"
 #include "vertex_buffer.h"
 #include "vulkan_helper_funcs.h"
 #include "vulkan_instance.h"
 #include "vulkan_device_context.h"
-#include "gpu_texture_base.h"
+#include "gpu_texture.h"
+#include "gpu_buffer.h"
 
 #include <assert.h>
 #include <cstring>
@@ -123,19 +122,19 @@ RenderPass* Renderer::get_default_render_pass(void) const
     return _default_render_pass;
 }
 
-void Renderer::load(GPUTextureBase* texture, ImageUsage type, void* data, size_t bytes, uint32_t offset)
+void Renderer::load(GPUTexture* texture, ImageUsage type, void* data, size_t bytes, uint32_t offset)
 {
     ImageLoadTask* task = new ImageLoadTask(texture, type, data, bytes, offset);
     _task_queue.push(task);
 }
 
-void Renderer::load(GPUBufferBase* buffer, BufferUsage type, void* data, size_t bytes, uint32_t offset)
+void Renderer::load(GPUBuffer* buffer, BufferUsage type, void* data, size_t bytes, uint32_t offset)
 {
     BufferLoadTask* task = new BufferLoadTask(buffer, type, data, bytes, offset);
     _task_queue.push(task);
 }
 
-void Renderer::transition(SampledTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
+void Renderer::transition(GPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
 {
     ImageTransitionTask* task = new ImageTransitionTask(texture, src, dst, final_layout);
     _task_queue.push(task);
@@ -226,8 +225,9 @@ void ImageLoadTask::execute(FrameResources& resources)
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     void* mapped = NULL;
 
-    UniformBuffer* staging_buffer = new UniformBuffer;
-    staging_buffer->create_uniform_buffer(size_bytes);
+    BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
+    GPUBuffer* staging_buffer = new GPUBuffer;
+    staging_buffer->create(info);
     resources.staging_buffers.push_back(staging_buffer);
 
     VkDeviceMemory memory = ctx.get_memory(staging_buffer->get_handle());
@@ -254,8 +254,9 @@ void BufferLoadTask::execute(FrameResources& resources)
 
     if(is_device_local)
     {
-        UniformBuffer* staging_buffer = new UniformBuffer;
-        staging_buffer->create_uniform_buffer(size_bytes);
+        BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
+        GPUBuffer* staging_buffer = new GPUBuffer;
+        staging_buffer->create(info);
 
         resources.staging_buffers.push_back(staging_buffer);
 
@@ -382,8 +383,9 @@ void Renderer::_create_default_depth_buffer(VkExtent2D extent)
     if(_default_depth_buffer)
         delete _default_depth_buffer;
 
-    _default_depth_buffer = new DepthBuffer;
-    _default_depth_buffer->create_depth_buffer(extent.width, extent.height);
+    TextureInfo info{ extent.width, extent.height, 1, 1, 1, Format::D24_S8, ImageLayout::UNDEFINED,  MSAASamples::MSAA_1X, ImageUsage::DEPTH_STENCIL };
+    _default_depth_buffer = new GPUTexture;
+    _default_depth_buffer->create(info);
 }
 
 void Renderer::_create_default_renderpass(void)
@@ -396,7 +398,10 @@ void Renderer::_create_default_renderpass(void)
         ImageLayout::UNDEFINED, ImageLayout::PRESENT
     );
 
-    uint32_t depth_attach  = _default_render_pass->add_attachment_description(*_default_depth_buffer, LoadOp::CLEAR, StoreOp::STORE, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
+    uint32_t depth_attach  = _default_render_pass->add_attachment_description(
+            _default_depth_buffer->format(), _default_depth_buffer->samples(),
+            LoadOp::CLEAR, StoreOp::STORE, LoadOp::DONT_CARE, StoreOp::DONT_CARE,
+            ImageLayout::UNDEFINED, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
 
     _default_render_pass->add_subpass(
         Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ },

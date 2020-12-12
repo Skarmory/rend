@@ -16,7 +16,6 @@ class CommandPool;
 class CommandBuffer;
 class Fence;
 class Framebuffer;
-class DepthBuffer;
 class RenderPass;
 class Semaphore;
 class Swapchain;
@@ -24,21 +23,20 @@ class UniformBuffer;
 class VulkanInstance;
 class Window;
 
-class GPUBufferBase;
-class GPUTextureBase;
+class GPUBuffer;
+class GPUTexture;
 class IndexBuffer;
 class VertexBuffer;
-class SampledTexture;
 
 struct FrameResources
 {
-    std::vector<UniformBuffer*> staging_buffers;
-    uint32_t                    swapchain_idx{ 0xdeadbeef };
-    CommandBuffer*              command_buffer{ nullptr };
-    Semaphore*                  acquire_sem{ nullptr };
-    Semaphore*                  present_sem{ nullptr };
-    Fence*                      submit_fen{ nullptr };
-    Framebuffer*                framebuffer{ nullptr };
+    std::vector<GPUBuffer*> staging_buffers;
+    uint32_t                swapchain_idx{ 0xdeadbeef };
+    CommandBuffer*          command_buffer{ nullptr };
+    Semaphore*              acquire_sem{ nullptr };
+    Semaphore*              present_sem{ nullptr };
+    Fence*                  submit_fen{ nullptr };
+    Framebuffer*            framebuffer{ nullptr };
 };
 
 struct Task
@@ -49,38 +47,38 @@ struct Task
 
 struct BufferLoadTask : public Task
 {
-    GPUBufferBase* buffer{ nullptr };
-    BufferUsage    buffer_usage{ 0 };
-    void*          data{ nullptr };
-    size_t         size_bytes{ 0 };
-    uint32_t       offset{ 0 };
+    GPUBuffer*  buffer{ nullptr };
+    BufferUsage buffer_usage{ 0 };
+    void*       data{ nullptr };
+    size_t      size_bytes{ 0 };
+    uint32_t    offset{ 0 };
 
-    BufferLoadTask(GPUBufferBase* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset)
+    BufferLoadTask(GPUBuffer* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset)
         : buffer(buffer), buffer_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
     void execute(FrameResources& resources) override;
 };
 
 struct ImageLoadTask : public Task
 {
-    GPUTextureBase* image{ nullptr };
-    ImageUsage      image_usage{ 0 };
-    void*           data{ nullptr };
-    size_t          size_bytes{ 0 };
-    uint32_t        offset{ 0 };
+    GPUTexture* image{ nullptr };
+    ImageUsage  image_usage{ 0 };
+    void*       data{ nullptr };
+    size_t      size_bytes{ 0 };
+    uint32_t    offset{ 0 };
 
-    ImageLoadTask(GPUTextureBase* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset)
+    ImageLoadTask(GPUTexture* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset)
         : image(texture), image_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
     void execute(FrameResources& resources) override;
 };
 
 struct ImageTransitionTask : public Task
 {
-    SampledTexture*      image;
+    GPUTexture*          image;
     VkPipelineStageFlags src;
     VkPipelineStageFlags dst;
     VkImageLayout        final_layout;
 
-    ImageTransitionTask(SampledTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
+    ImageTransitionTask(GPUTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
     void execute(FrameResources& resources) override;
 };
 
@@ -100,9 +98,9 @@ public:
     RenderPass* get_default_render_pass(void) const;
 
     // Resource functions
-    void load(GPUTextureBase* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset);
-    void load(GPUBufferBase* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset);
-    void transition(SampledTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
+    void load(GPUTexture* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset);
+    void load(GPUBuffer* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset);
+    void transition(GPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
 
     // Functions
     FrameResources& start_frame(void);
@@ -124,7 +122,7 @@ private:
     Swapchain*                _swapchain { nullptr };
     CommandPool*              _command_pool { nullptr };
     std::vector<Framebuffer*> _default_framebuffers;
-    DepthBuffer*              _default_depth_buffer { nullptr };
+    GPUTexture*               _default_depth_buffer { nullptr };
     RenderPass*               _default_render_pass { nullptr };
     std::queue<Task*>         _task_queue;
 
