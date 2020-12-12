@@ -1,5 +1,4 @@
 #include "vulkan_helper_funcs.h"
-#include "gpu_texture_base.h"
 
 #include <cassert>
 #include <iostream>
