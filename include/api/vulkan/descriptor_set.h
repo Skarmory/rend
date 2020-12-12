@@ -8,8 +8,8 @@
 namespace rend
 {
 
-class UniformBuffer;
-class SampledTexture;
+class GPUBuffer;
+class GPUTexture;
 
 class DescriptorSet
 {
@@ -27,10 +27,8 @@ public:
     VkDescriptorSet get_handle(void) const;
 
     // Describe binding for given image(s) to given binding point at given array elem
-    void describe(uint32_t binding, SampledTexture* texture);
-
-    // Describe binding for given buffer(s) to given binding point at given array elem
-    void describe(uint32_t binding, UniformBuffer* buffer);
+    void describe_combined_image_sampler(uint32_t binding, GPUTexture* texture);
+    void describe_uniform_buffer(uint32_t binding, GPUBuffer* buffer);
 
     // Describe binding for given texel buffer(s) to given binding point at given array elem
     //void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
@@ -46,7 +44,7 @@ private:
     {
         uint32_t slot;
         VkDescriptorType type;
-        std::variant<SampledTexture*, UniformBuffer*> bound_resource;
+        std::variant<GPUTexture*, GPUBuffer*> bound_resource;
     };
 
     std::vector<Binding> _bindings;

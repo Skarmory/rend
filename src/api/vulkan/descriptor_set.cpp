@@ -1,9 +1,9 @@
 #include "descriptor_set.h"
 
 #include "device_context.h"
+#include "gpu_buffer.h"
+#include "gpu_texture.h"
 #include "logical_device.h"
-#include "uniform_buffer.h"
-#include "sampled_texture.h"
 #include "vulkan_device_context.h"
 
 using namespace rend;
@@ -19,7 +19,7 @@ VkDescriptorSet DescriptorSet::get_handle(void) const
     return _vk_set;
 }
 
-void DescriptorSet::describe(uint32_t binding, SampledTexture* texture)
+void DescriptorSet::describe_combined_image_sampler(uint32_t binding, GPUTexture* texture)
 {
     Binding* _binding = _find_binding(binding);
     if(_binding)
@@ -35,7 +35,7 @@ void DescriptorSet::describe(uint32_t binding, SampledTexture* texture)
     }
 }
 
-void DescriptorSet::describe(uint32_t binding, UniformBuffer* buffer)
+void DescriptorSet::describe_uniform_buffer(uint32_t binding, GPUBuffer* buffer)
 {
     Binding* _binding = _find_binding(binding);
     if(_binding)
@@ -78,7 +78,7 @@ void DescriptorSet::update(void)
             case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
             case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
             {
-                SampledTexture* texture = std::get<SampledTexture*>(binding.bound_resource);
+                GPUTexture* texture = std::get<GPUTexture*>(binding.bound_resource);
 
                 uint32_t idx = vk_image_infos.size();
 
@@ -95,7 +95,7 @@ void DescriptorSet::update(void)
 
             case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
             {
-                UniformBuffer* buffer = std::get<UniformBuffer*>(binding.bound_resource);
+                GPUBuffer* buffer = std::get<GPUBuffer*>(binding.bound_resource);
 
                 uint32_t idx = vk_buffer_infos.size();
 
