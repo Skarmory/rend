@@ -1,7 +1,7 @@
 #include "framebuffer.h"
 
-#include "depth_buffer.h"
 #include "device_context.h"
+#include "gpu_texture.h"
 #include "logical_device.h"
 #include "render_pass.h"
 #include "render_target.h"
@@ -27,7 +27,7 @@ bool Framebuffer::add_render_target(Texture2DHandle target)
     return true;
 }
 
-bool Framebuffer::set_depth_buffer(DepthBuffer& buffer)
+bool Framebuffer::set_depth_buffer(GPUTexture& buffer)
 {
     if(_vk_framebuffer != VK_NULL_HANDLE)
         return false;
@@ -98,7 +98,7 @@ const RenderPass* Framebuffer::get_render_pass(void) const
     return _render_pass;
 }
 
-const DepthBuffer* Framebuffer::get_depth_buffer(void) const
+const GPUTexture* Framebuffer::get_depth_buffer(void) const
 {
     return _depth_buffer;
 }

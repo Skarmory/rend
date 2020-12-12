@@ -9,9 +9,8 @@
 namespace rend
 {
 
-class DepthBuffer;
+class GPUTexture;
 class RenderPass;
-class RenderTarget;
 
 class Framebuffer
 {
@@ -28,11 +27,11 @@ public:
     StatusCode recreate(VkExtent3D dimensions);
 
     bool add_render_target(Texture2DHandle target);
-    bool set_depth_buffer(DepthBuffer& buffer);
+    bool set_depth_buffer(GPUTexture& buffer);
 
-    VkFramebuffer      get_handle(void) const;
-    const RenderPass*  get_render_pass(void) const;
-    const DepthBuffer* get_depth_buffer(void) const;
+    VkFramebuffer     get_handle(void) const;
+    const RenderPass* get_render_pass(void) const;
+    const GPUTexture* get_depth_buffer(void) const;
 
     void on_end_render_pass(void);
 
@@ -42,7 +41,7 @@ private:
 
 private:
     const RenderPass*            _render_pass { nullptr };
-    DepthBuffer*                 _depth_buffer { nullptr };
+    GPUTexture*                  _depth_buffer { nullptr };
     std::vector<Texture2DHandle> _render_targets;
     VkFramebuffer                _vk_framebuffer { VK_NULL_HANDLE };
 };
