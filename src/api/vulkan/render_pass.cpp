@@ -101,48 +101,6 @@ uint32_t RenderPass::add_attachment_description(Format format, MSAASamples sampl
     return attach_slot;
 }
 
-uint32_t RenderPass::add_attachment_description(const RenderTarget& target, LoadOp load_op, StoreOp store_op, ImageLayout final)
-{
-    return add_attachment_description(
-        target.format(),
-        target.samples(),
-        load_op,
-        store_op,
-        LoadOp::DONT_CARE,
-        StoreOp::DONT_CARE,
-        target.layout(),
-        final
-    );
-}
-
-uint32_t RenderPass::add_attachment_description(const DepthBuffer& target, LoadOp load_op, StoreOp store_op, ImageLayout final)
-{
-    return add_attachment_description(
-        target.format(),
-        target.samples(),
-        load_op,
-        store_op,
-        load_op,
-        store_op,
-        target.layout(),
-        final
-    );
-}
-
-uint32_t RenderPass::add_attachment_description(const DepthBuffer&  target, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout final)
-{
-    return add_attachment_description(
-        target.format(),
-        target.samples(),
-        load_op,
-        store_op,
-        s_load_op,
-        s_store_op,
-        target.layout(),
-        final
-    );
-}
-
 void RenderPass::add_subpass(Synchronisation src, Synchronisation dst)
 {
     Subpass subpass;
