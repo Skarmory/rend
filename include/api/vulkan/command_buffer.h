@@ -10,13 +10,11 @@ namespace rend
 class CommandPool;
 class DescriptorSet;
 class Framebuffer;
-class IndexBuffer;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
-class VertexBuffer;
-class GPUBufferBase;
-class GPUTextureBase;
+class GPUBuffer;
+class GPUTexture;
 
 class CommandBuffer
 {
@@ -45,19 +43,19 @@ public:
 
     void bind_pipeline(VkPipelineBindPoint bind_point, const Pipeline& pipeline);
     void bind_descriptor_sets(VkPipelineBindPoint bind_point, const PipelineLayout& layout, const std::vector<DescriptorSet*>& sets);
-    void bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize offset, VkIndexType index_type);
-    void bind_vertex_buffers(uint32_t first_binding, const std::vector<VertexBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
+    void bind_index_buffer(const GPUBuffer& buffer, VkDeviceSize offset, VkIndexType index_type);
+    void bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets);
 
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);
     void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
 
     void push_constant(const PipelineLayout& layout, VkShaderStageFlags shader_stages, uint32_t offset, uint32_t size, const void* data);
 
-    void copy_buffer_to_image(const GPUBufferBase& buffer, const GPUTextureBase& image);
-    void copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst);
-    void blit_image(const GPUTextureBase& src, const GPUTextureBase& dst);
+    void copy_buffer_to_image(const GPUBuffer& buffer, const GPUTexture& image);
+    void copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer& dst);
+    void blit_image(const GPUTexture& src, const GPUTexture& dst);
 
-    void transition_image(GPUTextureBase& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage);
+    void transition_image(GPUTexture& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage);
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 
 private:

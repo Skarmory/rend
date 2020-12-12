@@ -8,10 +8,8 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
-#include "gpu_buffer_base.h"
-#include "gpu_texture_base.h"
-#include "index_buffer.h"
-#include "vertex_buffer.h"
+#include "gpu_buffer.h"
+#include "gpu_texture.h"
 
 #include <iostream>
 
@@ -164,7 +162,7 @@ void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, 
     vkCmdDrawIndexed(_vk_command_buffer, index_count, instance_count, first_index, vertex_offset, first_instance);
 }
 
-void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize offset, VkIndexType index_type)
+void CommandBuffer::bind_index_buffer(const GPUBuffer& buffer, VkDeviceSize offset, VkIndexType index_type)
 {
     _recorded = true;
 
@@ -173,7 +171,7 @@ void CommandBuffer::bind_index_buffer(const IndexBuffer& buffer, VkDeviceSize of
     vkCmdBindIndexBuffer(_vk_command_buffer,  ctx.get_buffer(buffer.get_handle()), offset, index_type);
 }
 
-void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<VertexBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
+void CommandBuffer::bind_vertex_buffers(uint32_t first_binding, const std::vector<GPUBuffer*>& buffers, const std::vector<VkDeviceSize>& offsets)
 {
     _recorded = true;
 
@@ -197,7 +195,7 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
     vkCmdPushConstants(_vk_command_buffer, layout.get_handle(), shader_stages, offset, size, data);
 }
 
-void CommandBuffer::copy_buffer_to_image(const GPUBufferBase& buffer, const GPUTextureBase& image)
+void CommandBuffer::copy_buffer_to_image(const GPUBuffer& buffer, const GPUTexture& image)
 {
     _recorded = true;
 
@@ -228,7 +226,7 @@ void CommandBuffer::copy_buffer_to_image(const GPUBufferBase& buffer, const GPUT
     );
 }
 
-void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBufferBase& dst)
+void CommandBuffer::copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer& dst)
 {
     _recorded = true;
 
@@ -244,7 +242,7 @@ void CommandBuffer::copy_buffer_to_buffer(const GPUBufferBase& src, const GPUBuf
     vkCmdCopyBuffer(_vk_command_buffer, ctx.get_buffer(src.get_handle()), ctx.get_buffer(dst.get_handle()), 1, &copy);
 }
 
-void CommandBuffer::blit_image(const GPUTextureBase& src, const GPUTextureBase& dst)
+void CommandBuffer::blit_image(const GPUTexture& src, const GPUTexture& dst)
 {
     _recorded = true;
 
@@ -286,7 +284,7 @@ void CommandBuffer::blit_image(const GPUTextureBase& src, const GPUTextureBase& 
     );
 }
 
-void CommandBuffer::transition_image(GPUTextureBase& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage)
+void CommandBuffer::transition_image(GPUTexture& image, VkImageLayout transition_to, VkPipelineStageFlags src_stage, VkPipelineStageFlags dst_stage)
 {
     std::vector<VkImageMemoryBarrier> barriers(1);
     VkImageMemoryBarrier& barrier = barriers[0];
