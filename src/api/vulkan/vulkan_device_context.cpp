@@ -173,9 +173,9 @@ UniformBufferHandle VulkanDeviceContext::create_uniform_buffer(size_t bytes)
     ));
 }
 
-Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format, ImageUsage usage)
+TextureHandle VulkanDeviceContext::create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage)
 {
-    VkExtent3D vk_extent = VkExtent3D{ width, height, 1 };
+    VkExtent3D vk_extent = VkExtent3D{ width, height, depth };
     VkImageType vk_type = vulkan_helpers::find_image_type(vk_extent);
     VkFormat vk_format = vulkan_helpers::convert_format(format);
     VkImageUsageFlags vk_usage = vulkan_helpers::convert_image_usage_flags(usage);
@@ -189,7 +189,7 @@ Texture2DHandle VulkanDeviceContext::create_texture_2d(uint32_t width, uint32_t 
     create_info.extent = vk_extent;
     create_info.mipLevels = mips;
     create_info.arrayLayers = layers;
-    create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    create_info.samples = vulkan_helpers::convert_sample_count(samples);
     create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     create_info.usage = vk_usage;
     create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;

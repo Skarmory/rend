@@ -44,20 +44,20 @@ public:
     [[nodiscard]] VertexBufferHandle  create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
     [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
-    [[nodiscard]] Texture2DHandle     create_texture_2d(uint32_t width, uint32_t height, uint32_t mips, uint32_t layers, Format format, ImageUsage usage) override;
+    [[nodiscard]] TextureHandle       create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage) override;
     [[nodiscard]] ShaderHandle        create_shader(const ShaderType type, const void* code, const size_t bytes) override;
     [[nodiscard]] Texture2DHandle     register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
-    void destroy_texture(Texture2DHandle handle) override;
-    void destroy_image_view(Texture2DHandle handle);
+    void destroy_texture(TextureHandle handle) override;
+    void destroy_image_view(TextureHandle handle);
     void destroy_shader(ShaderHandle handle) override;
-    void unregister_swapchain_image(Texture2DHandle swapchain_handle);
+    void unregister_swapchain_image(TextureHandle swapchain_handle);
 
     VkBuffer       get_buffer(VertexBufferHandle handle) const;
-    VkImage        get_image(Texture2DHandle handle) const;
-    VkImageView    get_image_view(Texture2DHandle handle) const;
-    VkSampler      get_sampler(Texture2DHandle handle) const;
+    VkImage        get_image(TextureHandle handle) const;
+    VkImageView    get_image_view(TextureHandle handle) const;
+    VkSampler      get_sampler(TextureHandle handle) const;
     VkDeviceMemory get_memory(HandleType handle) const;
     VkShaderModule get_shader(const ShaderHandle handle) const;
 
