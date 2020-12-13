@@ -5,19 +5,16 @@
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
-#include "index_buffer.h"
+#include "gpu_texture.h"
+#include "gpu_buffer.h"
 #include "logical_device.h"
 #include "rend_defs.h"
 #include "render_pass.h"
-#include "render_target.h"
 #include "semaphore.h"
 #include "swapchain.h"
-#include "vertex_buffer.h"
 #include "vulkan_helper_funcs.h"
 #include "vulkan_instance.h"
 #include "vulkan_device_context.h"
-#include "gpu_texture.h"
-#include "gpu_buffer.h"
 
 #include <assert.h>
 #include <cstring>

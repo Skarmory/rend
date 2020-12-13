@@ -4,7 +4,6 @@
 #include "fence.h"
 #include "physical_device.h"
 #include "logical_device.h"
-#include "render_target.h"
 #include "semaphore.h"
 #include "window.h"
 #include "window_context.h"

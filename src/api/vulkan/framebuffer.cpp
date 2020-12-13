@@ -4,7 +4,6 @@
 #include "gpu_texture.h"
 #include "logical_device.h"
 #include "render_pass.h"
-#include "render_target.h"
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
