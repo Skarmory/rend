@@ -59,31 +59,6 @@ StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExte
     return _create(attachments, dimensions);
 }
 
-StatusCode Framebuffer::recreate(VkExtent3D dimensions)
-{
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-
-    if (_vk_framebuffer == VK_NULL_HANDLE)
-    {
-        return StatusCode::FAILURE;
-    }
-
-    std::vector<VkImageView> attachments;
-
-    for (Texture2DHandle target : _render_targets)
-    {
-        attachments.push_back(ctx.get_image_view(target));
-    }
-
-    if (_depth_buffer)
-    {
-        attachments.push_back(ctx.get_image_view(_depth_buffer->get_handle()));
-    }
-
-    _destroy();
-    return _create(attachments, dimensions);
-}
-
 VkFramebuffer Framebuffer::get_handle(void) const
 {
     return _vk_framebuffer;
