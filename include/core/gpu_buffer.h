@@ -18,7 +18,7 @@ class GPUBuffer : public GPUResource
 {
 public:
     GPUBuffer(void) = default;
-    ~GPUBuffer(void);
+    ~GPUBuffer(void) = default;
 
     GPUBuffer(const GPUBuffer&)            = delete;
     GPUBuffer(GPUBuffer&&)                 = delete;
@@ -26,6 +26,7 @@ public:
     GPUBuffer& operator=(GPUBuffer&&)      = delete;
 
     bool create(const BufferInfo& info);
+    void destroy(void);
 
     BufferHandle get_handle(void) const { return _handle; }
 
