@@ -21,12 +21,14 @@ bool Framebuffer::add_render_target(Texture2DHandle target)
     return true;
 }
 
-bool Framebuffer::set_depth_buffer(GPUTexture& buffer)
+bool Framebuffer::set_depth_buffer(Texture2DHandle buffer)
 {
     if(_vk_framebuffer != VK_NULL_HANDLE)
+    {
         return false;
+    }
 
-    _depth_buffer = &buffer;
+    _depth_buffer = buffer;
 
     return true;
 }
@@ -49,7 +51,7 @@ StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExte
 
     if (_depth_buffer)
     {
-        attachments.push_back(ctx.get_image_view(_depth_buffer->get_handle()));
+        attachments.push_back(ctx.get_image_view(_depth_buffer));
     }
 
     _render_pass = &render_pass;
@@ -92,7 +94,7 @@ const RenderPass* Framebuffer::get_render_pass(void) const
     return _render_pass;
 }
 
-const GPUTexture* Framebuffer::get_depth_buffer(void) const
+Texture2DHandle Framebuffer::get_depth_buffer(void) const
 {
     return _depth_buffer;
 }

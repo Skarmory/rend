@@ -27,11 +27,11 @@ public:
     void destroy(void);
 
     bool add_render_target(Texture2DHandle target);
-    bool set_depth_buffer(GPUTexture& buffer);
+    bool set_depth_buffer(Texture2DHandle buffer);
 
     VkFramebuffer     get_handle(void) const;
     const RenderPass* get_render_pass(void) const;
-    const GPUTexture* get_depth_buffer(void) const;
+    Texture2DHandle   get_depth_buffer(void) const;
 
     void on_end_render_pass(void);
 
@@ -41,7 +41,7 @@ private:
 
 private:
     const RenderPass*            _render_pass { nullptr };
-    GPUTexture*                  _depth_buffer { nullptr };
+    Texture2DHandle              _depth_buffer { NULL_HANDLE };
     std::vector<Texture2DHandle> _render_targets;
     VkFramebuffer                _vk_framebuffer { VK_NULL_HANDLE };
 };
