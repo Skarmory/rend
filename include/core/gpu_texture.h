@@ -26,7 +26,7 @@ class GPUTexture : public GPUResource
 {
 public:
     GPUTexture(void) = default;
-    ~GPUTexture(void);
+    ~GPUTexture(void) = default;
 
     GPUTexture(const GPUTexture&)            = delete;
     GPUTexture(GPUTexture&&)                 = delete;
@@ -34,6 +34,7 @@ public:
     GPUTexture& operator=(GPUTexture&&)      = delete;
 
     bool create(const TextureInfo& info);
+    void destroy(void);
 
     TextureHandle get_handle(void) const { return _handle; }
 

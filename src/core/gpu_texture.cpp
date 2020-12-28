@@ -4,13 +4,6 @@
 
 using namespace rend;
 
-GPUTexture::~GPUTexture(void)
-{
-    auto& ctx = DeviceContext::instance();
-
-    ctx.destroy_texture(_handle);
-}
-
 bool GPUTexture::create(const TextureInfo& info)
 {
     auto& ctx = DeviceContext::instance();
@@ -33,4 +26,23 @@ bool GPUTexture::create(const TextureInfo& info)
     _usage   = info.usage;
 
     return true;
+}
+
+void GPUTexture::destroy(void)
+{
+    auto& ctx = DeviceContext::instance();
+
+    ctx.destroy_texture(_handle);
+
+    _handle = NULL_HANDLE;
+    _width = 0;
+    _height = 0;
+    _depth = 0;
+    _mips = 0;
+    _layers = 0;
+    _format = Format::R8G8B8A8;
+    _layout = ImageLayout::UNDEFINED;
+    _samples = MSAASamples::MSAA_1X;
+    _usage = ImageUsage::NONE;
+    _bytes = 0;
 }
