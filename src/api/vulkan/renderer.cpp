@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 
 using namespace rend;
 
@@ -90,8 +91,12 @@ StatusCode Renderer::destroy(void)
     delete _default_depth_buffer;
 
     for(Framebuffer* framebuffer : _default_framebuffers)
+    {
+        framebuffer->destroy();
         delete framebuffer;
+    }
 
+    _default_render_pass->destroy();
     delete _default_render_pass;
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
@@ -141,6 +146,7 @@ FrameResources& Renderer::start_frame(void)
 {
     FrameResources& frame_res = _frame_resources[_frame_counter % _FRAMES_IN_FLIGHT];
     _frame_counter++;
+    frame_res.frame = _frame_counter;
 
     frame_res.submit_fen->wait();
     frame_res.command_buffer->reset();
@@ -224,6 +230,11 @@ void ImageLoadTask::execute(FrameResources& resources)
 
     BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
     GPUBuffer* staging_buffer = new GPUBuffer;
+#ifdef DEBUG
+    std::stringstream dbg_sstream;
+    dbg_sstream << "Frame #" << resources.frame << " Staging Buffer #" << resources.staging_buffers.size();
+    staging_buffer->dbg_name(dbg_sstream.str());
+#endif
     staging_buffer->create(info);
     resources.staging_buffers.push_back(staging_buffer);
 
@@ -253,6 +264,11 @@ void BufferLoadTask::execute(FrameResources& resources)
     {
         BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
         GPUBuffer* staging_buffer = new GPUBuffer;
+#ifdef DEBUG
+        std::stringstream dbg_sstream;
+        dbg_sstream << "Frame #" << resources.frame << " Staging Buffer #" << resources.staging_buffers.size();
+        staging_buffer->dbg_name(dbg_sstream.str());
+#endif
         staging_buffer->create(info);
 
         resources.staging_buffers.push_back(staging_buffer);
@@ -421,14 +437,17 @@ void Renderer::_create_default_framebuffers(bool recreate)
     if(recreate)
     {
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
+        {
+            _default_framebuffers[idx]->destroy();
             delete _default_framebuffers[idx];
+        }
     }
 
     _default_framebuffers.resize(targets.size());
     for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
     {
         _default_framebuffers[idx] = new Framebuffer;
-        _default_framebuffers[idx]->set_depth_buffer(*_default_depth_buffer);
+        _default_framebuffers[idx]->set_depth_buffer(_default_depth_buffer->get_handle());
         _default_framebuffers[idx]->add_render_target(targets[idx]);
         _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, framebuffer_dims);
     }

@@ -37,6 +37,7 @@ struct FrameResources
     Semaphore*              present_sem{ nullptr };
     Fence*                  submit_fen{ nullptr };
     Framebuffer*            framebuffer{ nullptr };
+    uint32_t                frame{ 0 };
 };
 
 struct Task
