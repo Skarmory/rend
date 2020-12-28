@@ -16,7 +16,7 @@ class Framebuffer
 {
 public:
     Framebuffer(void) = default;
-    ~Framebuffer(void);
+    ~Framebuffer(void) = default;
 
     Framebuffer(const Framebuffer&)            = delete;
     Framebuffer(Framebuffer&&)                 = delete;
@@ -24,7 +24,7 @@ public:
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
     StatusCode create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
-    StatusCode recreate(VkExtent3D dimensions);
+    void destroy(void);
 
     bool add_render_target(Texture2DHandle target);
     bool set_depth_buffer(GPUTexture& buffer);

@@ -9,11 +9,6 @@
 
 using namespace rend;
 
-Framebuffer::~Framebuffer(void)
-{
-    _destroy();
-}
-
 bool Framebuffer::add_render_target(Texture2DHandle target)
 {
     if (_vk_framebuffer != VK_NULL_HANDLE)
@@ -119,9 +114,14 @@ StatusCode Framebuffer::_create(const std::vector<VkImageView>& attachments, VkE
     return StatusCode::SUCCESS;
 }
 
-void Framebuffer::_destroy(void)
+void Framebuffer::destroy(void)
 {
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_framebuffer(_vk_framebuffer);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_framebuffer(_vk_framebuffer);
+    _vk_framebuffer = VK_NULL_HANDLE;
+    _render_targets.clear();
+    _depth_buffer = NULL_HANDLE;
+    _render_pass = nullptr;
 }
 
 void Framebuffer::on_end_render_pass(void)
