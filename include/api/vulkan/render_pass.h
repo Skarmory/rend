@@ -9,14 +9,11 @@
 namespace rend
 {
 
-class DepthBuffer;
-class RenderTarget;
-
 class RenderPass
 {
 public:
     RenderPass(void) = default;
-    ~RenderPass(void);
+    ~RenderPass(void) = default;
 
     RenderPass(const RenderPass&)            = delete;
     RenderPass(RenderPass&&)                 = delete;
@@ -24,6 +21,7 @@ public:
     RenderPass& operator=(RenderPass&&)      = delete;
 
     StatusCode create_render_pass(void);
+    void destroy(void);
 
     uint32_t add_attachment_description(Format format, MSAASamples samples, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout initial, ImageLayout final);
 
