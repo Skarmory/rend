@@ -27,11 +27,6 @@ VulkanDeviceContext::VulkanDeviceContext(void)
     _vk_shaders.set_unique_key(_data_array_unique_key++);
 }
 
-VulkanDeviceContext::~VulkanDeviceContext(void)
-{
-    destroy();
-}
-
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
 {
     return _chosen_gpu;

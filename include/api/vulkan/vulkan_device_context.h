@@ -25,7 +25,6 @@ class VulkanDeviceContext : public DeviceContext
 {
 public:
     VulkanDeviceContext(void);
-    ~VulkanDeviceContext(void);
     VulkanDeviceContext(const VulkanDeviceContext&)            = delete;
     VulkanDeviceContext(VulkanDeviceContext&&)                 = delete;
     VulkanDeviceContext& operator=(const VulkanDeviceContext&) = delete;
