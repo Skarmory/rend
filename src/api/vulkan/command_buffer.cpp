@@ -197,6 +197,10 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, VkShaderStageFla
 
 void CommandBuffer::copy_buffer_to_image(const GPUBuffer& buffer, const GPUTexture& image)
 {
+#ifdef DEBUG
+    std::cout << "copy_buffer_to_image(). src: " << buffer.dbg_name() << ". dst: " << image.dbg_name() << std::endl;
+#endif
+
     _recorded = true;
 
     VkBufferImageCopy copy =
@@ -228,6 +232,10 @@ void CommandBuffer::copy_buffer_to_image(const GPUBuffer& buffer, const GPUTextu
 
 void CommandBuffer::copy_buffer_to_buffer(const GPUBuffer& src, const GPUBuffer& dst)
 {
+#ifdef DEBUG
+    std::cout << "copy_buffer_to_buffer(). src: " << src.dbg_name() << ". dst: " << dst.dbg_name() << std::endl;
+#endif
+
     _recorded = true;
 
     VkBufferCopy copy =
