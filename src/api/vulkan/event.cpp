@@ -7,12 +7,7 @@
 
 using namespace rend;
 
-Event::~Event(void)
-{
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_event(_vk_event);
-}
-
-bool Event::create_event(void)
+bool Event::create(void)
 {
     if(_vk_event != VK_NULL_HANDLE)
     {
@@ -21,13 +16,20 @@ bool Event::create_event(void)
 
     VkEventCreateInfo create_info = vulkan_helpers::gen_event_create_info();
 
-    _vk_event = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_event(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_event = ctx.get_device()->create_event(create_info);
     if(_vk_event == VK_NULL_HANDLE)
     {
         return false;
     }
 
     return true;
+}
+
+void Event::destroy(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_event(_vk_event);
 }
 
 VkEvent Event::get_handle(void) const
