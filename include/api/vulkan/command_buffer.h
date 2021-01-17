@@ -20,7 +20,7 @@ class CommandBuffer
 {
 public:
     CommandBuffer(CommandPool* pool, VkCommandBuffer vk_command_buffer);
-    ~CommandBuffer(void) = default;
+    ~CommandBuffer(void)                           = default;
     CommandBuffer(const CommandBuffer&)            = delete;
     CommandBuffer(CommandBuffer&&)                 = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;
@@ -59,10 +59,10 @@ public:
     void pipeline_barrier(VkPipelineStageFlags src, VkPipelineStageFlags dst, VkDependencyFlags dependency, const std::vector<VkMemoryBarrier>& memory_barriers, const std::vector<VkBufferMemoryBarrier>& buffer_memory_barriers, const std::vector<VkImageMemoryBarrier>& image_memory_barriers);
 
 private:
-    CommandPool*    _pool;
-    bool            _recording;
-    bool            _recorded;
-    VkCommandBuffer _vk_command_buffer;
+    CommandPool*    _pool{ nullptr };
+    bool            _recording{ false };
+    bool            _recorded{ false };
+    VkCommandBuffer _vk_command_buffer{ VK_NULL_HANDLE };
 };
 
 }
