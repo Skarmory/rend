@@ -20,7 +20,7 @@ class CommandBuffer
 {
 public:
     CommandBuffer(CommandPool* pool, VkCommandBuffer vk_command_buffer);
-    ~CommandBuffer(void);
+    ~CommandBuffer(void) = default;
     CommandBuffer(const CommandBuffer&)            = delete;
     CommandBuffer(CommandBuffer&&)                 = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;

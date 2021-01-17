@@ -23,10 +23,6 @@ CommandBuffer::CommandBuffer(CommandPool* pool, VkCommandBuffer vk_command_buffe
 {
 }
 
-CommandBuffer::~CommandBuffer(void)
-{
-}
-
 CommandPool& CommandBuffer::get_pool(void) const
 {
     return *_pool;
@@ -48,7 +44,9 @@ bool CommandBuffer::begin(void)
     };
 
     if(vkBeginCommandBuffer(_vk_command_buffer, &info) != VK_SUCCESS)
+    {
         return true;
+    }
 
     _recording = true;
 
@@ -58,7 +56,9 @@ bool CommandBuffer::begin(void)
 bool CommandBuffer::end(void)
 {
     if(vkEndCommandBuffer(_vk_command_buffer) != VK_SUCCESS)
+    {
         return false;
+    }
 
     _recording = false;
 
@@ -68,7 +68,9 @@ bool CommandBuffer::end(void)
 bool CommandBuffer::reset(void)
 {
     if(vkResetCommandBuffer(_vk_command_buffer, 0) != VK_SUCCESS)
+    {
         return false;
+    }
 
     _recorded = false;
 
@@ -143,7 +145,9 @@ void CommandBuffer::bind_descriptor_sets(VkPipelineBindPoint bind_point, const P
     vk_sets.reserve(sets.size());
 
     for(DescriptorSet* dset : sets)
+    {
         vk_sets.push_back(dset->get_handle());
+    }
 
     vkCmdBindDescriptorSets(_vk_command_buffer, bind_point, layout.get_handle(), 0, static_cast<uint32_t>(vk_sets.size()), vk_sets.data(), 0, nullptr);
 }
