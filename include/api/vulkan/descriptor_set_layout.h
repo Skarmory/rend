@@ -12,15 +12,15 @@ namespace rend
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(void) = default;
-    ~DescriptorSetLayout(void);
-
+    DescriptorSetLayout(void)                                  = default;
+    ~DescriptorSetLayout(void)                                 = default;
     DescriptorSetLayout(const DescriptorSetLayout&)            = delete;
     DescriptorSetLayout(DescriptorSetLayout&&)                 = delete;
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout& operator=(DescriptorSetLayout&&)      = delete;
 
-    StatusCode create_descriptor_set_layout(void);
+    StatusCode create(void);
+    void       destroy(void);
 
     void add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage);
     void add_combined_image_sampler_binding(uint32_t slot, ShaderType shader_stage);

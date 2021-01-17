@@ -7,12 +7,7 @@
 
 using namespace rend;
 
-DescriptorSetLayout::~DescriptorSetLayout(void)
-{
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_descriptor_set_layout(_vk_layout);
-}
-
-StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
+StatusCode DescriptorSetLayout::create(void)
 {
     if(_vk_layout != VK_NULL_HANDLE)
     {
@@ -23,7 +18,8 @@ StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
     create_info.bindingCount = static_cast<uint32_t>(_bindings.size());
     create_info.pBindings    = _bindings.data();
 
-    _vk_layout = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_descriptor_set_layout(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_layout = ctx.get_device()->create_descriptor_set_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
     {
@@ -31,6 +27,12 @@ StatusCode DescriptorSetLayout::create_descriptor_set_layout(void)
     }
 
     return StatusCode::SUCCESS;
+}
+
+void DescriptorSetLayout::destroy(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_descriptor_set_layout(_vk_layout);
 }
 
 void DescriptorSetLayout::add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage)
