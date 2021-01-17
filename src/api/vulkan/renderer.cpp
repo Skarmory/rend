@@ -64,7 +64,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
 
         _frame_resources[idx].acquire_sem->create_semaphore();
         _frame_resources[idx].present_sem->create_semaphore();
-        _frame_resources[idx].submit_fen->create_fence(true);
+        _frame_resources[idx].submit_fen->create(true);
         _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
 
@@ -103,6 +103,8 @@ StatusCode Renderer::destroy(void)
     {
         delete _frame_resources[idx].acquire_sem;
         delete _frame_resources[idx].present_sem;
+
+        _frame_resources[idx].submit_fen->destroy();
         delete _frame_resources[idx].submit_fen;
     }
 
@@ -193,8 +195,8 @@ void Renderer::_process_task_queue(FrameResources& resources)
     if(_task_queue.empty())
         return;
 
-    Fence* load_fence = new Fence;
-    load_fence->create_fence(false);
+    Fence load_fence;
+    load_fence.create(false);
 
     resources.command_buffer->begin();
 
@@ -210,12 +212,12 @@ void Renderer::_process_task_queue(FrameResources& resources)
 
     if(resources.command_buffer->recorded())
     {
-        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, load_fence);
-        load_fence->wait();
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, &load_fence);
+        load_fence.wait();
     }
 
     resources.command_buffer->reset();
-    delete load_fence;
+    load_fence.destroy();
 
     for(auto staging_buffer : resources.staging_buffers)
     {
