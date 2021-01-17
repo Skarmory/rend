@@ -18,7 +18,6 @@ class DescriptorSet
 public:
     explicit DescriptorSet(VkDescriptorSet set);
     ~DescriptorSet(void) = default;
-
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
@@ -26,12 +25,9 @@ public:
 
     VkDescriptorSet get_handle(void) const;
 
-    // Describe binding for given image(s) to given binding point at given array elem
+    // Describe binding for given image(s) for given binding point at given array elem
     void describe_combined_image_sampler(uint32_t binding, GPUTexture* texture);
     void describe_uniform_buffer(uint32_t binding, GPUBuffer* buffer);
-
-    // Describe binding for given texel buffer(s) to given binding point at given array elem
-    //void describe(uint32_t binding, uint32_t array_elem, VkDescriptorType type, const std::vector<VkBufferView>& descriptor_infos);
 
     // Update the descriptor set bindings. Call this when done describing the descriptor set
     void update(void);
@@ -49,7 +45,7 @@ private:
 
     std::vector<Binding> _bindings;
 
-    VkDescriptorSet _vk_set;
+    VkDescriptorSet _vk_set{ VK_NULL_HANDLE };
 };
 
 }

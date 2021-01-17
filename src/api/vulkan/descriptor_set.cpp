@@ -112,7 +112,7 @@ void DescriptorSet::update(void)
         vk_write_descs.push_back(write_desc);
     }
 
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->update_descriptor_sets(vk_write_descs);
+    ctx.get_device()->update_descriptor_sets(vk_write_descs);
 }
 
 DescriptorSet::Binding* DescriptorSet::_find_binding(uint32_t slot)
