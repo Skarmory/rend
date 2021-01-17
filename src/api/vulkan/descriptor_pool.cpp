@@ -7,19 +7,16 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
-DescriptorPool::~DescriptorPool(void)
+namespace
 {
-    for(DescriptorSet* dset : _sets)
-    {
-        delete dset;
-    }
-
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_descriptor_pool(_vk_pool);
+    const size_t c_descriptor_types = 11;
 }
 
-StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
+StatusCode DescriptorPool::create(uint32_t max_sets)
 {
     if(_vk_pool != VK_NULL_HANDLE)
     {
@@ -27,27 +24,38 @@ StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     }
 
     std::vector<VkDescriptorPoolSize> pool_sizes;
+    pool_sizes.reserve(c_descriptor_types);
 
     if(_sampler_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_SAMPLER, _sampler_count });
+
     if(_combined_image_sampler_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, _combined_image_sampler_count });
+
     if(_sampled_image_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, _sampled_image_count });
+
     if(_storage_image_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, _storage_image_count });
+
     if(_uniform_texel_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, _uniform_texel_buffer_count});
+
     if(_storage_texel_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, _storage_texel_buffer_count});
+
     if(_uniform_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, _uniform_buffer_count});
+
     if(_storage_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, _storage_buffer_count});
+
     if(_dynamic_uniform_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, _dynamic_uniform_buffer_count});
+
     if(_dynamic_storage_buffer_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, _dynamic_storage_buffer_count});
+
     if(_input_attachment_count > 0)
         pool_sizes.push_back({ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, _input_attachment_count});
 
@@ -56,16 +64,28 @@ StatusCode DescriptorPool::create_descriptor_pool(uint32_t max_sets)
     create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
     create_info.pPoolSizes    = pool_sizes.data();
 
-    _vk_pool = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_descriptor_pool(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_pool = ctx.get_device()->create_descriptor_pool(create_info);
     if(_vk_pool == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
     }
 
-    _sets.reserve(_max_sets);
     _max_sets = max_sets;
+    _sets.reserve(_max_sets);
 
     return StatusCode::SUCCESS;
+}
+
+void DescriptorPool::destroy(void)
+{
+    for(DescriptorSet* dset : _sets)
+    {
+        delete dset;
+    }
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_descriptor_pool(_vk_pool);
 }
 
 void DescriptorPool::set_sampler_count(uint32_t count)
@@ -125,8 +145,8 @@ void DescriptorPool::set_input_attachment_count(uint32_t count)
 
 std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<DescriptorSetLayout*>& layouts)
 {
-    if(_sets.size() >= _max_sets)
-        return {};
+    assert(_sets.size() < _max_sets && "Attempt to allocate a DescriptorSet from a fully allocated DescriptorPool");
+    assert((_sets.size() + layouts.size()) <= _max_sets && "Attempt to allocate more DescriptorSets than a DescriptorPool has free slots");
 
     std::vector<DescriptorSet*> out_sets;
     out_sets.reserve(layouts.size());
@@ -138,9 +158,12 @@ std::vector<DescriptorSet*> DescriptorPool::allocate(const std::vector<Descripto
     vk_layouts.reserve(layouts.size());
 
     for(DescriptorSetLayout* layout : layouts)
+    {
         vk_layouts.push_back(layout->get_handle());
+    }
 
-    vk_sets = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    vk_sets = ctx.get_device()->allocate_descriptor_sets(vk_layouts, _vk_pool);
 
     for(VkDescriptorSet vk_set : vk_sets)
     {
