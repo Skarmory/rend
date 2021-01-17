@@ -49,7 +49,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     _swapchain->create_swapchain(3);
 
     _command_pool = new CommandPool;
-    _command_pool->create_command_pool(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    _command_pool->create(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
@@ -106,7 +106,9 @@ StatusCode Renderer::destroy(void)
         delete _frame_resources[idx].submit_fen;
     }
 
+    _command_pool->destroy();
     delete _command_pool;
+
     delete _swapchain;
 
     destroy_resource();

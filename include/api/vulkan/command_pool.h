@@ -20,15 +20,16 @@ class CommandBuffer;
 class CommandPool
 {
 public:
-    CommandPool(void);
-    ~CommandPool(void);
+    CommandPool(void) = default;
+    ~CommandPool(void) = default;
 
     CommandPool(const CommandPool&)            = delete;
     CommandPool(CommandPool&&)                 = delete;
     CommandPool& operator=(const CommandPool&) = delete;
     CommandPool& operator=(CommandPool&&)      = delete;
 
-    bool create_command_pool(const QueueFamily* queue_family, bool can_reset);
+    bool create(const QueueFamily* queue_family, bool can_reset);
+    void destroy(void);
 
     /*
      * Allocate a specified number of command buffers. These are primary command buffers by default.
@@ -56,10 +57,10 @@ public:
     void free_all(void);
 
 private:
-    const QueueFamily*          _queue_family;
-    bool                        _can_reset;
+    const QueueFamily*          _queue_family{ nullptr };
+    bool                        _can_reset{ false };
     std::vector<CommandBuffer*> _command_buffers;
-    VkCommandPool               _vk_command_pool;
+    VkCommandPool               _vk_command_pool{ VK_NULL_HANDLE };
 };
 
 }
