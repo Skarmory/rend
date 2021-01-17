@@ -15,16 +15,15 @@ class RenderPass;
 class Framebuffer
 {
 public:
-    Framebuffer(void) = default;
-    ~Framebuffer(void) = default;
-
+    Framebuffer(void)                          = default;
+    ~Framebuffer(void)                         = default;
     Framebuffer(const Framebuffer&)            = delete;
     Framebuffer(Framebuffer&&)                 = delete;
     Framebuffer& operator=(const Framebuffer&) = delete;
     Framebuffer& operator=(Framebuffer&&)      = delete;
 
-    StatusCode create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions);
-    void destroy(void);
+    StatusCode create(const RenderPass& render_pass, VkExtent3D dimensions);
+    void       destroy(void);
 
     bool add_render_target(Texture2DHandle target);
     bool set_depth_buffer(Texture2DHandle buffer);
@@ -37,7 +36,6 @@ public:
 
 private:
     StatusCode _create(const std::vector<VkImageView>& attachments, VkExtent3D dimensions);
-    void _destroy(void);
 
 private:
     const RenderPass*            _render_pass { nullptr };

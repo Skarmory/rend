@@ -9,31 +9,7 @@
 
 using namespace rend;
 
-bool Framebuffer::add_render_target(Texture2DHandle target)
-{
-    if (_vk_framebuffer != VK_NULL_HANDLE)
-    {
-        return false;
-    }
-
-    _render_targets.push_back(target);
-
-    return true;
-}
-
-bool Framebuffer::set_depth_buffer(Texture2DHandle buffer)
-{
-    if(_vk_framebuffer != VK_NULL_HANDLE)
-    {
-        return false;
-    }
-
-    _depth_buffer = buffer;
-
-    return true;
-}
-
-StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExtent3D dimensions)
+StatusCode Framebuffer::create(const RenderPass& render_pass, VkExtent3D dimensions)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
@@ -57,6 +33,40 @@ StatusCode Framebuffer::create_framebuffer(const RenderPass& render_pass, VkExte
     _render_pass = &render_pass;
 
     return _create(attachments, dimensions);
+}
+
+void Framebuffer::destroy(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_framebuffer(_vk_framebuffer);
+    _vk_framebuffer = VK_NULL_HANDLE;
+    _render_targets.clear();
+    _depth_buffer = NULL_HANDLE;
+    _render_pass = nullptr;
+}
+
+bool Framebuffer::add_render_target(Texture2DHandle target)
+{
+    if (_vk_framebuffer != VK_NULL_HANDLE)
+    {
+        return false;
+    }
+
+    _render_targets.push_back(target);
+
+    return true;
+}
+
+bool Framebuffer::set_depth_buffer(Texture2DHandle buffer)
+{
+    if(_vk_framebuffer != VK_NULL_HANDLE)
+    {
+        return false;
+    }
+
+    _depth_buffer = buffer;
+
+    return true;
 }
 
 VkFramebuffer Framebuffer::get_handle(void) const
@@ -84,21 +94,14 @@ StatusCode Framebuffer::_create(const std::vector<VkImageView>& attachments, VkE
     create_info.height = dimensions.height;
     create_info.layers = dimensions.depth;
 
-    _vk_framebuffer = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_framebuffer(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_framebuffer = ctx.get_device()->create_framebuffer(create_info);
     if(_vk_framebuffer == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
-}
-
-void Framebuffer::destroy(void)
-{
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    ctx.get_device()->destroy_framebuffer(_vk_framebuffer);
-    _vk_framebuffer = VK_NULL_HANDLE;
-    _render_targets.clear();
-    _depth_buffer = NULL_HANDLE;
-    _render_pass = nullptr;
 }
 
 void Framebuffer::on_end_render_pass(void)

@@ -453,6 +453,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
         _default_framebuffers[idx] = new Framebuffer;
         _default_framebuffers[idx]->set_depth_buffer(_default_depth_buffer->get_handle());
         _default_framebuffers[idx]->add_render_target(targets[idx]);
-        _default_framebuffers[idx]->create_framebuffer(*_default_render_pass, framebuffer_dims);
+        _default_framebuffers[idx]->create(*_default_render_pass, framebuffer_dims);
     }
 }
