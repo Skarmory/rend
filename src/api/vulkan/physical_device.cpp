@@ -5,88 +5,33 @@
 #include "window.h"
 #include "window_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(void)
-    :
-      _logical_device(nullptr),
-      _physical_device_index(0xdeadbeef),
-      _vk_physical_device(VK_NULL_HANDLE)
+bool PhysicalDevice::create(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
-}
-
-PhysicalDevice::~PhysicalDevice(void)
-{
-    _logical_device->destroy();
-    delete _logical_device;
-}
-
-bool PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
-{
-    uint32_t count;
-    std::vector<VkQueueFamilyProperties> queue_family_properties;
-    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, nullptr);
-
-    if(count == 0)
-        return false;
-
-    _queue_families.reserve(count);
-    queue_family_properties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, queue_family_properties.data());
-
-    for(size_t queue_family_index = 0; queue_family_index < queue_family_properties.size(); queue_family_index++)
-    {
-        VkBool32 supports_present;
-        vkGetPhysicalDeviceSurfaceSupportKHR(_vk_physical_device, queue_family_index, surface, &supports_present);
-        _queue_families.push_back(QueueFamily(queue_family_index, queue_family_properties[queue_family_index], supports_present));
-
-        QueueFamily* queue_family = &_queue_families[queue_family_index];
-
-        if(queue_family->get_properties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            _graphics_queue_families.push_back(queue_family);
-
-        if(queue_family->supports_present_queue())
-            _present_queue_families.push_back(queue_family);
-    }
-
-    return true;
-}
-
-bool PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
-{
-    uint32_t count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, nullptr);
-
-    if(count == 0)
-        return false;;
-
-   _vk_surface_formats.resize(count);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, _vk_surface_formats.data());
-
-    return true;
-}
-
-bool PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
-{
-    uint32_t count = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, nullptr);
-
-    if(count == 0)
-        return false;
-
-    _vk_present_modes.resize(count);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
-
-    return true;
-}
-
-bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device)
-{
-    if(_vk_physical_device != VK_NULL_HANDLE)
-        return false;
+    assert(_vk_physical_device != VK_NULL_HANDLE && "Attempt to create a PhysicalDevice that has already been created.");
 
     auto* window = WindowContext::instance().window();
-    if (!window)
+    assert(window && "Attempt to create PhysicalDevice before a Window");
+
+    vkGetPhysicalDeviceProperties(physical_device, &_vk_physical_device_properties);
+    vkGetPhysicalDeviceFeatures(physical_device, &_vk_physical_device_features);
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &_vk_physical_device_memory_properties);
+
+    VkSurfaceKHR surface = window->get_vk_surface();
+    if(!_find_queue_families(surface))
+    {
+        return false;
+    }
+
+    if(!_find_surface_formats(surface))
+    {
+        return false;
+    }
+
+    if(!_find_surface_present_modes(surface))
     {
         return false;
     }
@@ -94,43 +39,31 @@ bool PhysicalDevice::create_physical_device(uint32_t physical_device_index, VkPh
     _physical_device_index = physical_device_index;
     _vk_physical_device = physical_device;
 
-    vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
-    vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
-    vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
-
-    VkSurfaceKHR surface = window->get_vk_surface();
-    if(!_find_queue_families(surface))
-        return false;
-
-    if(!_find_surface_formats(surface))
-        return false;
-
-    if(!_find_surface_present_modes(surface))
-        return false;
-
     return true;
+}
+
+void PhysicalDevice::destroy(void)
+{
+    _logical_device->destroy();
+    delete _logical_device;
 }
 
 bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
 {
-    if(_logical_device)
-        return false;
+    assert(!_logical_device && "Attempt to create a LogicalDevice from a PhysicalDevice that has already been created.");
 
     QueueFamily* graphics_family = nullptr;
     QueueFamily* present_family = nullptr;
 
     if(queue_flags & VK_QUEUE_GRAPHICS_BIT)
     {
-        // Not much of a gfx library if there're no useful queues
-        if(_graphics_queue_families.size() == 0)
+        if(_graphics_queue_families.empty() || _present_queue_families.empty())
+        {
             return false;
+        }
 
         graphics_family = _graphics_queue_families[0];
-
-        if(_present_queue_families.size() == 0)
-            return false;
-
-        present_family = _present_queue_families[0];
+        present_family  = _present_queue_families[0];
     }
 
     _logical_device = new LogicalDevice;
@@ -181,10 +114,10 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::get_memory_properties(vo
 
 bool PhysicalDevice::has_queues(VkQueueFlags queue_flags) const
 {
-    if(queue_flags & VK_QUEUE_GRAPHICS_BIT && _graphics_queue_families.size() == 0 && _present_queue_families.size() == 0)
-        return false;
+    const bool has_graphics_queue = (queue_flags & VK_QUEUE_GRAPHICS_BIT) ? !_graphics_queue_families.empty()  : true;
+    const bool has_present_queue  = !_present_queue_families.empty();
 
-    return true;
+    return has_graphics_queue && has_present_queue;
 }
 
 bool PhysicalDevice::has_features(const VkPhysicalDeviceFeatures& features) const
@@ -301,4 +234,73 @@ bool PhysicalDevice::has_features(const VkPhysicalDeviceFeatures& features) cons
        return false;
 
    return true;
+}
+
+bool PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
+{
+    uint32_t count{ 0 };
+    std::vector<VkQueueFamilyProperties> queue_family_properties;
+    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, nullptr);
+
+    if(count == 0)
+    {
+        return false;
+    }
+
+    _queue_families.reserve(count);
+    queue_family_properties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, queue_family_properties.data());
+
+    for(size_t queue_family_index{ 0 }; queue_family_index < queue_family_properties.size(); ++queue_family_index)
+    {
+        VkBool32 supports_present;
+        vkGetPhysicalDeviceSurfaceSupportKHR(_vk_physical_device, queue_family_index, surface, &supports_present);
+        _queue_families.push_back(QueueFamily(queue_family_index, queue_family_properties[queue_family_index], supports_present));
+
+        QueueFamily* queue_family = &_queue_families[queue_family_index];
+
+        if(queue_family->get_properties().queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            _graphics_queue_families.push_back(queue_family);
+        }
+
+        if(queue_family->supports_present_queue())
+        {
+            _present_queue_families.push_back(queue_family);
+        }
+    }
+
+    return true;
+}
+
+bool PhysicalDevice::_find_surface_formats(VkSurfaceKHR surface)
+{
+    uint32_t count{ 0 };
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, nullptr);
+
+    if(count == 0)
+    {
+        return false;
+    }
+
+   _vk_surface_formats.resize(count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_vk_physical_device, surface, &count, _vk_surface_formats.data());
+
+    return true;
+}
+
+bool PhysicalDevice::_find_surface_present_modes(VkSurfaceKHR surface)
+{
+    uint32_t count{ 0 };
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, nullptr);
+
+    if(count == 0)
+    {
+        return false;
+    }
+
+    _vk_present_modes.resize(count);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_vk_physical_device, surface, &count, _vk_present_modes.data());
+
+    return true;
 }

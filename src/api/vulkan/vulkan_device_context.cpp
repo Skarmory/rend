@@ -52,7 +52,7 @@ StatusCode VulkanDeviceContext::create(void)
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
         PhysicalDevice* pdev = new PhysicalDevice;
-        pdev->create_physical_device(physical_device_index, physical_devices[physical_device_index]);
+        pdev->create(physical_device_index, physical_devices[physical_device_index]);
         _physical_devices.push_back(pdev);
     }
 

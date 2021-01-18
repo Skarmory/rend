@@ -15,10 +15,16 @@ class Window;
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(void);
-    ~PhysicalDevice(void);
+    PhysicalDevice(void)                             = default;
+    ~PhysicalDevice(void)                            = default;
+    PhysicalDevice(const PhysicalDevice&)            = delete;
+    PhysicalDevice(PhysicalDevice&&)                 = delete;
+    PhysicalDevice& operator=(const PhysicalDevice&) = delete;
+    PhysicalDevice& operator=(PhysicalDevice&&)      = delete;
 
-    bool create_physical_device(uint32_t physical_device_index, VkPhysicalDevice physical_device);
+    bool create(uint32_t physical_device_index, VkPhysicalDevice physical_device);
+    void destroy(void);
+
     bool create_logical_device(const VkQueueFlags queue_flags);
 
     LogicalDevice*                          get_logical_device(void) const;
@@ -38,13 +44,13 @@ private:
     bool _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
-    LogicalDevice*                   _logical_device;
+    LogicalDevice*                   _logical_device{ nullptr };
 
-    uint32_t                         _physical_device_index;
-    VkPhysicalDevice                 _vk_physical_device;
-    VkPhysicalDeviceProperties       _vk_physical_device_properties;
-    VkPhysicalDeviceFeatures         _vk_physical_device_features;
-    VkPhysicalDeviceMemoryProperties _vk_physical_device_memory_properties;
+    uint32_t                         _physical_device_index{ 0 };
+    VkPhysicalDevice                 _vk_physical_device{ VK_NULL_HANDLE };
+    VkPhysicalDeviceProperties       _vk_physical_device_properties{};
+    VkPhysicalDeviceFeatures         _vk_physical_device_features{};
+    VkPhysicalDeviceMemoryProperties _vk_physical_device_memory_properties{};
 
     std::vector<VkSurfaceFormatKHR>  _vk_surface_formats;
     std::vector<VkPresentModeKHR>    _vk_present_modes;
