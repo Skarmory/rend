@@ -7,25 +7,14 @@
 #include "swapchain.h"
 
 #include <array>
+#include <cassert>
 #include <set>
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(void)
-    :
-      _physical_device(nullptr),
-      _graphics_family(nullptr),
-      _transfer_family(nullptr),
-      _vk_device(VK_NULL_HANDLE),
-      _vk_graphics_queue(VK_NULL_HANDLE),
-      _vk_transfer_queue(VK_NULL_HANDLE)
+bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
 {
-}
-
-bool LogicalDevice::create_logical_device(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
-{
-    if(_vk_device != VK_NULL_HANDLE)
-        return false;
+    assert(_vk_device != VK_NULL_HANDLE && "Attempt to initialise LogicalDevice that has already been initialised.");
 
     // Step 1: Construct queue creation info
     float priority = 1.0f;
@@ -50,12 +39,14 @@ bool LogicalDevice::create_logical_device(const PhysicalDevice* physical_device,
         });
     }
 
-    std::array<const char*, 1> extensions = {
+    std::array<const char*, 1> extensions =
+    {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
     // Step 2: Create device 
-    VkDeviceCreateInfo device_create_info = {
+    VkDeviceCreateInfo device_create_info =
+    {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -69,7 +60,9 @@ bool LogicalDevice::create_logical_device(const PhysicalDevice* physical_device,
     };
 
     if(vkCreateDevice(physical_device->get_handle(), &device_create_info, nullptr, &_vk_device) != VK_SUCCESS)
+    {
         return false;
+    }
 
     // Step 3: Get queue handles
     if(graphics_family)
@@ -85,7 +78,7 @@ bool LogicalDevice::create_logical_device(const PhysicalDevice* physical_device,
     return true;
 }
 
-LogicalDevice::~LogicalDevice(void)
+void LogicalDevice::destroy(void)
 {
     vkDestroyDevice(_vk_device, nullptr);
 }
@@ -133,17 +126,24 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
     vk_sig_sems.reserve(signal_sems.size());
 
     for(CommandBuffer* buf : command_buffers)
+    {
         vk_command_buffers.push_back(buf->get_handle());
+    }
 
     for(Semaphore* sem : wait_sems)
+    {
         vk_wait_sems.push_back(sem->get_handle());
+    }
 
     for(Semaphore* sem : signal_sems)
+    {
         vk_sig_sems.push_back(sem->get_handle());
+    }
 
     VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-    VkSubmitInfo submit_info = {
+    VkSubmitInfo submit_info =
+    {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
         .waitSemaphoreCount = static_cast<uint32_t>(vk_wait_sems.size()),
@@ -158,7 +158,9 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
     VkQueue queue = get_queue(type);
 
     if(vkQueueSubmit(queue, 1, &submit_info, fence->get_handle()) != VK_SUCCESS)
+    {
         return false;
+    }
 
     return true;
 }
@@ -173,7 +175,9 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
         bool required_prop = memory_properties & properties.memoryTypes[idx].propertyFlags;
 
         if(required_type && required_prop)
+        {
             return idx;
+        }
     }
 
     return std::numeric_limits<uint32_t>::max();
@@ -209,13 +213,20 @@ VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeou
 VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results)
 {
     std::vector<VkSwapchainKHR> vk_swapchains;
+    vk_swapchains.reserve(swapchains.size());
+
     std::vector<VkSemaphore> vk_sems;
+    vk_sems.reserve(wait_sems.size());
 
     for(Swapchain* swapchain : swapchains)
+    {
         vk_swapchains.push_back(swapchain->get_handle());
+    }
 
     for(Semaphore* sem : wait_sems)
+    {
         vk_sems.push_back(sem->get_handle());
+    }
 
     VkPresentInfoKHR present_info =
     {
@@ -301,7 +312,9 @@ std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t co
     vk_buffers.resize(count);
 
     if(vkAllocateCommandBuffers(_vk_device, &alloc_info, vk_buffers.data()) != VK_SUCCESS)
+    {
         return {};
+    }
 
     return vk_buffers;
 }

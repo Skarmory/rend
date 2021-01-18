@@ -17,6 +17,7 @@ PhysicalDevice::PhysicalDevice(void)
 
 PhysicalDevice::~PhysicalDevice(void)
 {
+    _logical_device->destroy();
     delete _logical_device;
 }
 
@@ -133,7 +134,7 @@ bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
     }
 
     _logical_device = new LogicalDevice;
-    _logical_device->create_logical_device(this, graphics_family, present_family);
+    _logical_device->create(this, graphics_family, present_family);
 
     return true;
 }

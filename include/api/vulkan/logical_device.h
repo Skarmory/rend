@@ -21,16 +21,15 @@ class LogicalDevice
 {
 
 public:
-    LogicalDevice(void);
-    ~LogicalDevice(void);
-
-    LogicalDevice(const LogicalDevice&) = delete;
-    LogicalDevice(LogicalDevice&&) = delete;
-
+    LogicalDevice(void)                            = default;
+    ~LogicalDevice(void)                           = default;
+    LogicalDevice(const LogicalDevice&)            = delete;
+    LogicalDevice(LogicalDevice&&)                 = delete;
     LogicalDevice& operator=(const LogicalDevice&) = delete;
-    LogicalDevice& operator=(LogicalDevice&&) = delete;
+    LogicalDevice& operator=(LogicalDevice&&)      = delete;
 
-    bool create_logical_device(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
+    bool create(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
+    void destroy(void);
 
     // Retrieval
     const PhysicalDevice& get_physical_device(void) const;
@@ -115,13 +114,13 @@ public:
     void                  destroy_shader_module(VkShaderModule module);
 
 private:
-    const PhysicalDevice* _physical_device;
-    const QueueFamily*    _graphics_family;
-    const QueueFamily*    _transfer_family;
+    const PhysicalDevice* _physical_device{ nullptr };
+    const QueueFamily*    _graphics_family{ nullptr };
+    const QueueFamily*    _transfer_family{ nullptr };
 
-    VkDevice _vk_device;
-    VkQueue  _vk_graphics_queue;
-    VkQueue  _vk_transfer_queue;
+    VkDevice _vk_device{ VK_NULL_HANDLE };
+    VkQueue  _vk_graphics_queue{ VK_NULL_HANDLE };
+    VkQueue  _vk_transfer_queue{ VK_NULL_HANDLE };
 };
 
 }
