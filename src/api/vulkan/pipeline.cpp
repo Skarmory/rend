@@ -8,19 +8,14 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
 #include <cstring>
 
 using namespace rend;
 
-Pipeline::~Pipeline(void)
+StatusCode Pipeline::create(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
 {
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_pipeline(_vk_pipeline);
-}
-
-StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
-{
-    if(_vk_pipeline != VK_NULL_HANDLE)
-        return StatusCode::ALREADY_CREATED;
+    assert(_vk_pipeline != VK_NULL_HANDLE && "Attempt to create a Pipeline that has already been created.");
 
     std::vector<VkPipelineShaderStageCreateInfo> shader_stage_infos;
     for(Shader* shader : _shaders)
@@ -68,7 +63,8 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
     pipeline_create_info.basePipelineHandle  = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex   = 0;
 
-    _vk_pipeline = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_pipeline(pipeline_create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_pipeline = ctx.get_device()->create_pipeline(pipeline_create_info);
 
     if(_vk_pipeline == VK_NULL_HANDLE)
     {
@@ -80,6 +76,12 @@ StatusCode Pipeline::create_pipeline(PipelineLayout& layout, RenderPass& render_
     _subpass     = subpass;
 
     return StatusCode::SUCCESS;
+}
+
+void Pipeline::destroy(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_pipeline(_vk_pipeline);
 }
 
 void Pipeline::add_shader(Shader& shader)

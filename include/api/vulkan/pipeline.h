@@ -21,15 +21,15 @@ typedef VkRect2D VkScissorArea;
 class Pipeline
 {
 public:
-    Pipeline(void) = default;
-    ~Pipeline(void);
-
-    Pipeline(const Pipeline&) = delete;
-    Pipeline(Pipeline&&)      = delete;
+    Pipeline(void)                       = default;
+    ~Pipeline(void)                      = default;
+    Pipeline(const Pipeline&)            = delete;
+    Pipeline(Pipeline&&)                 = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     Pipeline& operator=(Pipeline&&)      = delete;
 
-    StatusCode create_pipeline(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass);
+    StatusCode create(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass);
+    void       destroy(void);
 
     void add_shader(Shader& shader);
 
