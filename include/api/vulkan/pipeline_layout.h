@@ -14,15 +14,15 @@ class DescriptorSetLayout;
 class PipelineLayout
 {
 public:
-    PipelineLayout(void) = default;
-    ~PipelineLayout(void);
-
+    PipelineLayout(void)                             = default;
+    ~PipelineLayout(void)                            = default;
     PipelineLayout(const PipelineLayout&)            = delete;
     PipelineLayout(PipelineLayout&&)                 = delete;
     PipelineLayout& operator=(const PipelineLayout&) = delete;
     PipelineLayout& operator=(PipelineLayout&&)      = delete;
 
-    StatusCode create_pipeline_layout(void);
+    StatusCode create(void);
+    void       destroy(void);
 
     void add_push_constant_range(ShaderType type, uint32_t offset, uint32_t size_bytes);
     void add_descriptor_set_layout(DescriptorSetLayout& layout);

@@ -6,25 +6,21 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
-PipelineLayout::~PipelineLayout(void)
+StatusCode PipelineLayout::create(void)
 {
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_pipeline_layout(_vk_layout);
-}
-
-StatusCode PipelineLayout::create_pipeline_layout(void)
-{
-    if(_vk_layout != VK_NULL_HANDLE)
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
+    assert(_vk_layout != VK_NULL_HANDLE && "Attempt to create a PipelineLayout that has already been created.");
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(_descriptor_set_layouts.size());
 
     for(DescriptorSetLayout* layout : _descriptor_set_layouts)
+    {
         vk_layouts.push_back(layout->get_handle());
+    }
 
     VkPipelineLayoutCreateInfo create_info = vulkan_helpers::gen_pipeline_layout_create_info();
     create_info.setLayoutCount = static_cast<uint32_t>(vk_layouts.size());
@@ -32,7 +28,8 @@ StatusCode PipelineLayout::create_pipeline_layout(void)
     create_info.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
     create_info.pPushConstantRanges = _push_constant_ranges.data();
 
-    _vk_layout = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_pipeline_layout(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_layout = ctx.get_device()->create_pipeline_layout(create_info);
 
     if(_vk_layout == VK_NULL_HANDLE)
     {
@@ -40,6 +37,12 @@ StatusCode PipelineLayout::create_pipeline_layout(void)
     }
 
     return StatusCode::SUCCESS;
+}
+
+void PipelineLayout::destroy(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->destroy_pipeline_layout(_vk_layout);
 }
 
 void PipelineLayout::add_push_constant_range(ShaderType type, uint32_t offset, uint32_t size_bytes)
