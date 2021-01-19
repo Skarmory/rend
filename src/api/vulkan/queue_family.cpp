@@ -6,10 +6,6 @@ QueueFamily::QueueFamily(uint32_t index, const VkQueueFamilyProperties& properti
 {
 }
 
-QueueFamily::~QueueFamily(void)
-{
-}
-
 uint32_t QueueFamily::get_index(void) const
 {
     return _index;
