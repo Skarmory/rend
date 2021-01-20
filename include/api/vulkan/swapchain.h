@@ -18,12 +18,16 @@ class Semaphore;
 class Swapchain
 {
 public:
-    Swapchain(void) = default;
-    ~Swapchain(void);
+    Swapchain(void)                        = default;
+    ~Swapchain(void)                       = default;
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
     Swapchain& operator=(const Swapchain&) = delete;
     Swapchain& operator=(Swapchain&&)      = delete;
+
+    StatusCode create(uint32_t desired_images);
+    void       destroy(void);
+    StatusCode recreate(void);
 
     // Accessors
     Format                       get_format(void) const;
@@ -34,13 +38,11 @@ public:
     uint32_t                     get_current_image_index(void) const;
 
     // Mutators
-    StatusCode create_swapchain(uint32_t desired_images);
-    StatusCode recreate(void);
     StatusCode acquire(Semaphore* signal_sem, Fence* acquire_fence);
     StatusCode present(QueueType type, const std::vector<Semaphore*>& wait_sems);
 
 private:
-    StatusCode         _create_swapchain(uint32_t desired_images);
+    StatusCode         _create(uint32_t desired_images);
     void               _clean_up_images(void);
     StatusCode         _get_images(void);
     VkSurfaceFormatKHR _find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats);

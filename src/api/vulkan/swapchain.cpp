@@ -15,17 +15,29 @@
 
 using namespace rend;
 
-namespace
+StatusCode Swapchain::create(uint32_t desired_images)
 {
+    assert(_vk_swapchain == VK_NULL_HANDLE && "Attempt to create a Swapchain that is already created.");
+
+    return _create(desired_images);
 }
 
-Swapchain::~Swapchain(void)
+StatusCode Swapchain::recreate(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->wait_idle();
 
     _clean_up_images();
+    return _create(_image_count);
+}
 
+void Swapchain::destroy(void)
+{
+    _clean_up_images();
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_swapchain(_vk_swapchain);
+    _vk_swapchain = VK_NULL_HANDLE;
 }
 
 Format Swapchain::get_format(void) const
@@ -58,33 +70,24 @@ uint32_t Swapchain::get_current_image_index(void) const
     return _current_image_idx;
 }
 
-StatusCode Swapchain::create_swapchain(uint32_t desired_images)
-{
-    if(_vk_swapchain != VK_NULL_HANDLE)
-        return StatusCode::ALREADY_CREATED;
-
-    return _create_swapchain(desired_images);
-}
-
-StatusCode Swapchain::recreate(void)
-{
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
-    _clean_up_images();
-    return _create_swapchain(_image_count);
-}
-
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    VkResult result = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->acquire_next_image(
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    VkResult result = ctx.get_device()->acquire_next_image(
         this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
     );
 
     if(result != VK_SUCCESS)
     {
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
             return StatusCode::SWAPCHAIN_OUT_OF_DATE;
+        }
         else
+        {
             return StatusCode::SWAPCHAIN_ACQUIRE_ERROR;
+        }
     }
 
     return StatusCode::SUCCESS;
@@ -93,7 +96,9 @@ StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wait_sems)
 {
     std::vector<VkResult> results(1);
-    if(static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    if(ctx.get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
     {
         return StatusCode::FAILURE;
     }
@@ -106,17 +111,22 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
     return StatusCode::SUCCESS;
 }
 
-StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
+StatusCode Swapchain::_create(uint32_t desired_images)
 {
-    const PhysicalDevice& physical_device = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->get_physical_device();
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    const PhysicalDevice& physical_device = ctx.get_device()->get_physical_device();
 
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
 
     if(physical_device.get_surface_formats().empty())
+    {
         return StatusCode::SWAPCHAIN_NO_SURFACE_FORMATS_FOUND;
+    }
 
     if(physical_device.get_surface_present_modes().empty())
+    {
         return StatusCode::SWAPCHAIN_NO_SURFACE_PRESENT_MODES_FOUND;
+    }
 
     _surface_format = _find_surface_format(physical_device.get_surface_formats());
     _present_mode   = _find_present_mode(physical_device.get_surface_present_modes());
@@ -140,7 +150,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
     create_info.presentMode           = _present_mode;
     create_info.oldSwapchain          = old_swapchain;
 
-    _vk_swapchain = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_swapchain(create_info);
+    _vk_swapchain = ctx.get_device()->create_swapchain(create_info);
     if(_vk_swapchain == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
@@ -148,7 +158,7 @@ StatusCode Swapchain::_create_swapchain(uint32_t desired_images)
 
     if(old_swapchain != VK_NULL_HANDLE)
     {
-        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->destroy_swapchain(old_swapchain);
+        ctx.get_device()->destroy_swapchain(old_swapchain);
     }
 
     return _get_images();
@@ -170,6 +180,7 @@ void Swapchain::_clean_up_images(void)
 StatusCode Swapchain::_get_images(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
     std::vector<VkImage> tmp_swapchain_images;
     ctx.get_device()->get_swapchain_images(this, tmp_swapchain_images);
 
@@ -184,12 +195,16 @@ StatusCode Swapchain::_get_images(void)
 VkSurfaceFormatKHR Swapchain::_find_surface_format(const std::vector<VkSurfaceFormatKHR>& surface_formats)
 {
     if(surface_formats.size() == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED)
+    {
         return VkSurfaceFormatKHR{ .format=VK_FORMAT_B8G8R8A8_UNORM, .colorSpace=VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+    }
 
     for(VkSurfaceFormatKHR surface_format : surface_formats)
     {
         if(surface_format.format == VK_FORMAT_B8G8R8A8_UNORM && surface_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
             return surface_format;
+        }
     }
 
     return surface_formats[0];
@@ -201,10 +216,14 @@ VkPresentModeKHR Swapchain::_find_present_mode(const std::vector<VkPresentModeKH
     for(VkPresentModeKHR present_mode : present_modes)
     {
         if(present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
+        {
             return present_mode;
+        }
 
         if(present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+        {
             chosen = present_mode; 
+        }
     }
 
     return chosen;

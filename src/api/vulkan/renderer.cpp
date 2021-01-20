@@ -46,7 +46,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     context.create_device(desired_queues);
 
     _swapchain = new Swapchain;
-    _swapchain->create_swapchain(3);
+    _swapchain->create(3);
 
     _command_pool = new CommandPool;
     _command_pool->create(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
@@ -115,6 +115,7 @@ StatusCode Renderer::destroy(void)
     _command_pool->destroy();
     delete _command_pool;
 
+    _swapchain->destroy();
     delete _swapchain;
 
     destroy_resource();
