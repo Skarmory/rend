@@ -44,10 +44,11 @@ LogicalDevice* VulkanDeviceContext::get_device(void) const
 
 StatusCode VulkanDeviceContext::create(void)
 {
+    assert(_chosen_gpu == nullptr && _logical_device == nullptr && "Attempt to create a VulkanDeviceContext that has already been created.");
+
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
     VulkanInstance::instance().enumerate_physical_devices(physical_devices);
-
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
@@ -403,7 +404,9 @@ PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDevic
     for(PhysicalDevice* device : _physical_devices)
     {
         if(device->has_features(features))
+        {
             return device;
+        }
     }
 
     return nullptr;
