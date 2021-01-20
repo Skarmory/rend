@@ -12,15 +12,15 @@ namespace rend
 class Shader
 {
 public:
-    Shader(void) = default;
-    ~Shader(void) = default;
-
+    Shader(void)                     = default;
+    ~Shader(void)                    = default;
     Shader(const Shader&)            = delete;
     Shader(Shader&&)                 = delete;
     Shader& operator=(const Shader&) = delete;
     Shader& operator=(Shader&&)      = delete;
 
-    bool create_shader(const void* code, uint32_t size_bytes, ShaderType type);
+    bool create(const void* code, uint32_t size_bytes, ShaderType type);
+    void destroy(void);
 
     ShaderHandle get_handle(void) const;
     ShaderType   get_type(void) const;
