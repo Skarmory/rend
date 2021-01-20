@@ -12,7 +12,7 @@ using namespace rend;
 
 StatusCode PipelineLayout::create(void)
 {
-    assert(_vk_layout != VK_NULL_HANDLE && "Attempt to create a PipelineLayout that has already been created.");
+    assert(_vk_layout == VK_NULL_HANDLE && "Attempt to create a PipelineLayout that has already been created.");
 
     std::vector<VkDescriptorSetLayout> vk_layouts;
     vk_layouts.reserve(_descriptor_set_layouts.size());

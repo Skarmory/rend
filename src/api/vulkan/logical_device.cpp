@@ -14,7 +14,7 @@ using namespace rend;
 
 bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
 {
-    assert(_vk_device != VK_NULL_HANDLE && "Attempt to initialise LogicalDevice that has already been initialised.");
+    assert(_vk_device == VK_NULL_HANDLE && "Attempt to initialise LogicalDevice that has already been initialised.");
 
     // Step 1: Construct queue creation info
     float priority = 1.0f;

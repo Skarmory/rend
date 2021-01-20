@@ -15,7 +15,7 @@ using namespace rend;
 
 StatusCode Pipeline::create(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
 {
-    assert(_vk_pipeline != VK_NULL_HANDLE && "Attempt to create a Pipeline that has already been created.");
+    assert(_vk_pipeline == VK_NULL_HANDLE && "Attempt to create a Pipeline that has already been created.");
 
     std::vector<VkPipelineShaderStageCreateInfo> shader_stage_infos;
     for(Shader* shader : _shaders)

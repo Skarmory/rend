@@ -11,7 +11,7 @@ using namespace rend;
 
 StatusCode Semaphore::create(void)
 {
-    assert(_vk_semaphore != VK_NULL_HANDLE && "Attempt to create a Semaphore that has already been created.");
+    assert(_vk_semaphore == VK_NULL_HANDLE && "Attempt to create a Semaphore that has already been created.");
 
     VkSemaphoreCreateInfo create_info = vulkan_helpers::gen_semaphore_create_info();
 

@@ -11,7 +11,7 @@ using namespace rend;
 
 bool PhysicalDevice::create(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
-    assert(_vk_physical_device != VK_NULL_HANDLE && "Attempt to create a PhysicalDevice that has already been created.");
+    assert(_vk_physical_device == VK_NULL_HANDLE && "Attempt to create a PhysicalDevice that has already been created.");
 
     auto* window = WindowContext::instance().window();
     assert(window && "Attempt to create PhysicalDevice before a Window");
