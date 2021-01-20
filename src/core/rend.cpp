@@ -28,7 +28,7 @@ void rend::init_rend(Window& window)
 
 	// Init singletons
 	auto& vk_instance = VulkanInstance::instance();
-	vk_instance.create_instance(extensions.data(), extensions.size(), layers.data(), layers.size());
+	vk_instance.create(extensions.data(), extensions.size(), layers.data(), layers.size());
 
 	auto& window_context = WindowContext::instance();
 	window.create_window();
@@ -44,5 +44,5 @@ void rend::destroy_rend(void)
 
 	WindowContext::instance().set_window(nullptr);
 
-	VulkanInstance::instance().destroy_instance();
+	VulkanInstance::instance().destroy();
 }

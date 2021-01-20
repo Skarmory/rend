@@ -1,5 +1,7 @@
 #include "vulkan_instance.h"
 
+#include <cassert>
+
 using namespace rend;
 
 VulkanInstance& VulkanInstance::instance(void)
@@ -9,8 +11,10 @@ VulkanInstance& VulkanInstance::instance(void)
     return s_instance;
 }
 
-StatusCode VulkanInstance::create_instance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)
+StatusCode VulkanInstance::create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)
 {
+    assert(_vk_instance == VK_NULL_HANDLE && "Attempt to create a VulkanInstance that has already been created.");
+
     VkApplicationInfo app_info =
     {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -42,7 +46,7 @@ StatusCode VulkanInstance::create_instance(const char** extensions, uint32_t ext
     return StatusCode::SUCCESS;
 }
 
-void VulkanInstance::destroy_instance(void)
+void VulkanInstance::destroy(void)
 {
     vkDestroyInstance(_vk_instance, nullptr);
 }
