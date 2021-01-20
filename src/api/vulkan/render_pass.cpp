@@ -5,12 +5,13 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
-StatusCode RenderPass::create_render_pass(void)
+StatusCode RenderPass::create(void)
 {
-    if(_vk_render_pass != VK_NULL_HANDLE)
-        return StatusCode::ALREADY_CREATED;
+    assert(_vk_render_pass == VK_NULL_HANDLE && "Attempt to create a RenderPass that has already been created.");
 
     std::vector<VkSubpassDescription> subpass_descs;
     std::vector<VkSubpassDependency>  subpass_deps;
@@ -23,21 +24,31 @@ StatusCode RenderPass::create_render_pass(void)
 
         subpass.vk_subpass_desc.colorAttachmentCount = subpass.vk_colour_attach_refs.size();
         if(subpass.vk_subpass_desc.colorAttachmentCount > 0)
+        {
             subpass.vk_subpass_desc.pColorAttachments = subpass.vk_colour_attach_refs.data();
+        }
 
         subpass.vk_subpass_desc.inputAttachmentCount = subpass.vk_input_attach_refs.size();
         if(subpass.vk_subpass_desc.inputAttachmentCount > 0)
+        {
             subpass.vk_subpass_desc.pInputAttachments = subpass.vk_input_attach_refs.data();
+        }
 
         subpass.vk_subpass_desc.preserveAttachmentCount = subpass.vk_preserve_attach_refs.size();
         if(subpass.vk_subpass_desc.preserveAttachmentCount > 0)
+        {
             subpass.vk_subpass_desc.pPreserveAttachments = subpass.vk_preserve_attach_refs.data();
+        }
 
         if(subpass.vk_resolve_attach_refs.size() > 0)
+        {
             subpass.vk_subpass_desc.pResolveAttachments = subpass.vk_resolve_attach_refs.data();
+        }
 
         if(subpass.has_depth_stencil_attach)
+        {
             subpass.vk_subpass_desc.pDepthStencilAttachment = &subpass.vk_depth_stencil_attach_ref;
+        }
 
         subpass_descs.push_back(subpass.vk_subpass_desc);
 
@@ -66,10 +77,13 @@ StatusCode RenderPass::create_render_pass(void)
     create_info.dependencyCount = static_cast<uint32_t>(subpass_deps.size());
     create_info.pDependencies   = subpass_deps.data();
 
-    _vk_render_pass = static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->create_render_pass(create_info);
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    _vk_render_pass = ctx.get_device()->create_render_pass(create_info);
 
     if(_vk_render_pass == VK_NULL_HANDLE)
+    {
         return StatusCode::FAILURE;
+    }
 
     return StatusCode::SUCCESS;
 }

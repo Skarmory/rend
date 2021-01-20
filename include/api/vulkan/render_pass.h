@@ -12,16 +12,15 @@ namespace rend
 class RenderPass
 {
 public:
-    RenderPass(void) = default;
-    ~RenderPass(void) = default;
-
+    RenderPass(void)                         = default;
+    ~RenderPass(void)                        = default;
     RenderPass(const RenderPass&)            = delete;
     RenderPass(RenderPass&&)                 = delete;
     RenderPass& operator=(const RenderPass&) = delete;
     RenderPass& operator=(RenderPass&&)      = delete;
 
-    StatusCode create_render_pass(void);
-    void destroy(void);
+    StatusCode create(void);
+    void       destroy(void);
 
     uint32_t add_attachment_description(Format format, MSAASamples samples, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout initial, ImageLayout final);
 

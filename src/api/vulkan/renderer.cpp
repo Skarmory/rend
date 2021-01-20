@@ -428,7 +428,7 @@ void Renderer::_create_default_renderpass(void)
     _default_render_pass->add_subpass_colour_attachment_ref(colour_attach);
     _default_render_pass->add_subpass_depth_stencil_attachment_ref(depth_attach);
 
-    _default_render_pass->create_render_pass();
+    _default_render_pass->create();
 }
 
 void Renderer::_create_default_framebuffers(bool recreate)
