@@ -16,30 +16,35 @@ bool PhysicalDevice::create(uint32_t physical_device_index, VkPhysicalDevice phy
     auto* window = WindowContext::instance().window();
     assert(window && "Attempt to create PhysicalDevice before a Window");
 
-    vkGetPhysicalDeviceProperties(physical_device, &_vk_physical_device_properties);
-    vkGetPhysicalDeviceFeatures(physical_device, &_vk_physical_device_features);
-    vkGetPhysicalDeviceMemoryProperties(physical_device, &_vk_physical_device_memory_properties);
+    _physical_device_index = physical_device_index;
+    _vk_physical_device = physical_device;
+
+    vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
+    vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
+    vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
     VkSurfaceKHR surface = window->get_vk_surface();
     if(!_find_queue_families(surface))
     {
-        return false;
+        goto physical_device_create_error;
     }
 
     if(!_find_surface_formats(surface))
     {
-        return false;
+        goto physical_device_create_error;
     }
 
     if(!_find_surface_present_modes(surface))
     {
-        return false;
+        goto physical_device_create_error;
     }
 
-    _physical_device_index = physical_device_index;
-    _vk_physical_device = physical_device;
-
     return true;
+
+physical_device_create_error:
+    _vk_physical_device = VK_NULL_HANDLE;
+    _physical_device_index = 0;
+    return false;
 }
 
 void PhysicalDevice::destroy(void)

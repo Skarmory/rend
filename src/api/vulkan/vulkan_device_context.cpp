@@ -92,13 +92,16 @@ void VulkanDeviceContext::destroy(void)
         _logical_device->destroy_shader_module(*_vk_shaders.get(handle));
     }
 
-    for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
+    //for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
+    for(auto physical_device : _physical_devices)
     {
-        delete _physical_devices[physical_device_index];
+        physical_device->destroy();
+        delete physical_device;
     }
 
     _logical_device = nullptr;
     _chosen_gpu     = nullptr;
+    _physical_devices.clear();
 }
 
 StatusCode VulkanDeviceContext::choose_gpu(const VkPhysicalDeviceFeatures& desired_features)
