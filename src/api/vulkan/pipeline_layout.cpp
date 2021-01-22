@@ -43,6 +43,10 @@ void PipelineLayout::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_pipeline_layout(_vk_layout);
+
+    _push_constant_ranges.clear();
+    _descriptor_set_layouts.clear();
+    _vk_layout = VK_NULL_HANDLE;
 }
 
 void PipelineLayout::add_push_constant_range(ShaderType type, uint32_t offset, uint32_t size_bytes)

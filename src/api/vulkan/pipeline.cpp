@@ -82,6 +82,71 @@ void Pipeline::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_pipeline(_vk_pipeline);
+
+    _layout = nullptr;
+    _render_pass = nullptr;
+    _subpass = 0;
+    _shaders.clear();
+
+    // Vertex input state settings
+    _vk_binding_descs.clear();
+    _vk_attribute_descs.clear();
+
+    // Input assembly state settings
+    _topology = Topology::TRIANGLE_LIST;
+    _primitive_restart = false;
+
+    // Tessellation state settings
+    _patch_control_points = 0;
+
+    // Viewport state settings
+    _vk_viewports.clear();
+    _vk_scissors.clear();
+
+    // Rasteriser state settings
+    _depth_clamp_enable = false;
+    _rasteriser_discard_enable = false;
+    _polygon_mode = PolygonMode::FILL;
+    _cull_mode = CullMode::BACK;
+    _front_face = FrontFace::CCW;
+    _depth_bias_enable = false;
+    _depth_bias_constant = 0.0f;
+    _depth_bias_clamp = 0.0f;
+    _depth_bias_slope = 0.0f;
+    _line_width = 1.0f;
+
+    // Multisample state settings
+    _samples = MSAASamples::MSAA_1X;
+    _sample_shading_enable = false;
+    _min_sample_shading = 0.0f;
+    _sample_mask = 1;
+    _alpha_to_coverage_enable = false;
+    _alpha_to_one_enable = false;
+
+    // Dpeth stencil settings
+    _depth_test_enable = true;
+    _depth_write_enable = true;
+    _compare_op = CompareOp::LESS;
+    _depth_bounds_test_enable = false;
+    _stencil_test_enable = false;
+    _stencil_op_state_front = { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
+    _stencil_op_state_back = { StencilOp::KEEP, StencilOp::REPLACE, StencilOp::KEEP, CompareOp::ALWAYS, 1, 1, 0 };
+    _min_depth_bound = 0.0f;
+    _max_depth_bound = 1.0f;
+
+    // Colour blend settings
+    _logic_op_enable = false;
+    _logic_op = LogicOp::NO_OP;
+    _blend_constants[0] = 1.0f;
+    _blend_constants[1] = 1.0f;
+    _blend_constants[2] = 1.0f;
+    _blend_constants[3] = 1.0f;
+    _colour_blend_attachment_settings.clear();
+
+    // Dynamic state settings
+    _dynamic_states.clear();
+
+    _vk_pipeline = VK_NULL_HANDLE;
 }
 
 void Pipeline::add_shader(Shader& shader)

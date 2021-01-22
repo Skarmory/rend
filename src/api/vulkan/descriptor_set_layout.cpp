@@ -5,14 +5,13 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
 StatusCode DescriptorSetLayout::create(void)
 {
-    if(_vk_layout != VK_NULL_HANDLE)
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
+    assert(_vk_layout == VK_NULL_HANDLE && "Attempt to create a DescriptorSetLayout that has already been created.");
 
     VkDescriptorSetLayoutCreateInfo create_info = vulkan_helpers::gen_descriptor_set_layout_create_info();
     create_info.bindingCount = static_cast<uint32_t>(_bindings.size());
@@ -33,6 +32,7 @@ void DescriptorSetLayout::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_descriptor_set_layout(_vk_layout);
+    _vk_layout = VK_NULL_HANDLE;
 }
 
 void DescriptorSetLayout::add_uniform_buffer_binding(uint32_t slot, ShaderType shader_stage)

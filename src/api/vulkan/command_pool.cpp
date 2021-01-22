@@ -15,10 +15,7 @@ using namespace rend;
 
 bool CommandPool::create(const QueueFamily* queue_family, bool can_reset)
 {
-    if(_vk_command_pool != VK_NULL_HANDLE)
-    {
-        return false;
-    }
+    assert(_vk_command_pool == VK_NULL_HANDLE && "Attempt to create a CommandPool that has already been created.");
 
     VkCommandPoolCreateInfo create_info = vulkan_helpers::gen_command_pool_create_info();
     create_info.flags = static_cast<VkCommandPoolCreateFlags>(can_reset ? VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT : 0);
@@ -43,6 +40,7 @@ void CommandPool::destroy(void)
 
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_command_pool(_vk_command_pool);
+    _vk_command_pool = VK_NULL_HANDLE;
 }
 
 //TODO: Return a handle or non-owning reference

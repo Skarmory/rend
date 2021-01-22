@@ -92,6 +92,10 @@ void RenderPass::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_render_pass(_vk_render_pass);
+
+    _subpasses.clear();
+    _vk_attach_descs.clear();
+    _vk_render_pass = VK_NULL_HANDLE;
 }
 
 uint32_t RenderPass::add_attachment_description(Format format, MSAASamples samples, LoadOp load_op, StoreOp store_op, LoadOp s_load_op, StoreOp s_store_op, ImageLayout initial, ImageLayout final)

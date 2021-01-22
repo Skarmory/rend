@@ -7,18 +7,17 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
 StatusCode Framebuffer::create(const RenderPass& render_pass, VkExtent3D dimensions)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-
-    if (_vk_framebuffer != VK_NULL_HANDLE)
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
+    assert(_vk_framebuffer == VK_NULL_HANDLE && "Attempt to create a Framebuffer that has already been created.");
 
     std::vector<VkImageView> attachments;
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     for (Texture2DHandle target : _render_targets)
     {
@@ -39,6 +38,7 @@ void Framebuffer::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_framebuffer(_vk_framebuffer);
+
     _vk_framebuffer = VK_NULL_HANDLE;
     _render_targets.clear();
     _depth_buffer = NULL_HANDLE;

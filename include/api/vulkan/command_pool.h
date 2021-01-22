@@ -20,9 +20,8 @@ class CommandBuffer;
 class CommandPool
 {
 public:
-    CommandPool(void) = default;
-    ~CommandPool(void) = default;
-
+    CommandPool(void)                          = default;
+    ~CommandPool(void)                         = default;
     CommandPool(const CommandPool&)            = delete;
     CommandPool(CommandPool&&)                 = delete;
     CommandPool& operator=(const CommandPool&) = delete;

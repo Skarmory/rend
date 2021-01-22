@@ -5,14 +5,13 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
 bool Fence::create(bool start_signalled)
 {
-    if(_vk_fence !=  VK_NULL_HANDLE)
-    {
-        return false;
-    }
+    assert(_vk_fence == VK_NULL_HANDLE && "Attempt to create a Fence that has already been created.");
 
     VkFenceCreateInfo create_info = vulkan_helpers::gen_fence_create_info();
     create_info.flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
@@ -31,6 +30,7 @@ void Fence::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_fence(_vk_fence);
+    _vk_fence = VK_NULL_HANDLE;
 }
 
 VkFence Fence::get_handle(void) const

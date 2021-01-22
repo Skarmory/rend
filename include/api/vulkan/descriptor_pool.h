@@ -15,9 +15,8 @@ class DescriptorSetLayout;
 class DescriptorPool
 {
 public:
-    DescriptorPool(void) = default;
-    ~DescriptorPool(void) = default;
-
+    DescriptorPool(void)                             = default;
+    ~DescriptorPool(void)                            = default;
     DescriptorPool(const DescriptorPool&)            = delete;
     DescriptorPool(DescriptorPool&&)                 = delete;
     DescriptorPool& operator=(const DescriptorPool&) = delete;

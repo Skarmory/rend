@@ -46,7 +46,7 @@ private:
 private:
     LogicalDevice*                   _logical_device{ nullptr };
 
-    uint32_t                         _physical_device_index{ 0 };
+    int32_t                          _physical_device_index{ -1 };
     VkPhysicalDevice                 _vk_physical_device{ VK_NULL_HANDLE };
     VkPhysicalDeviceProperties       _vk_physical_device_properties{};
     VkPhysicalDeviceFeatures         _vk_physical_device_features{};

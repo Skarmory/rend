@@ -49,6 +49,7 @@ StatusCode VulkanInstance::create(const char** extensions, uint32_t extension_co
 void VulkanInstance::destroy(void)
 {
     vkDestroyInstance(_vk_instance, nullptr);
+    _vk_instance = VK_NULL_HANDLE;
 }
 
 void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices)

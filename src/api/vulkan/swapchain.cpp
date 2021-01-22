@@ -37,7 +37,13 @@ void Swapchain::destroy(void)
 
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_swapchain(_vk_swapchain);
+    _image_count = 0;
+    _current_image_idx = 0;
+    _surface_format = {};
+    _present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     _vk_swapchain = VK_NULL_HANDLE;
+    _vk_extent = {};
+    _swapchain_image_handles.clear();
 }
 
 Format Swapchain::get_format(void) const

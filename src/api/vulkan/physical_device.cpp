@@ -51,6 +51,18 @@ void PhysicalDevice::destroy(void)
 {
     _logical_device->destroy();
     delete _logical_device;
+
+    _logical_device = nullptr;
+    _physical_device_index = -1;
+    _vk_physical_device = VK_NULL_HANDLE;
+    _vk_physical_device_properties = {};
+    _vk_physical_device_features = {};
+    _vk_physical_device_memory_properties = {};
+    _vk_surface_formats.clear();
+    _vk_present_modes.clear();
+    _queue_families.clear();
+    _graphics_queue_families.clear();
+    _present_queue_families.clear();
 }
 
 bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)

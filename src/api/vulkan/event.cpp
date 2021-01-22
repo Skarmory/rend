@@ -5,14 +5,13 @@
 #include "vulkan_helper_funcs.h"
 #include "vulkan_device_context.h"
 
+#include <cassert>
+
 using namespace rend;
 
 bool Event::create(void)
 {
-    if(_vk_event != VK_NULL_HANDLE)
-    {
-        return false;
-    }
+    assert(_vk_event == VK_NULL_HANDLE && "Attempt to create an Event that has already been created.");
 
     VkEventCreateInfo create_info = vulkan_helpers::gen_event_create_info();
 
@@ -30,6 +29,7 @@ void Event::destroy(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     ctx.get_device()->destroy_event(_vk_event);
+    _vk_event = VK_NULL_HANDLE;
 }
 
 VkEvent Event::get_handle(void) const

@@ -102,6 +102,12 @@ void VulkanDeviceContext::destroy(void)
     _logical_device = nullptr;
     _chosen_gpu     = nullptr;
     _physical_devices.clear();
+    _data_array_unique_key = 1;
+    _handle_to_memory_handle.clear();
+    _texture_handle_to_view_handle.clear();
+    _texture_handle_to_sampler_handle.clear();
+
+    //TODO: Clear data arrays (pending testing of DataArray::clear() function
 }
 
 StatusCode VulkanDeviceContext::choose_gpu(const VkPhysicalDeviceFeatures& desired_features)

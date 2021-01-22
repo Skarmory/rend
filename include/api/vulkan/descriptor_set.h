@@ -17,7 +17,7 @@ class DescriptorSet
 
 public:
     explicit DescriptorSet(VkDescriptorSet set);
-    ~DescriptorSet(void) = default;
+    ~DescriptorSet(void)                           = default;
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;

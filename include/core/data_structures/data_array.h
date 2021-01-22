@@ -113,11 +113,6 @@ public:
     // Destructs the stored object and sets the passed handle to invalid.
     void deallocate(DataArrayHandle& handle)
     {
-        if (!check_valid(handle))
-        {
-            return;
-        }
-
         uint64_t idx = _get_idx(handle);
         _data[idx].~DataItemType();
 
@@ -137,6 +132,19 @@ public:
 
         --_count;
         handle = invalid_handle;
+    }
+
+    void clear(void)
+    {
+        for(int i{ 0 }; i < _count; ++i)
+        {
+            if (!check_valid(_handles[i]))
+            {
+                continue;
+            }
+
+            deallocate(_handles[i]);
+        }
     }
 
     DataItemType* get(DataArrayHandle handle) const

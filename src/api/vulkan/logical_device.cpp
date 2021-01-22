@@ -81,6 +81,14 @@ bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFam
 void LogicalDevice::destroy(void)
 {
     vkDestroyDevice(_vk_device, nullptr);
+
+    _vk_device = VK_NULL_HANDLE;
+    _vk_graphics_queue = VK_NULL_HANDLE;
+    _vk_transfer_queue = VK_NULL_HANDLE;
+
+    _physical_device = nullptr;
+    _graphics_family = nullptr;
+    _transfer_family = nullptr;
 }
 
 VkDevice LogicalDevice::get_handle(void) const
