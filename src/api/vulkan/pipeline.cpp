@@ -16,6 +16,7 @@ using namespace rend;
 StatusCode Pipeline::create(PipelineLayout& layout, RenderPass& render_pass, uint32_t subpass)
 {
     assert(_vk_pipeline == VK_NULL_HANDLE && "Attempt to create a Pipeline that has already been created.");
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     std::vector<VkPipelineShaderStageCreateInfo> shader_stage_infos;
     for(Shader* shader : _shaders)
@@ -58,12 +59,11 @@ StatusCode Pipeline::create(PipelineLayout& layout, RenderPass& render_pass, uin
     pipeline_create_info.pColorBlendState    = &colour_blend_info;
     pipeline_create_info.pDynamicState       = &dynamic_info;
     pipeline_create_info.layout              = layout.get_handle();
-    pipeline_create_info.renderPass          = render_pass.get_handle();
+    pipeline_create_info.renderPass          = ctx.get_render_pass(render_pass.handle());
     pipeline_create_info.subpass             = subpass;
     pipeline_create_info.basePipelineHandle  = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex   = 0;
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     _vk_pipeline = ctx.get_device()->create_pipeline(pipeline_create_info);
 
     if(_vk_pipeline == VK_NULL_HANDLE)
