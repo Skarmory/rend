@@ -1,6 +1,8 @@
 #ifndef REND_DEFS_H
 #define REND_DEFS_H
 
+#include "rend_constants.h"
+
 #include <limits>
 #include <cstdint>
 #include <type_traits>
@@ -10,6 +12,24 @@
 
 namespace rend
 {
+
+typedef uint64_t HandleType;
+typedef HandleType MemoryHandle;
+typedef HandleType BufferHandle;
+typedef HandleType TextureHandle;
+typedef HandleType TextureViewHandle;
+typedef HandleType SamplerHandle;
+typedef HandleType ShaderHandle;
+typedef HandleType FramebufferHandle;
+typedef HandleType RenderPassHandle;
+typedef BufferHandle VertexBufferHandle;
+typedef BufferHandle IndexBufferHandle;
+typedef BufferHandle UniformBufferHandle;
+typedef TextureHandle Texture2DHandle;
+
+constexpr HandleType NULL_HANDLE = std::numeric_limits<uint64_t>::max();
+
+// Enums
 
 enum class StatusCode
 {
@@ -116,8 +136,13 @@ enum PipelineStage
     COLOUR_OUTPUT           = BIT(11),
     BOTTOM_OF_PIPE          = BIT(12)
 };
-
 typedef uint32_t PipelineStages;
+
+enum class PipelineBindPoint
+{
+    GRAPHICS,
+    COMPUTE
+};
 
 enum MemoryAccess
 {
@@ -140,7 +165,6 @@ enum MemoryAccess
     MEMORY_READ                    = BIT(16),
     MEMORY_WRITE                   = BIT(17)
 };
-
 typedef uint32_t MemoryAccesses;
 
 enum class Topology
@@ -258,12 +282,6 @@ enum class DynamicState
     STENCIL_REFERENCE
 };
 
-struct Synchronisation
-{
-    PipelineStages stages;
-    MemoryAccesses accesses;
-};
-
 enum class BufferUsage : uint32_t
 {
     NONE           = 0,
@@ -344,19 +362,68 @@ inline ImageUsage operator<<(ImageUsage lhs, int rhs)
     return static_cast<ImageUsage>(static_cast<T>(lhs) << rhs);
 }
 
-typedef uint64_t HandleType;
-typedef HandleType MemoryHandle;
-typedef HandleType BufferHandle;
-typedef HandleType TextureHandle;
-typedef HandleType TextureViewHandle;
-typedef HandleType SamplerHandle;
-typedef HandleType ShaderHandle;
-typedef BufferHandle VertexBufferHandle;
-typedef BufferHandle IndexBufferHandle;
-typedef BufferHandle UniformBufferHandle;
-typedef TextureHandle Texture2DHandle;
+// Data structs (no functions)
 
-constexpr HandleType NULL_HANDLE = std::numeric_limits<uint64_t>::max();
+struct Synchronisation
+{
+    PipelineStages stages;
+    MemoryAccesses accesses;
+};
+
+struct AttachmentInfo
+{
+    Format      format{ Format::R8G8B8A8 };
+    MSAASamples samples{ MSAASamples::MSAA_1X };
+    LoadOp      load_op{ LoadOp::DONT_CARE };
+    StoreOp     store_op{ StoreOp::DONT_CARE };
+    LoadOp      stencil_load_op{ LoadOp::DONT_CARE };
+    StoreOp     stencil_store_op{ StoreOp::DONT_CARE };
+    ImageLayout initial_layout{ ImageLayout::UNDEFINED };
+    ImageLayout final_layout{ ImageLayout::UNDEFINED };
+};
+
+struct SubpassInfo
+{
+    PipelineBindPoint bind_point{ PipelineBindPoint::GRAPHICS };
+    uint32_t          colour_attachment_infos[rend::constants::max_framebuffer_attachments];
+    uint32_t          input_attachment_infos[rend::constants::max_framebuffer_attachments];
+    uint32_t          resolve_attachment_infos[rend::constants::max_framebuffer_attachments];
+    uint32_t          depth_stencil_attachment{};
+    uint32_t          preserve_attachments[rend::constants::max_framebuffer_attachments];
+    size_t            colour_attachment_infos_count{ 0 };
+    size_t            input_attachment_infos_count{ 0 };
+    size_t            resolve_attachment_infos_count{ 0 };
+    size_t            preserve_attachments_count{ 0 };
+};
+
+struct SubpassDependency
+{
+    uint32_t                src_subpass{ 0 };
+    uint32_t                dst_subpass{ 0 };
+    Synchronisation         src_sync{};
+    Synchronisation         dst_sync{};
+};
+
+struct RenderPassInfo
+{
+    AttachmentInfo    attachment_infos[rend::constants::max_framebuffer_attachments];
+    SubpassInfo       subpasses[rend::constants::max_subpasses];
+    SubpassDependency subpass_dependencies[rend::constants::max_subpasses];
+    size_t            attachment_infos_count{ 0 };
+    size_t            subpasses_count{ 0 };
+    size_t            subpass_dependency_count{ 0 };
+};
+
+struct FramebufferInfo
+{
+    uint32_t         width{ 0 };
+    uint32_t         height{ 0 };
+    uint32_t         depth{ 0 };
+    RenderPassHandle render_pass_handle{ NULL_HANDLE };
+    Texture2DHandle  depth_buffer_handle{ NULL_HANDLE };
+    Texture2DHandle  render_target_handles[rend::constants::max_framebuffer_attachments]{ NULL_HANDLE };
+    size_t           render_target_handles_count{ 0 };
+};
 
 }
 

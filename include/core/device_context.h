@@ -24,10 +24,14 @@ public:
     [[nodiscard]] virtual UniformBufferHandle create_uniform_buffer(size_t bytes) = 0;
     [[nodiscard]] virtual TextureHandle       create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage) = 0;
     [[nodiscard]] virtual ShaderHandle        create_shader(const ShaderType type, const void* code, const size_t bytes) = 0;
+    [[nodiscard]] virtual FramebufferHandle   create_framebuffer(const FramebufferInfo& info) = 0;
+    [[nodiscard]] virtual RenderPassHandle    create_render_pass(const RenderPassInfo& info) = 0;
 
     virtual void destroy_buffer(BufferHandle handle) = 0;
     virtual void destroy_texture(Texture2DHandle handle ) = 0;
     virtual void destroy_shader(ShaderHandle handle) = 0;
+    virtual void destroy_framebuffer(FramebufferHandle handle) = 0;
+    virtual void destroy_render_pass(RenderPassHandle handle) = 0;
 
 protected:
     static DeviceContext* _service;

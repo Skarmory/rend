@@ -246,13 +246,210 @@ ShaderHandle VulkanDeviceContext::create_shader(const ShaderType type, const voi
     info.codeSize = bytes;
     info.pCode = static_cast<const uint32_t*>(code);
 
-    VkShaderModule _vk_module = _logical_device->create_shader_module(info);
-    if(_vk_module == VK_NULL_HANDLE)
+    VkShaderModule vk_module = _logical_device->create_shader_module(info);
+    if(vk_module == VK_NULL_HANDLE)
     {
         return NULL_HANDLE;
     }
 
-    ShaderHandle handle = _vk_shaders.allocate(_vk_module);
+    ShaderHandle handle = _vk_shaders.allocate(vk_module);
+
+    return handle;
+}
+
+FramebufferHandle VulkanDeviceContext::create_framebuffer(const FramebufferInfo& info)
+{
+    VkRenderPass vk_render_pass = *_vk_render_passes.get(info.render_pass_handle);
+    VkImageView vk_image_views[rend::constants::max_framebuffer_attachments];
+    size_t attachment_count = info.render_target_handles_count;
+
+    for(size_t idx{ 0 }; idx < info.render_target_handles_count; ++idx)
+    {
+        TextureHandle attachment_handle = info.render_target_handles[idx];
+        TextureViewHandle view_handle = _texture_handle_to_view_handle.at(attachment_handle);
+        VkImageView vk_image_view = *_vk_image_views.get(view_handle);
+
+        vk_image_views[idx] = vk_image_view;
+    }
+
+    if(info.depth_buffer_handle != NULL_HANDLE)
+    {
+        TextureViewHandle view_handle = _texture_handle_to_view_handle.at(info.depth_buffer_handle);
+        VkImageView vk_image_view = *_vk_image_views.get(view_handle);
+
+        vk_image_views[attachment_count] =vk_image_view;
+        ++attachment_count;
+    }
+
+    VkFramebufferCreateInfo create_info = vulkan_helpers::gen_framebuffer_create_info();
+    create_info.renderPass      = vk_render_pass;
+    create_info.attachmentCount = attachment_count;
+    create_info.pAttachments    = vk_image_views;
+    create_info.width           = info.width;
+    create_info.height          = info.height;
+    create_info.layers          = info.depth;
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    VkFramebuffer vk_framebuffer = ctx.get_device()->create_framebuffer(create_info);
+    if(vk_framebuffer == VK_NULL_HANDLE)
+    {
+        return NULL_HANDLE;
+    }
+
+    FramebufferHandle fb_handle = _vk_framebuffers.allocate(vk_framebuffer);
+    return fb_handle;
+}
+
+RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
+{
+    VkSubpassDescription vk_subpass_descs[rend::constants::max_subpasses];
+    VkSubpassDependency  vk_subpass_deps[rend::constants::max_subpasses + 1];
+    VkAttachmentDescription vk_attachment_descs[rend::constants::max_framebuffer_attachments];
+
+    VkAttachmentReference vk_attachment_refs[rend::constants::max_subpasses * rend::constants::max_framebuffer_attachments];
+    uint32_t              vk_preserve_refs[rend::constants::max_subpasses* rend::constants::max_framebuffer_attachments];
+    size_t                vk_attachment_ref_block_start{ 0 };
+    size_t                vk_preserve_ref_block_start{ 0 };
+
+    for(uint32_t subpass_idx{ 0 }; subpass_idx < info.subpasses_count; ++subpass_idx)
+    {
+        const SubpassInfo& rend_subpass  = info.subpasses[subpass_idx];
+        VkSubpassDescription& vk_subpass = vk_subpass_descs[subpass_idx];
+
+        vk_subpass.flags = 0;
+        vk_subpass.pipelineBindPoint = vulkan_helpers::convert_pipeline_bind_point(rend_subpass.bind_point);
+
+        // Colour attachments
+        {
+            size_t colour_attach_block_start = vk_attachment_ref_block_start;
+
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.colour_attachment_infos_count; ++attachment_idx)
+            {
+                VkAttachmentReference& ref = vk_attachment_refs[colour_attach_block_start + attachment_idx];
+                ref.attachment = rend_subpass.colour_attachment_infos[attachment_idx];
+                ref.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            }
+
+            vk_subpass.colorAttachmentCount = rend_subpass.colour_attachment_infos_count;
+            vk_subpass.pColorAttachments    = &vk_attachment_refs[colour_attach_block_start];
+            vk_attachment_ref_block_start   = (colour_attach_block_start + rend_subpass.colour_attachment_infos_count);
+        }
+
+        // Input attachments
+        {
+            size_t input_attach_block_start = vk_attachment_ref_block_start;
+
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.input_attachment_infos_count; ++attachment_idx)
+            {
+                VkAttachmentReference& ref = vk_attachment_refs[input_attach_block_start + attachment_idx];
+                ref.attachment = rend_subpass.input_attachment_infos[attachment_idx];
+                ref.layout     = VK_IMAGE_LAYOUT_UNDEFINED;
+            }
+
+            vk_subpass.inputAttachmentCount = rend_subpass.input_attachment_infos_count;
+            vk_subpass.pInputAttachments    = &vk_attachment_refs[input_attach_block_start];
+            vk_attachment_ref_block_start   = (input_attach_block_start + rend_subpass.input_attachment_infos_count);
+        }
+
+        // Preserve
+        {
+            size_t preserve_attach_block_start = vk_preserve_ref_block_start;
+
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.preserve_attachments_count; ++attachment_idx)
+            {
+                vk_preserve_refs[preserve_attach_block_start + attachment_idx] = rend_subpass.preserve_attachments[attachment_idx];
+            }
+
+            vk_subpass.preserveAttachmentCount = rend_subpass.preserve_attachments_count;
+            vk_subpass.pPreserveAttachments    = &vk_preserve_refs[preserve_attach_block_start];
+            vk_preserve_ref_block_start = (preserve_attach_block_start + rend_subpass.preserve_attachments_count);
+        }
+
+        // Resolve
+        {
+            size_t resolve_attach_block_start = vk_attachment_ref_block_start;
+
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.resolve_attachment_infos_count; ++attachment_idx)
+            {
+                VkAttachmentReference& ref = vk_attachment_refs[resolve_attach_block_start + attachment_idx];
+                ref.attachment = rend_subpass.resolve_attachment_infos[attachment_idx];
+                ref.layout     = VK_IMAGE_LAYOUT_UNDEFINED;
+            }
+
+            //vk_subpass.resolveAttachmentCount = rend_subpass.resolve_attachment_infos_count;
+            if(rend_subpass.resolve_attachment_infos_count > 0)
+            {
+                vk_subpass.pResolveAttachments = &vk_attachment_refs[resolve_attach_block_start];
+            }
+            else
+            {
+                vk_subpass.pResolveAttachments = nullptr;
+            }
+            vk_attachment_ref_block_start  = (resolve_attach_block_start + rend_subpass.resolve_attachment_infos_count);
+        }
+
+        // Depth stencil
+        {
+            VkAttachmentReference& ref = vk_attachment_refs[vk_attachment_ref_block_start];
+            ref.attachment = rend_subpass.depth_stencil_attachment;
+            ref.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            vk_subpass.pDepthStencilAttachment = &vk_attachment_refs[vk_attachment_ref_block_start];
+        }
+    }
+
+    // Set the subpass dependencies
+    for(size_t subpass_dep_idx{ 0 }; subpass_dep_idx < info.subpass_dependency_count; ++subpass_dep_idx)
+    {
+        VkSubpassDependency& vk_subpass_dep = vk_subpass_deps[subpass_dep_idx];
+        const SubpassDependency& rend_subpass_dep = info.subpass_dependencies[subpass_dep_idx];
+
+        vk_subpass_dep.srcSubpass    = subpass_dep_idx - 1;
+        vk_subpass_dep.dstSubpass    = subpass_dep_idx;
+        vk_subpass_dep.srcStageMask  = vulkan_helpers::convert_pipeline_stages(rend_subpass_dep.src_sync.stages);
+        vk_subpass_dep.dstStageMask  = vulkan_helpers::convert_pipeline_stages(rend_subpass_dep.dst_sync.stages);
+        vk_subpass_dep.srcAccessMask = vulkan_helpers::convert_memory_accesses(rend_subpass_dep.src_sync.accesses);
+        vk_subpass_dep.dstAccessMask = vulkan_helpers::convert_memory_accesses(rend_subpass_dep.dst_sync.accesses);
+    }
+
+    // Set the external passes properly
+    VkSubpassDependency& final_dep = vk_subpass_deps[info.subpass_dependency_count-1];
+    vk_subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    vk_subpass_deps[info.subpass_dependency_count] =
+    {
+        info.subpass_dependency_count - 1 ,
+        VK_SUBPASS_EXTERNAL,
+        final_dep.dstStageMask,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        final_dep.dstAccessMask,
+        VK_ACCESS_MEMORY_READ_BIT,
+        static_cast<VkDependencyFlags>(0)
+    };
+
+    // Set the attachment descriptions
+    {
+        for(size_t attachment_idx{ 0 }; attachment_idx < info.attachment_infos_count; ++attachment_idx)
+        {
+            vk_attachment_descs[attachment_idx] = vulkan_helpers::convert_attachment_description(info.attachment_infos[attachment_idx]);
+        }
+    }
+
+    VkRenderPassCreateInfo create_info = vulkan_helpers::gen_render_pass_create_info();
+    create_info.attachmentCount = static_cast<uint32_t>(info.attachment_infos_count);
+    create_info.pAttachments    = &vk_attachment_descs[0];
+    create_info.subpassCount    = static_cast<uint32_t>(info.subpasses_count);
+    create_info.pSubpasses      = &vk_subpass_descs[0];
+    create_info.dependencyCount = static_cast<uint32_t>(info.subpasses_count + 1);
+    create_info.pDependencies   = &vk_subpass_deps[0];
+
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    VkRenderPass vk_render_pass = ctx.get_device()->create_render_pass(create_info);
+    if(vk_render_pass == VK_NULL_HANDLE)
+    {
+        return NULL_HANDLE;
+    }
+
+    RenderPassHandle handle = _vk_render_passes.allocate(vk_render_pass);
 
     return handle;
 }
@@ -351,10 +548,22 @@ void VulkanDeviceContext::destroy_image_view(Texture2DHandle texture_handle)
 void VulkanDeviceContext::destroy_shader(ShaderHandle handle)
 {
     VkShaderModule* module = _vk_shaders.get(handle);
-
     _logical_device->destroy_shader_module(*module);
-
     _vk_shaders.deallocate(handle);
+}
+
+void VulkanDeviceContext::destroy_framebuffer(FramebufferHandle handle)
+{
+    VkFramebuffer* fb = _vk_framebuffers.get(handle);
+    _logical_device->destroy_framebuffer(*fb);
+    _vk_framebuffers.deallocate(handle);
+}
+
+void VulkanDeviceContext::destroy_render_pass(RenderPassHandle handle)
+{
+    VkRenderPass* rp = _vk_render_passes.get(handle);
+    _logical_device->destroy_render_pass(*rp);
+    _vk_render_passes.deallocate(handle);
 }
 
 void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_handle)
@@ -406,6 +615,16 @@ VkDeviceMemory VulkanDeviceContext::get_memory(HandleType handle) const
 VkShaderModule VulkanDeviceContext::get_shader(const ShaderHandle handle) const
 {
     return *_vk_shaders.get(handle);
+}
+
+VkFramebuffer  VulkanDeviceContext::get_framebuffer(const FramebufferHandle handle) const
+{
+    return *_vk_framebuffers.get(handle);
+}
+
+VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handle) const
+{
+    return *_vk_render_passes.get(handle);
 }
 
 PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
