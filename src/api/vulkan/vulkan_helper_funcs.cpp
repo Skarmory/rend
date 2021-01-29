@@ -80,6 +80,22 @@ VkImageAspectFlags vulkan_helpers::find_image_aspects(VkFormat format)
     return flags;
 }
 
+VkAttachmentDescription vulkan_helpers::convert_attachment_description(const AttachmentInfo& info)
+{
+    return
+    VkAttachmentDescription{
+        0,
+        convert_format(info.format),
+        convert_sample_count(info.samples),
+        convert_load_op(info.load_op),
+        convert_store_op(info.store_op),
+        convert_load_op(info.stencil_load_op),
+        convert_store_op(info.stencil_store_op),
+        convert_image_layout(info.initial_layout),
+        convert_image_layout(info.final_layout)
+    };
+}
+
 VkFormat vulkan_helpers::convert_format(Format format)
 {
     switch(format)
@@ -185,6 +201,17 @@ VkAccessFlags vulkan_helpers::convert_memory_accesses(MemoryAccesses accesses)
     }
 
     return ret_flags;
+}
+
+VkPipelineBindPoint vulkan_helpers::convert_pipeline_bind_point(PipelineBindPoint bind_point)
+{
+    switch(bind_point)
+    {
+        case PipelineBindPoint::GRAPHICS: return VK_PIPELINE_BIND_POINT_GRAPHICS;
+        case PipelineBindPoint::COMPUTE: return VK_PIPELINE_BIND_POINT_COMPUTE;
+    }
+
+    return VK_PIPELINE_BIND_POINT_GRAPHICS;
 }
 
 VkPipelineStageFlagBits vulkan_helpers::convert_pipeline_stage(PipelineStage stage)
