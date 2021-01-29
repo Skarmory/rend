@@ -414,26 +414,38 @@ void Renderer::_create_default_renderpass(void)
 {
     _default_render_pass = new RenderPass;
 
-    uint32_t colour_attach = _default_render_pass->add_attachment_description(
-        _swapchain->get_format(), rend::MSAASamples::MSAA_1X,
-        LoadOp::CLEAR, StoreOp::STORE, LoadOp::DONT_CARE, StoreOp::DONT_CARE,
-        ImageLayout::UNDEFINED, ImageLayout::PRESENT
-    );
+    AttachmentInfo colour_attachment = {};
+    colour_attachment.format = _swapchain->get_format();
+    colour_attachment.load_op = LoadOp::CLEAR;
+    colour_attachment.store_op = StoreOp::STORE;
+    colour_attachment.final_layout = ImageLayout::PRESENT;
 
-    uint32_t depth_attach  = _default_render_pass->add_attachment_description(
-            _default_depth_buffer->format(), _default_depth_buffer->samples(),
-            LoadOp::CLEAR, StoreOp::STORE, LoadOp::DONT_CARE, StoreOp::DONT_CARE,
-            ImageLayout::UNDEFINED, ImageLayout::DEPTH_STENCIL_ATTACHMENT);
+    AttachmentInfo depth_stencil_attachment = {};
+    depth_stencil_attachment.format = _default_depth_buffer->format();
+    depth_stencil_attachment.samples = _default_depth_buffer->samples();
+    depth_stencil_attachment.load_op = LoadOp::CLEAR;
+    depth_stencil_attachment.store_op = StoreOp::STORE;
+    depth_stencil_attachment.final_layout = ImageLayout::DEPTH_STENCIL_ATTACHMENT;
 
-    _default_render_pass->add_subpass(
-        Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ },
-        Synchronisation{ PipelineStage::COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE }
-    );
+    SubpassInfo subpass_info = {};
+    subpass_info.colour_attachment_infos[0] = 0;
+    subpass_info.depth_stencil_attachment   = 1;
+    subpass_info.colour_attachment_infos_count = 1;
 
-    _default_render_pass->add_subpass_colour_attachment_ref(colour_attach);
-    _default_render_pass->add_subpass_depth_stencil_attachment_ref(depth_attach);
+    SubpassDependency dep_info = {};
+    dep_info.src_sync = Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ };
+    dep_info.dst_sync = Synchronisation{ PipelineStage::COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE };
 
-    _default_render_pass->create();
+    RenderPassInfo render_pass_info = {};
+    render_pass_info.attachment_infos[0] = colour_attachment;
+    render_pass_info.attachment_infos[1] = depth_stencil_attachment;
+    render_pass_info.attachment_infos_count = 2;
+    render_pass_info.subpasses[0] = subpass_info;
+    render_pass_info.subpasses_count = 1;
+    render_pass_info.subpass_dependencies[0] = dep_info;
+    render_pass_info.subpass_dependency_count = 1;
+
+    _default_render_pass->create(render_pass_info);
 }
 
 void Renderer::_create_default_framebuffers(bool recreate)
@@ -455,9 +467,16 @@ void Renderer::_create_default_framebuffers(bool recreate)
     _default_framebuffers.resize(targets.size());
     for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
     {
+        FramebufferInfo fb_info = {};
+        fb_info.width  = swapchain_extent.width;
+        fb_info.height = swapchain_extent.height;
+        fb_info.depth  = 1;
+        fb_info.render_pass_handle = _default_render_pass->handle();
+        fb_info.depth_buffer_handle = _default_depth_buffer->get_handle();
+        fb_info.render_target_handles[0] = targets[idx];
+        fb_info.render_target_handles_count = 1;
+
         _default_framebuffers[idx] = new Framebuffer;
-        _default_framebuffers[idx]->set_depth_buffer(_default_depth_buffer->get_handle());
-        _default_framebuffers[idx]->add_render_target(targets[idx]);
-        _default_framebuffers[idx]->create(*_default_render_pass, framebuffer_dims);
+        _default_framebuffers[idx]->create(fb_info);
     }
 }
