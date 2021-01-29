@@ -87,20 +87,22 @@ bool CommandBuffer::recorded(void) const
 
 void CommandBuffer::begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, VkRect2D render_area, const std::vector<VkClearValue>& clear_values)
 {
-    _recorded = true;
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     VkRenderPassBeginInfo info =
     {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
-        .renderPass = render_pass.get_handle(),
-        .framebuffer = framebuffer.get_handle(),
+        .renderPass = ctx.get_render_pass(render_pass.handle()),
+        .framebuffer = ctx.get_framebuffer(framebuffer.handle()),
         .renderArea = render_area,
         .clearValueCount = static_cast<uint32_t>(clear_values.size()),
         .pClearValues = clear_values.data()
     };
 
     vkCmdBeginRenderPass(_vk_command_buffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+
+    _recorded = true;
 }
 
 void CommandBuffer::end_render_pass(RenderPass& render_pass, Framebuffer& framebuffer)
