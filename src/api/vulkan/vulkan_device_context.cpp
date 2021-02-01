@@ -410,6 +410,7 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
         vk_subpass_dep.dstStageMask  = vulkan_helpers::convert_pipeline_stages(rend_subpass_dep.dst_sync.stages);
         vk_subpass_dep.srcAccessMask = vulkan_helpers::convert_memory_accesses(rend_subpass_dep.src_sync.accesses);
         vk_subpass_dep.dstAccessMask = vulkan_helpers::convert_memory_accesses(rend_subpass_dep.dst_sync.accesses);
+        vk_subpass_dep.dependencyFlags = 0;
     }
 
     // Set the external passes properly
