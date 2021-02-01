@@ -453,7 +453,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
     const std::vector<Texture2DHandle> targets = _swapchain->get_back_buffer_handles();
 
     VkExtent2D swapchain_extent = _swapchain->get_extent();
-    VkExtent3D framebuffer_dims = { swapchain_extent.width, swapchain_extent.height, 1 };
 
     if(recreate)
     {

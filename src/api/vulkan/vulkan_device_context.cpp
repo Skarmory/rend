@@ -184,7 +184,6 @@ TextureHandle VulkanDeviceContext::create_texture(uint32_t width, uint32_t heigh
     VkImageType vk_type = vulkan_helpers::find_image_type(vk_extent);
     VkFormat vk_format = vulkan_helpers::convert_format(format);
     VkImageUsageFlags vk_usage = vulkan_helpers::convert_image_usage_flags(usage);
-    VkImageViewType vk_view_type = vulkan_helpers::find_image_view_type(vk_type, false, false);
     VkImageAspectFlags vk_aspect = vulkan_helpers::find_image_aspects(vk_format);
 
     uint32_t queue_family_index = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
@@ -418,7 +417,7 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     vk_subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
     vk_subpass_deps[info.subpass_dependency_count] =
     {
-        info.subpass_dependency_count - 1 ,
+        static_cast<uint32_t>(info.subpass_dependency_count - 1),
         VK_SUBPASS_EXTERNAL,
         final_dep.dstStageMask,
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,

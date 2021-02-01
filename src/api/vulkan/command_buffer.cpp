@@ -333,6 +333,7 @@ void CommandBuffer::transition_image(GPUTexture& image, VkImageLayout transition
         case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
             barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
         case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
             barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
@@ -342,15 +343,7 @@ void CommandBuffer::transition_image(GPUTexture& image, VkImageLayout transition
             barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT; break;
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
             barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_GENERAL:
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:
-        case VK_IMAGE_LAYOUT_MAX_ENUM:
+        default:
             std::cerr << "Image transition error: src layout " << vulkan_helpers::stringify(vulkan_helpers::convert_image_layout(image.layout())) << " is not supported" << std::endl;
             return;
     }
@@ -372,16 +365,7 @@ void CommandBuffer::transition_image(GPUTexture& image, VkImageLayout transition
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
         case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
             barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_UNDEFINED:
-        case VK_IMAGE_LAYOUT_PREINITIALIZED:
-        case VK_IMAGE_LAYOUT_GENERAL:
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:
-        case VK_IMAGE_LAYOUT_MAX_ENUM:
+        default:
             std::cerr << "Image transition error: dst layout " << vulkan_helpers::stringify(transition_to) << " is not supported" << std::endl;
             return;
     }

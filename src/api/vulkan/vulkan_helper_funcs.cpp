@@ -523,6 +523,9 @@ VkBufferUsageFlags vulkan_helpers::convert_buffer_usage_flags(BufferUsage usage)
                 case BufferUsage::VERTEX_BUFFER: ret |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; break;
                 case BufferUsage::INDEX_BUFFER: ret |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT; break;
                 case BufferUsage::UNIFORM_BUFFER: ret |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+                case BufferUsage::NONE:
+                default:
+                    break;
             }
         }
 
@@ -548,6 +551,9 @@ VkImageUsageFlags vulkan_helpers::convert_image_usage_flags(ImageUsage usage)
                 case ImageUsage::SAMPLED: ret |= VK_IMAGE_USAGE_SAMPLED_BIT; break;
                 case ImageUsage::DEPTH_STENCIL: ret |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT; break;
                 case ImageUsage::COLOUR_ATTACHMENT: ret |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; break;
+                case ImageUsage::NONE:
+                default:
+                    break;
             }
         }
 
