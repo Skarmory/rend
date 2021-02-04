@@ -834,35 +834,27 @@ VkSwapchainCreateInfoKHR vulkan_helpers::gen_swapchain_create_info(void)
 
 const char* vulkan_helpers::stringify(VkImageLayout layout)
 {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch"
-#endif
     switch(layout)
     {
-        case VK_IMAGE_LAYOUT_UNDEFINED: return "VK_IMAGE_LAYOUT_UNDEFINED";
-        case VK_IMAGE_LAYOUT_GENERAL: return "VK_IMAGE_LAYOUT_GENERAL";
-        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL";
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL";
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL";
-        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL";
-        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL";
-        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL";
-        case VK_IMAGE_LAYOUT_PREINITIALIZED: return "VK_IMAGE_LAYOUT_PREINITIALIZED";
+        case VK_IMAGE_LAYOUT_UNDEFINED:                                  return "VK_IMAGE_LAYOUT_UNDEFINED";
+        case VK_IMAGE_LAYOUT_GENERAL:                                    return "VK_IMAGE_LAYOUT_GENERAL";
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:                   return "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL";
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:           return "VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL";
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:            return "VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL";
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:                   return "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL";
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:                       return "VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL";
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:                       return "VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL";
+        case VK_IMAGE_LAYOUT_PREINITIALIZED:                             return "VK_IMAGE_LAYOUT_PREINITIALIZED";
         case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL: return "VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL";
         case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL: return "VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL";
-        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: return "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR";
-        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR: return "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR";
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV: return "VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV";
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT: return "VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT";
-        case VK_IMAGE_LAYOUT_RANGE_SIZE: return "VK_IMAGE_LAYOUT_RANGE_SIZE";
-        case VK_IMAGE_LAYOUT_MAX_ENUM: return "VK_IMAGE_LAYOUT_MAX_ENUM";
+        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:                            return "VK_IMAGE_LAYOUT_PRESENT_SRC_KHR";
+        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:                         return "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR";
+        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:                    return "VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV";
+        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:           return "VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT";
+        case VK_IMAGE_LAYOUT_RANGE_SIZE:                                 return "VK_IMAGE_LAYOUT_RANGE_SIZE";
+        case VK_IMAGE_LAYOUT_MAX_ENUM:                                   return "VK_IMAGE_LAYOUT_MAX_ENUM";
+        default:                                                         return "Unknown VkImageLayout";
     }
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-    return "Unknown VkImageLayout";
 }
 
 const char* vulkan_helpers::stringify(VkSampleCountFlagBits sample_count)
@@ -877,7 +869,28 @@ const char* vulkan_helpers::stringify(VkSampleCountFlagBits sample_count)
         case VK_SAMPLE_COUNT_32_BIT:             return "VK_SAMPLE_COUNT_32_BIT";
         case VK_SAMPLE_COUNT_64_BIT:             return "VK_SAMPLE_COUNT_64_BIT";
         case VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM: return "VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM";
+        default:                                 return "Unknown VkSampleCountFlagBits";
     }
+}
 
-    return "Unknown VkSampleCountFlagBits";
+const char* vulkan_helpers::stringify(VkDescriptorType descriptor_type)
+{
+    switch(descriptor_type)
+    {
+        case VK_DESCRIPTOR_TYPE_SAMPLER:                   return "VK_DESCRIPTOR_TYPE_SAMPLER";
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:    return "VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER";
+        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:             return "VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE";
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:             return "VK_DESCRIPTOR_TYPE_STORAGE_IMAGE";
+        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:      return "VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER";
+        case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:      return "VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER";
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:            return "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER";
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:            return "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER";
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:    return "VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC";
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:    return "VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC";
+        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:          return "VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT";
+        case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT:  return "VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT";
+        case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV: return "VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV";
+        case VK_DESCRIPTOR_TYPE_MAX_ENUM:                  return "VK_DESCRIPTOR_TYPE_MAX_ENUM";
+        default:                                           return "Unknown VkDescriptorType";
+    }
 }

@@ -5,6 +5,9 @@
 #include "gpu_texture.h"
 #include "logical_device.h"
 #include "vulkan_device_context.h"
+#include "vulkan_helper_funcs.h"
+
+#include <iostream>
 
 using namespace rend;
 
@@ -105,6 +108,11 @@ void DescriptorSet::update(void)
 
                 write_desc.pBufferInfo = &vk_buffer_infos[idx];
 
+                break;
+            }
+            default:
+            {
+                std::cerr << "Update descriptor sets error: descriptor type " << vulkan_helpers::stringify(binding.type) << " is not supported (yet)." << std::endl;
                 break;
             }
         }

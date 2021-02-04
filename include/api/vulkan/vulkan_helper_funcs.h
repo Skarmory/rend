@@ -74,6 +74,7 @@ VkSwapchainCreateInfoKHR               gen_swapchain_create_info(void);
 
 const char* stringify(VkImageLayout layout);
 const char* stringify(VkSampleCountFlagBits sample_count);
+const char* stringify(VkDescriptorType descriptor_type);
 
 }
 
