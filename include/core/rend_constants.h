@@ -11,6 +11,9 @@ namespace constants
 {
     constexpr size_t max_framebuffer_attachments{ 8 };
     constexpr size_t max_subpasses{ 8 };
+    constexpr size_t max_vertex_attributes{ 8 };
+    constexpr size_t max_blend_constants{ 4 };
+    constexpr size_t max_dynamic_states{ 9 };
 }
 
 }
