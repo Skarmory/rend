@@ -74,12 +74,12 @@ struct ImageLoadTask : public Task
 
 struct ImageTransitionTask : public Task
 {
-    GPUTexture*          image;
-    VkPipelineStageFlags src;
-    VkPipelineStageFlags dst;
-    VkImageLayout        final_layout;
+    GPUTexture*    image;
+    PipelineStages src;
+    PipelineStages dst;
+    ImageLayout    final_layout;
 
-    ImageTransitionTask(GPUTexture* image, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
+    ImageTransitionTask(GPUTexture* image, PipelineStages src, PipelineStages dst, ImageLayout layout) : image(image), src(src), dst(dst), final_layout(layout) {}
     void execute(FrameResources& resources) override;
 };
 
@@ -101,7 +101,7 @@ public:
     // Resource functions
     void load(GPUTexture* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset);
     void load(GPUBuffer* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset);
-    void transition(GPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout);
+    void transition(GPUTexture* texture, PipelineStages src, PipelineStages dst, ImageLayout final_layout);
 
     // Functions
     FrameResources& start_frame(void);
@@ -121,7 +121,7 @@ private:
 
 private:
     Swapchain*                _swapchain { nullptr };
-    CommandPool*              _command_pool { nullptr };
+    //CommandPool*              _command_pool { nullptr };
     std::vector<Framebuffer*> _default_framebuffers;
     GPUTexture*               _default_depth_buffer { nullptr };
     RenderPass*               _default_render_pass { nullptr };

@@ -1,7 +1,6 @@
 #include "renderer.h"
 
-#include "command_pool.h"
-#include "command_buffer.h"
+#include "core/command_buffer.h"
 #include "device_context.h"
 #include "fence.h"
 #include "framebuffer.h"
@@ -48,8 +47,8 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     _swapchain = new Swapchain;
     _swapchain->create(3);
 
-    _command_pool = new CommandPool;
-    _command_pool->create(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    //_command_pool = new CommandPool;
+    //_command_pool->create(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
 
     _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
@@ -65,7 +64,8 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
         _frame_resources[idx].acquire_sem->create();
         _frame_resources[idx].present_sem->create();
         _frame_resources[idx].submit_fen->create(true);
-        _frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
+        _frame_resources[idx].command_buffer = new CommandBuffer;
+        //_frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
 
     create_resource();
@@ -112,8 +112,8 @@ StatusCode Renderer::destroy(void)
         delete _frame_resources[idx].submit_fen;
     }
 
-    _command_pool->destroy();
-    delete _command_pool;
+    //_command_pool->destroy();
+    //delete _command_pool;
 
     _swapchain->destroy();
     delete _swapchain;
@@ -145,7 +145,7 @@ void Renderer::load(GPUBuffer* buffer, BufferUsage type, void* data, size_t byte
     _task_queue.push(task);
 }
 
-void Renderer::transition(GPUTexture* texture, VkPipelineStageFlags src, VkPipelineStageFlags dst, VkImageLayout final_layout)
+void Renderer::transition(GPUTexture* texture, PipelineStages src, PipelineStages dst, ImageLayout final_layout)
 {
     ImageTransitionTask* task = new ImageTransitionTask(texture, src, dst, final_layout);
     _task_queue.push(task);
@@ -183,8 +183,11 @@ FrameResources& Renderer::start_frame(void)
 
 void Renderer::end_frame(FrameResources& frame_res)
 {
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
     frame_res.submit_fen->reset();
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ frame_res.command_buffer }, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
+    VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(frame_res.command_buffer->handle());
+    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
@@ -200,10 +203,11 @@ void Renderer::_process_task_queue(FrameResources& resources)
     if(_task_queue.empty())
         return;
 
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
     Fence load_fence;
     load_fence.create(false);
 
-    resources.command_buffer->begin();
+    //resources.command_buffer->begin();
 
     while(!_task_queue.empty())
     {
@@ -213,11 +217,12 @@ void Renderer::_process_task_queue(FrameResources& resources)
         delete task;
     }
 
-    resources.command_buffer->end();
+    //resources.command_buffer->end();
 
     if(resources.command_buffer->recorded())
     {
-        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit({ resources.command_buffer }, QueueType::GRAPHICS, {}, {}, &load_fence);
+        VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(resources.command_buffer->handle());
+        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, {}, {}, &load_fence);
         load_fence.wait();
     }
 
@@ -252,7 +257,7 @@ void ImageLoadTask::execute(FrameResources& resources)
     memcpy(mapped, data, size_bytes);
     ctx.get_device()->unmap_memory(memory);
 
-    resources.command_buffer->copy_buffer_to_image(*staging_buffer, *image);
+    resources.command_buffer->copy(*staging_buffer, *image);
 }
 
 void BufferLoadTask::execute(FrameResources& resources)
@@ -288,7 +293,7 @@ void BufferLoadTask::execute(FrameResources& resources)
         memcpy(mapped, data, size_bytes);
         ctx.get_device()->unmap_memory(memory);
 
-        resources.command_buffer->copy_buffer_to_buffer(*staging_buffer, *buffer);
+        resources.command_buffer->copy(*staging_buffer, *buffer);
     }
     else
     {
@@ -302,102 +307,103 @@ void BufferLoadTask::execute(FrameResources& resources)
 
 void ImageTransitionTask::execute(FrameResources& resources)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    std::vector<VkImageMemoryBarrier> barriers(1);
-    VkImageMemoryBarrier* barrier = barriers.data();
+    //auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    //std::vector<VkImageMemoryBarrier> barriers(1);
+    //VkImageMemoryBarrier* barrier = barriers.data();
 
-    *barrier = VkImageMemoryBarrier
-    {
-        .sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext               = nullptr,
-        .srcAccessMask       = 0,
-        .dstAccessMask       = 0,
-        .oldLayout           = vulkan_helpers::convert_image_layout(image->layout()),
-        .newLayout           = final_layout,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image               = ctx.get_image(image->get_handle()),
-        .subresourceRange    =
-        {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel   = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        }
-    };
+    //*barrier = VkImageMemoryBarrier
+    //{
+    //    .sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    //    .pNext               = nullptr,
+    //    .srcAccessMask       = 0,
+    //    .dstAccessMask       = 0,
+    //    .oldLayout           = vulkan_helpers::convert_image_layout(image->layout()),
+    //    .newLayout           = final_layout,
+    //    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+    //    .image               = ctx.get_image(image->get_handle()),
+    //    .subresourceRange    =
+    //    {
+    //        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    //        .baseMipLevel   = 0,
+    //        .levelCount = 1,
+    //        .baseArrayLayer = 0,
+    //        .layerCount = 1
+    //    }
+    //};
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 #endif
 
-    switch(vulkan_helpers::convert_image_layout(image->layout()))
-    {
-        case VK_IMAGE_LAYOUT_UNDEFINED:
-            barrier->srcAccessMask = 0; break;
-        case VK_IMAGE_LAYOUT_PREINITIALIZED:
-            barrier->srcAccessMask = VK_ACCESS_HOST_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-            barrier->srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-            barrier->srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-            barrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-            barrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-            barrier->srcAccessMask = VK_ACCESS_SHADER_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_GENERAL:
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:
-        case VK_IMAGE_LAYOUT_MAX_ENUM:
-            std::cerr << "Transition: old layout is unsupported" << std::endl;
-            return;
-    }
+    //switch(vulkan_helpers::convert_image_layout(image->layout()))
+    //{
+    //    case VK_IMAGE_LAYOUT_UNDEFINED:
+    //        barrier->srcAccessMask = 0; break;
+    //    case VK_IMAGE_LAYOUT_PREINITIALIZED:
+    //        barrier->srcAccessMask = VK_ACCESS_HOST_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+    //        barrier->srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+    //        barrier->srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+    //        barrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
+    //    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    //        barrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    //        barrier->srcAccessMask = VK_ACCESS_SHADER_READ_BIT; break;
+    //    case VK_IMAGE_LAYOUT_GENERAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+    //    case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
+    //    case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
+    //    case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
+    //    case VK_IMAGE_LAYOUT_RANGE_SIZE:
+    //    case VK_IMAGE_LAYOUT_MAX_ENUM:
+    //        std::cerr << "Transition: old layout is unsupported" << std::endl;
+    //        return;
+    //}
 
-    switch(final_layout)
-    {
-        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-            barrier->dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-            barrier->dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-            barrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-            barrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
-        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-            if(barrier->srcAccessMask == 0)
-                barrier->srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier->dstAccessMask = VK_ACCESS_SHADER_READ_BIT; break;
-        case VK_IMAGE_LAYOUT_UNDEFINED:
-        case VK_IMAGE_LAYOUT_PREINITIALIZED:
-        case VK_IMAGE_LAYOUT_GENERAL:
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:
-        case VK_IMAGE_LAYOUT_MAX_ENUM:
-            std::cerr << "Transition: new layout is unsupported" << std::endl;
-            return;
-    }
+    //switch(final_layout)
+    //{
+    //    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+    //        barrier->dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+    //        barrier->dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+    //        barrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; break;
+    //    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    //        barrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT; break;
+    //    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    //        if(barrier->srcAccessMask == 0)
+    //            barrier->srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+    //        barrier->dstAccessMask = VK_ACCESS_SHADER_READ_BIT; break;
+    //    case VK_IMAGE_LAYOUT_UNDEFINED:
+    //    case VK_IMAGE_LAYOUT_PREINITIALIZED:
+    //    case VK_IMAGE_LAYOUT_GENERAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
+    //    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+    //    case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
+    //    case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
+    //    case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
+    //    case VK_IMAGE_LAYOUT_RANGE_SIZE:
+    //    case VK_IMAGE_LAYOUT_MAX_ENUM:
+    //        std::cerr << "Transition: new layout is unsupported" << std::endl;
+    //        return;
+    //}
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
-    resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
+    //resources.command_buffer->pipeline_barrier(src, dst, VK_DEPENDENCY_BY_REGION_BIT, {}, {}, barriers);
+    resources.command_buffer->transition_image(*image, src, dst, final_layout);
 
-    image->layout(vulkan_helpers::convert_image_layout(final_layout));
+    //image->layout(vulkan_helpers::convert_image_layout(final_layout));
 }
 
 void Renderer::_create_default_depth_buffer(VkExtent2D extent)
