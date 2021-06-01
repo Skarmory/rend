@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <GLFW/glfw3.h>
+#include <thread>
 
 using namespace rend;
 using namespace rend::vkal;
@@ -25,6 +26,10 @@ VulkanDeviceContext::VulkanDeviceContext(void)
     _vk_samplers.set_unique_key(_data_array_unique_key++);
     _vk_memorys.set_unique_key(_data_array_unique_key++);
     _vk_shaders.set_unique_key(_data_array_unique_key++);
+    _vk_framebuffers.set_unique_key(_data_array_unique_key++);
+    _vk_render_passes.set_unique_key(_data_array_unique_key++);
+    _vk_command_pools.set_unique_key(_data_array_unique_key++);
+    _vk_command_buffers.set_unique_key(_data_array_unique_key++);
 }
 
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
@@ -454,6 +459,146 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     return handle;
 }
 
+PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
+{
+    VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
+
+    // Shader stages
+    VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<int>(ShaderType::COUNT)];
+    int create_info_idx{ 0 };
+
+    {
+        ShaderHandle vertex_shader_handle = info.shaders[(int)ShaderType::VERTEX];
+        if(vertex_shader_handle != NULL_HANDLE)
+        {
+            shader_create_infos[create_info_idx] = vulkan_helpers::gen_shader_stage_create_info();
+            shader_create_infos[create_info_idx].module = *_vk_shaders.get(vertex_shader_handle);
+            shader_create_infos[create_info_idx].pName = "main";
+            shader_create_infos[create_info_idx].pSpecializationInfo = nullptr;
+            shader_create_infos[create_info_idx].stage = VK_SHADER_STAGE_VERTEX_BIT;
+            ++create_info_idx;
+        }
+    }
+    {
+        ShaderHandle fragment_shader_handle = info.shaders[(int)ShaderType::FRAGMENT];
+        if(fragment_shader_handle != NULL_HANDLE)
+        {
+            shader_create_infos[create_info_idx] = vulkan_helpers::gen_shader_stage_create_info();
+            shader_create_infos[create_info_idx].module = *_vk_shaders.get(fragment_shader_handle);
+            shader_create_infos[create_info_idx].pName = "main";
+            shader_create_infos[create_info_idx].pSpecializationInfo = nullptr;
+            shader_create_infos[create_info_idx].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+            ++create_info_idx;
+        }
+    }
+
+    pipeline_create_info.stageCount          = create_info_idx;
+    pipeline_create_info.pStages             = shader_create_infos;
+
+    // Color blend attachments
+    create_info_idx = 0;
+    VkPipelineColorBlendAttachmentState vk_colour_blend_attachments[constants::max_framebuffer_attachments];
+    for(int colour_blend_idx{ 0 }; colour_blend_idx < info.colour_blending_info.blend_attachments_count; ++colour_blend_idx)
+    {
+        const ColourBlendAttachment* attachment = &info.colour_blending_info.blend_attachments[colour_blend_idx];
+        vk_colour_blend_attachments[colour_blend_idx].blendEnable         = attachment->blend_enabled;
+        vk_colour_blend_attachments[colour_blend_idx].srcColorBlendFactor = vulkan_helpers::convert_blend_factor(attachment->colour_src_factor);
+        vk_colour_blend_attachments[colour_blend_idx].dstColorBlendFactor = vulkan_helpers::convert_blend_factor(attachment->colour_dst_factor);
+        vk_colour_blend_attachments[colour_blend_idx].colorBlendOp        = vulkan_helpers::convert_blend_op(attachment->colour_blend_op);
+        vk_colour_blend_attachments[colour_blend_idx].srcAlphaBlendFactor = vulkan_helpers::convert_blend_factor(attachment->alpha_src_factor);
+        vk_colour_blend_attachments[colour_blend_idx].dstAlphaBlendFactor = vulkan_helpers::convert_blend_factor(attachment->alpha_dst_factor);
+        vk_colour_blend_attachments[colour_blend_idx].alphaBlendOp        = vulkan_helpers::convert_blend_op(attachment->alpha_blend_op);
+        vk_colour_blend_attachments[colour_blend_idx].colorWriteMask      = static_cast<VkColorComponentFlags>(attachment->colour_write_mask);
+        ++create_info_idx;
+    }
+
+    VkPipelineColorBlendStateCreateInfo colour_blend_state_create_info = vulkan_helpers::gen_colour_blend_state_create_info();
+    colour_blend_state_create_info.logicOpEnable     = info.colour_blending_info.logic_op_enabled;
+    colour_blend_state_create_info.logicOp           = vulkan_helpers::convert_logic_op(info.colour_blending_info.logic_op);
+    colour_blend_state_create_info.attachmentCount   = create_info_idx;
+    colour_blend_state_create_info.pAttachments      = vk_colour_blend_attachments;
+    colour_blend_state_create_info.blendConstants[0] = info.colour_blending_info.blend_constants[0];
+    colour_blend_state_create_info.blendConstants[1] = info.colour_blending_info.blend_constants[1];
+    colour_blend_state_create_info.blendConstants[2] = info.colour_blending_info.blend_constants[2];
+    colour_blend_state_create_info.blendConstants[3] = info.colour_blending_info.blend_constants[3];
+
+    pipeline_create_info.pColorBlendState    = &colour_blend_state_create_info;
+
+    // Dynamic states 
+    create_info_idx = 0;
+    VkDynamicState vk_dynamic_states[constants::max_dynamic_states];
+    if((info.dynamic_states & DynamicState::VIEWPORT) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::VIEWPORT);
+    if((info.dynamic_states & DynamicState::SCISSOR) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::SCISSOR);
+    if((info.dynamic_states & DynamicState::LINE_WIDTH) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::LINE_WIDTH);
+    if((info.dynamic_states & DynamicState::DEPTH_BIAS) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::DEPTH_BIAS);
+    if((info.dynamic_states & DynamicState::BLEND_CONSTANTS) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::BLEND_CONSTANTS);
+    if((info.dynamic_states & DynamicState::DEPTH_BOUNDS) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::DEPTH_BOUNDS);
+    if((info.dynamic_states & DynamicState::STENCIL_COMPARE_MASK) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::STENCIL_COMPARE_MASK);
+    if((info.dynamic_states & DynamicState::STENCIL_WRITE_MASK) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::STENCIL_WRITE_MASK);
+    if((info.dynamic_states & DynamicState::STENCIL_REFERENCE) != DynamicState::NONE) vk_dynamic_states[create_info_idx++] = vulkan_helpers::convert_dynamic_state(DynamicState::STENCIL_REFERENCE);
+
+    VkPipelineDynamicStateCreateInfo dynamic_state_create_info = vulkan_helpers::gen_dynamic_state_create_info();
+    dynamic_state_create_info.dynamicStateCount = create_info_idx;
+    dynamic_state_create_info.pDynamicStates    = vk_dynamic_states;
+
+    // Vertex input info
+    create_info_idx = 0;
+    VkVertexInputBindingDescription vk_input_binding_desc;
+    vk_input_binding_desc.binding = info.vertex_binding_info.index;
+    vk_input_binding_desc.stride = info.vertex_binding_info.stride;
+    vk_input_binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    VkVertexInputAttributeDescription vk_attribute_descs[constants::max_vertex_attributes];
+    for(int vertex_attribute_idx{ 0 }; vertex_attribute_idx < info.vertex_attribute_info_count; ++vertex_attribute_idx)
+    {
+        vk_attribute_descs[vertex_attribute_idx].location = info.vertex_attribute_infos[vertex_attribute_idx].shader_location;
+        vk_attribute_descs[vertex_attribute_idx].binding = info.vertex_attribute_infos[vertex_attribute_idx].binding->index;
+        vk_attribute_descs[vertex_attribute_idx].format = vulkan_helpers::convert_format(info.vertex_attribute_infos[vertex_attribute_idx].format);
+        vk_attribute_descs[vertex_attribute_idx].offset = info.vertex_attribute_infos[vertex_attribute_idx].offset;
+        ++create_info_idx;
+    }
+
+    VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = vulkan_helpers::gen_vertex_input_state_create_info();
+    vertex_input_state_create_info.vertexBindingDescriptionCount   = 1;
+    vertex_input_state_create_info.pVertexBindingDescriptions      = &vk_input_binding_desc;
+    vertex_input_state_create_info.vertexAttributeDescriptionCount = create_info_idx;
+    vertex_input_state_create_info.pVertexAttributeDescriptions    = vk_attribute_descs;
+}
+
+CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
+{
+    VkCommandPoolCreateInfo info = vulkan_helpers::gen_command_pool_create_info();
+    info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    info.queueFamilyIndex = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
+    VkCommandPool vk_pool = _logical_device->create_command_pool(info);
+
+    CommandPoolHandle pool_handle = _vk_command_pools.allocate(vk_pool);
+
+    return pool_handle;
+}
+
+CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
+{
+    VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
+    VkCommandBuffer buffer = _logical_device->allocate_command_buffers(1, VK_COMMAND_BUFFER_LEVEL_PRIMARY, vk_pool)[0];
+    CommandBufferHandle buffer_handle = _vk_command_buffers.allocate(buffer);
+    _buffer_handle_to_pool_handle[buffer_handle] = pool_handle;
+
+    return buffer_handle;
+}
+
+void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_handle)
+{
+    HandleType pool_handle = _buffer_handle_to_pool_handle.at(buffer_handle);
+    VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
+    VkCommandBuffer vk_buffer = *_vk_command_buffers.get(buffer_handle);
+
+    std::vector<VkCommandBuffer> buffers{ vk_buffer };
+    _logical_device->free_command_buffers(buffers, vk_pool);
+
+    _vk_command_buffers.deallocate(buffer_handle);
+}
+
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
 {
     Texture2DHandle image_handle = _vk_images.allocate(swapchain_image);
@@ -566,6 +711,13 @@ void VulkanDeviceContext::destroy_render_pass(RenderPassHandle handle)
     _vk_render_passes.deallocate(handle);
 }
 
+void VulkanDeviceContext::destroy_pipeline(PipelineHandle handle)
+{
+    VkPipeline pipeline = *_vk_pipelines.get(handle);
+    _logical_device->destroy_pipeline(pipeline);
+    _vk_pipelines.deallocate(handle);
+}
+
 void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_handle)
 {
     auto it = _texture_handle_to_view_handle.find(swapchain_handle);
@@ -582,6 +734,106 @@ void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_h
 
     _texture_handle_to_view_handle.erase(swapchain_handle);
     _vk_images.deallocate(swapchain_handle);
+}
+
+void VulkanDeviceContext::bind_pipeline(CommandBufferHandle buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle)
+{
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(buffer_handle);
+    VkPipeline      vk_pipeline = *_vk_pipelines.get(pipeline_handle);
+
+    vkCmdBindPipeline(vk_command_buffer, vulkan_helpers::convert_pipeline_bind_point(bind_point), vk_pipeline);
+}
+
+void VulkanDeviceContext::command_buffer_reset(CommandBufferHandle command_buffer_handle)
+{
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    vkResetCommandBuffer(vk_command_buffer, 0);
+}
+
+void VulkanDeviceContext::copy_buffer_to_buffer(CommandBufferHandle command_buffer_handle, BufferHandle src_handle, BufferHandle dst_handle, const BufferBufferCopyInfo& info)
+{
+    VkBufferCopy copy =
+    {
+        .srcOffset = info.src_offset,
+        .dstOffset = info.dst_offset,
+        .size      = info.size_bytes
+    };
+
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkBuffer vk_src_buffer = *_vk_buffers.get(src_handle);
+    VkBuffer vk_dst_buffer = *_vk_buffers.get(dst_handle);
+
+    vkCmdCopyBuffer(vk_command_buffer, vk_src_buffer, vk_dst_buffer, 1, &copy);
+}
+
+void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info)
+{
+    VkBufferImageCopy copy =
+    {
+        .bufferOffset           = info.buffer_offset,
+        .bufferRowLength        = info.buffer_width,
+        .bufferImageHeight      = info.buffer_height,
+        .imageSubresource       =
+            {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel       = info.mip_level,
+                .baseArrayLayer = info.base_layer,
+                .layerCount     = info.layer_count
+            },
+        .imageOffset            = { info.image_offset_x, info.image_offset_y, info.image_offset_z },
+        .imageExtent            = VkExtent3D{ info.image_width, info.image_height, info.image_depth }
+    };
+
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkBuffer vk_buffer = *_vk_buffers.get(src_buffer_handle);
+    VkImage vk_image = *_vk_images.get(dst_texture_handle);
+
+    vkCmdCopyBufferToImage(
+        vk_command_buffer,
+        vk_buffer,
+        vk_image,
+        vulkan_helpers::convert_image_layout(info.image_layout),
+        1,
+        &copy
+    );
+}
+
+void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+
+    VkImageMemoryBarrier vk_image_memory_barriers[8];
+    for(uint32_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
+    {
+        vk_image_memory_barriers[barrier_idx].sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        vk_image_memory_barriers[barrier_idx].pNext               = nullptr;
+        vk_image_memory_barriers[barrier_idx].srcAccessMask       = vulkan_helpers::convert_memory_accesses(info.image_memory_barriers[barrier_idx].src_accesses);
+        vk_image_memory_barriers[barrier_idx].dstAccessMask       = vulkan_helpers::convert_memory_accesses(info.image_memory_barriers[barrier_idx].dst_accesses);
+        vk_image_memory_barriers[barrier_idx].oldLayout           = vulkan_helpers::convert_image_layout(info.image_memory_barriers[barrier_idx].old_layout);
+        vk_image_memory_barriers[barrier_idx].newLayout           = vulkan_helpers::convert_image_layout(info.image_memory_barriers[barrier_idx].new_layout);
+        vk_image_memory_barriers[barrier_idx].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        vk_image_memory_barriers[barrier_idx].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        vk_image_memory_barriers[barrier_idx].image               = ctx.get_image(info.image_memory_barriers[barrier_idx].image_handle);
+        vk_image_memory_barriers[barrier_idx].subresourceRange    =
+        {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel   = info.image_memory_barriers[barrier_idx].base_mip_level,
+            .levelCount     = info.image_memory_barriers[barrier_idx].mip_level_count,
+            .baseArrayLayer = info.image_memory_barriers[barrier_idx].base_layer,
+            .layerCount     = info.image_memory_barriers[barrier_idx].layers_count
+        };
+    }
+
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    vkCmdPipelineBarrier(
+       vk_command_buffer,
+       vulkan_helpers::convert_pipeline_stages(info.src_stages),
+       vulkan_helpers::convert_pipeline_stages(info.dst_stages),
+       VK_DEPENDENCY_BY_REGION_BIT,
+       0, nullptr,
+       0, nullptr,
+       info.image_memory_barrier_count, vk_image_memory_barriers
+    );
 }
 
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
@@ -625,6 +877,11 @@ VkFramebuffer  VulkanDeviceContext::get_framebuffer(const FramebufferHandle hand
 VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handle) const
 {
     return *_vk_render_passes.get(handle);
+}
+
+VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
+{
+    return *_vk_command_buffers.get(handle);
 }
 
 PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
