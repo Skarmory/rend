@@ -123,20 +123,20 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence)
+bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence)
 {
-    std::vector<VkCommandBuffer> vk_command_buffers;
+    //std::vector<VkCommandBuffer> vk_command_buffers;
     std::vector<VkSemaphore>     vk_wait_sems;
     std::vector<VkSemaphore>     vk_sig_sems;
 
-    vk_command_buffers.reserve(command_buffers.size());
+    //vk_command_buffers.reserve(command_buffers.size());
     vk_wait_sems.reserve(wait_sems.size());
     vk_sig_sems.reserve(signal_sems.size());
 
-    for(CommandBuffer* buf : command_buffers)
-    {
-        vk_command_buffers.push_back(buf->get_handle());
-    }
+    //for(CommandBuffer* buf : command_buffers)
+    //{
+    //    vk_command_buffers.push_back(   );
+    //}
 
     for(Semaphore* sem : wait_sems)
     {
@@ -157,8 +157,8 @@ bool LogicalDevice::queue_submit(const std::vector<CommandBuffer*>& command_buff
         .waitSemaphoreCount = static_cast<uint32_t>(vk_wait_sems.size()),
         .pWaitSemaphores = vk_wait_sems.data(),
         .pWaitDstStageMask = &wait_stages,
-        .commandBufferCount = static_cast<uint32_t>(command_buffers.size()),
-        .pCommandBuffers = vk_command_buffers.data(),
+        .commandBufferCount = command_buffers_count,
+        .pCommandBuffers = command_buffers,
         .signalSemaphoreCount = static_cast<uint32_t>(vk_sig_sems.size()),
         .pSignalSemaphores = vk_sig_sems.data()
     };

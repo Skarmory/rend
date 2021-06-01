@@ -38,7 +38,7 @@ public:
     const QueueFamily*    get_queue_family(QueueType type) const;
 
     // Commands
-    bool                         queue_submit(const std::vector<CommandBuffer*>& command_buffers, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
+    bool                         queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
     uint32_t                     find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
     void                         wait_idle(void);
     VkResult                     wait_for_fences(std::vector<VkFence>& fences, uint64_t timeout, bool wait_all);
