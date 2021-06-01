@@ -22,6 +22,9 @@ typedef HandleType SamplerHandle;
 typedef HandleType ShaderHandle;
 typedef HandleType FramebufferHandle;
 typedef HandleType RenderPassHandle;
+typedef HandleType PipelineHandle;
+typedef HandleType CommandPoolHandle;
+typedef HandleType CommandBufferHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
@@ -91,7 +94,8 @@ enum class MSAASamples
 enum class ShaderType
 {
     VERTEX,
-    FRAGMENT
+    FRAGMENT,
+    COUNT
 };
 
 enum class LoadOp
@@ -269,18 +273,50 @@ enum class BlendOp
     MAX
 };
 
-enum class DynamicState
+enum class DynamicState : uint32_t
 {
-    VIEWPORT,
-    SCISSOR,
-    LINE_WIDTH,
-    DEPTH_BIAS,
-    BLEND_CONSTANTS,
-    DEPTH_BOUNDS,
-    STENCIL_COMPARE_MASK,
-    STENCIL_WRITE_MASK,
-    STENCIL_REFERENCE
+    NONE                 = 0,
+    VIEWPORT             = BIT(0),
+    SCISSOR              = BIT(1),
+    LINE_WIDTH           = BIT(2),
+    DEPTH_BIAS           = BIT(3),
+    BLEND_CONSTANTS      = BIT(4),
+    DEPTH_BOUNDS         = BIT(5),
+    STENCIL_COMPARE_MASK = BIT(6),
+    STENCIL_WRITE_MASK   = BIT(7),
+    STENCIL_REFERENCE    = BIT(8)
 };
+typedef DynamicState DynamicStates;
+
+inline DynamicState operator|(DynamicState lhs, DynamicState rhs)
+{
+    using T = std::underlying_type_t<DynamicState>;
+    return static_cast<DynamicState>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline DynamicState& operator|=(DynamicState& lhs, DynamicState rhs)
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+inline DynamicState operator&(DynamicState lhs, DynamicState rhs)
+{
+    using T = std::underlying_type_t<DynamicState>;
+    return static_cast<DynamicState>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+inline DynamicState& operator&=(DynamicState& lhs, DynamicState rhs)
+{
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+inline DynamicState operator<<(DynamicState lhs, int rhs)
+{
+    using T = std::underlying_type_t<DynamicState>;
+    return static_cast<DynamicState>(static_cast<T>(lhs) << rhs);
+}
 
 enum class BufferUsage : uint32_t
 {
@@ -423,6 +459,174 @@ struct FramebufferInfo
     Texture2DHandle  depth_buffer_handle{ NULL_HANDLE };
     Texture2DHandle  render_target_handles[rend::constants::max_framebuffer_attachments]{ NULL_HANDLE };
     size_t           render_target_handles_count{ 0 };
+};
+
+struct VertexBindingInfo
+{
+    uint32_t index{ 0 };
+    uint32_t stride{ 0 };
+};
+
+struct VertexAttributeInfo
+{
+    uint32_t           shader_location{ 0 };
+    uint32_t           offset{ 0 };
+    VertexBindingInfo* binding{ nullptr };
+    rend::Format       format{ rend::Format::R32G32B32_SFLOAT };
+};
+
+struct ViewportInfo
+{
+    float x{ 0 };
+    float y{ 0 };
+    float width{ 0.0f };
+    float height{ 0.0f };
+    float min_depth{ 0.0f };
+    float max_depth{ 0.0f };
+};
+
+struct RasteriserInfo
+{
+    rend::PolygonMode polygon_mode{ rend::PolygonMode::FILL };
+    rend::CullMode    cull_mode{ rend::CullMode::BACK };
+    rend::FrontFace   front_face{ rend::FrontFace::CCW };
+    float       constant_factor{ 0.0f };
+    float       clamp{ 0.0f };
+    float       slope_factor{ 0.0f };
+    float       line_width{ 1.0f };
+    bool        depth_clamp_enabled{ false };
+    bool        rasteriser_discard_enabled{ false };
+    bool        depth_bias_enabled{ false };
+
+};
+
+struct MultisamplingInfo
+{
+    MSAASamples sample_count{ MSAASamples::MSAA_1X };
+    float       min_sample_shading{ 0.0f };
+    uint32_t    sample_mask{ 1 };
+    bool        sample_shading_enabled{ false };
+    bool        alpha_to_coverage_enabled{ false };
+    bool        alpha_to_one{ false };
+};
+
+struct DepthStencilInfo
+{
+    bool depth_test_enabled{ true };
+    bool depth_write_enabled{ true };
+    CompareOp compare_op{ CompareOp::LESS };
+    bool depth_bounds_test_enabled{ false };
+    bool stencil_test_enabled{ false };
+    StencilOp front_stencil_fail_op{ StencilOp::KEEP };
+    StencilOp front_stencil_success_op{ StencilOp::REPLACE };
+    StencilOp front_stencil_depth_fail_op{ StencilOp::KEEP };
+    CompareOp front_stencil_compare_op{ CompareOp::ALWAYS };
+    uint32_t  front_stencil_compare_mask{ 1 };
+    uint32_t  front_stencil_write_mask{ 1 };
+    uint32_t  front_stencil_reference { 0 };
+    StencilOp back_stencil_fail_op{ StencilOp::KEEP };
+    StencilOp back_stencil_success_op{ StencilOp::REPLACE };
+    StencilOp back_stencil_depth_fail_op{ StencilOp::KEEP };
+    CompareOp back_stencil_compare_op{ CompareOp::ALWAYS };
+    uint32_t  back_stencil_compare_mask{ 1 };
+    uint32_t  back_stencil_write_mask{ 1 };
+    uint32_t  back_stencil_reference { 0 };
+    float     min_depth_bound{ 0.0f };
+    float     max_depth_bound{ 1.0f };
+};
+
+struct ColourBlendAttachment
+{
+    bool blend_enabled{ false };
+    uint32_t colour_write_mask{ 1 };
+    BlendFactor colour_src_factor{ BlendFactor::SRC_ALPHA };
+    BlendFactor colour_dst_factor{ BlendFactor::ONE_MINUS_SRC_ALPHA };
+    BlendOp     colour_blend_op{ BlendOp::ADD };
+    BlendFactor alpha_src_factor{ BlendFactor::ONE };
+    BlendFactor alpha_dst_factor{ BlendFactor::ZERO };
+    BlendOp     alpha_blend_op{ BlendOp::ADD };
+};
+
+struct ColourBlendingInfo
+{
+    bool                  logic_op_enabled{ false };
+    LogicOp               logic_op{ LogicOp::NO_OP }; 
+    float                 blend_constants[constants::max_blend_constants];
+    ColourBlendAttachment blend_attachments[constants::max_framebuffer_attachments];
+    size_t                blend_attachments_count{ 0 };
+};
+
+struct PipelineInfo
+{
+    ShaderHandle        shaders[(uint32_t)ShaderType::COUNT];
+    VertexBindingInfo   vertex_binding_info{};
+    VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
+    size_t              vertex_attribute_info_count{ 0 };
+
+    // Input Assembly State
+    Topology topology{ Topology::TRIANGLE_LIST };
+    bool     primitive_restart{ false };
+
+    // Tessellation State
+    uint32_t patch_control_points{ 0 };
+
+    ViewportInfo      viewport_info{};
+    ViewportInfo      scissor_info{};
+    RasteriserInfo    rasteriser_info{};
+    MultisamplingInfo multisampling_info{};
+    DepthStencilInfo  depth_stencil_info{};
+
+    // Colour Blend State
+    ColourBlendingInfo colour_blending_info{};
+
+    // Dynamic State
+    DynamicStates dynamic_states{ (uint32_t)DynamicState::NONE };
+};
+
+
+struct BufferBufferCopyInfo
+{
+    size_t size_bytes;
+    size_t src_offset;
+    size_t dst_offset;
+};
+
+struct BufferImageCopyInfo
+{
+    size_t      buffer_offset{ 0 };
+    size_t      buffer_width{ 0 };
+    size_t      buffer_height{ 0 };
+    size_t      image_offset_x{ 0 };
+    size_t      image_offset_y{ 0 };
+    size_t      image_offset_z{ 0 };
+    size_t      image_width{ 0 };
+    size_t      image_height{ 0 };
+    size_t      image_depth{ 0 };
+    ImageLayout image_layout{ ImageLayout::UNDEFINED };
+    size_t      mip_level{ 0 };
+    size_t      base_layer{ 0 };
+    size_t      layer_count{ 0 };
+};
+
+struct ImageMemoryBarrier
+{
+    MemoryAccesses src_accesses{ MemoryAccess::NO_ACCESS };
+    MemoryAccesses dst_accesses{ MemoryAccess::NO_ACCESS } ;
+    ImageLayout    old_layout{ ImageLayout::UNDEFINED };
+    ImageLayout    new_layout{ ImageLayout::UNDEFINED };
+    TextureHandle  image_handle{ NULL_HANDLE };
+    uint32_t       mip_level_count{ 0 };
+    uint32_t       base_mip_level{ 0 };
+    uint32_t       layers_count{ 0 };
+    uint32_t       base_layer{ 0 };
+};
+
+struct PipelineBarrierInfo
+{
+    PipelineStages      src_stages{};
+    PipelineStages      dst_stages{};
+    ImageMemoryBarrier* image_memory_barriers{ nullptr };
+    size_t              image_memory_barrier_count{ 0 };
 };
 
 }
