@@ -1,4 +1,4 @@
-#include "semaphore.h"
+#include "vulkan_semaphore.h"
 
 #include "device_context.h"
 #include "logical_device.h"
