@@ -491,6 +491,14 @@ struct PushConstantRange
     size_t       size{ 0 };
 };
 
+struct PipelineLayoutInfo
+{
+    const DescriptorSetLayoutHandle* descriptor_set_layouts{ nullptr };
+    uint32_t                         descriptor_set_layout_count{ 0 };
+    const PushConstantRange*         push_constant_ranges{ nullptr };
+    uint32_t                         push_constant_range_count{ 0 };
+};
+
 struct VertexBindingInfo
 {
     uint32_t index{ 0 };
