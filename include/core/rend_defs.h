@@ -476,6 +476,14 @@ struct FramebufferInfo
     size_t           render_target_handles_count{ 0 };
 };
 
+struct DescriptorSetLayoutBinding
+{
+    uint32_t       binding{ 0 };
+    DescriptorType descriptor_type;
+    size_t         descriptor_count{ 0 };
+    ShaderStages   shader_stages{ 0 };
+};
+
 struct VertexBindingInfo
 {
     uint32_t index{ 0 };
