@@ -19,16 +19,16 @@ public:
     Shader& operator=(const Shader&) = delete;
     Shader& operator=(Shader&&)      = delete;
 
-    bool create(const void* code, uint32_t size_bytes, ShaderType type);
+    bool create(const void* code, uint32_t size_bytes, ShaderStage type);
     void destroy(void);
 
     ShaderHandle get_handle(void) const;
-    ShaderType   get_type(void) const;
+    ShaderStage   get_type(void) const;
 
 private:
     ShaderHandle _handle{ NULL_HANDLE };
     size_t       _bytes{ 0 };
-    ShaderType   _type{ ShaderType::VERTEX };
+    ShaderStage  _type{ ShaderStage::SHADER_STAGE_NONE };
 };
 
 }

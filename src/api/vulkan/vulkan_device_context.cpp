@@ -242,7 +242,7 @@ TextureHandle VulkanDeviceContext::create_texture(uint32_t width, uint32_t heigh
     return handle;
 }
 
-ShaderHandle VulkanDeviceContext::create_shader(const ShaderType type, const void* code, const size_t bytes)
+ShaderHandle VulkanDeviceContext::create_shader(const ShaderStage type, const void* code, const size_t bytes)
 {
     UU(type);
 

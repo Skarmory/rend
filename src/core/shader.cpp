@@ -6,7 +6,7 @@
 
 using namespace rend;
 
-bool Shader::create(const void* code, const uint32_t size_bytes, ShaderType type)
+bool Shader::create(const void* code, const uint32_t size_bytes, ShaderStage type)
 {
     assert(_handle == NULL_HANDLE && "Attempt to create a Shader that has already been created.");
 
@@ -36,7 +36,7 @@ ShaderHandle Shader::get_handle(void) const
     return _handle;
 }
 
-ShaderType Shader::get_type(void) const
+ShaderStage Shader::get_type(void) const
 {
     return _type;
 }

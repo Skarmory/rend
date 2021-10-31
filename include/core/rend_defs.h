@@ -91,12 +91,18 @@ enum class MSAASamples
     MSAA_64X
 };
 
-enum class ShaderType
+enum ShaderStage
 {
-    VERTEX,
-    FRAGMENT,
-    COUNT
+    SHADER_STAGE_NONE                    = 0,
+    SHADER_STAGE_VERTEX                  = BIT(0),
+    SHADER_STAGE_TESSELLATION_CONTROL    = BIT(1),
+    SHADER_STAGE_TESSELLATION_EVALUATION = BIT(2),
+    SHADER_STAGE_GEOMETRY                = BIT(3),
+    SHADER_STAGE_FRAGMENT                = BIT(4),
+    SHADER_STAGE_COMPUTE                 = BIT(5),
+    SHADER_STAGE_COUNT                   = 6
 };
+typedef uint32_t ShaderStages;
 
 enum class LoadOp
 {
@@ -596,7 +602,10 @@ struct ColourBlendingInfo
 
 struct PipelineInfo
 {
-    ShaderHandle        shaders[(uint32_t)ShaderType::COUNT];
+    // Shader State
+    ShaderHandle        shaders[(uint32_t)ShaderStage::SHADER_STAGE_COUNT];
+
+    // Vertex Input State
     VertexBindingInfo   vertex_binding_info{};
     VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
     size_t              vertex_attribute_info_count{ 0 };

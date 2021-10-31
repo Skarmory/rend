@@ -44,7 +44,7 @@ public:
     [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
     [[nodiscard]] TextureHandle       create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage) override;
-    [[nodiscard]] ShaderHandle        create_shader(const ShaderType type, const void* code, const size_t bytes) override;
+    [[nodiscard]] ShaderHandle              create_shader(const ShaderStage type, const void* code, const size_t bytes) override;
     [[nodiscard]] FramebufferHandle   create_framebuffer(const FramebufferInfo& info) override;
     [[nodiscard]] RenderPassHandle    create_render_pass(const RenderPassInfo& info) override;
     [[nodiscard]] PipelineHandle      create_pipeline(const PipelineInfo& info) override;

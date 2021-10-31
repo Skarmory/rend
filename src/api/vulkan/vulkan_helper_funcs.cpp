@@ -111,12 +111,17 @@ VkFormat vulkan_helpers::convert_format(Format format)
     return VK_FORMAT_MAX_ENUM;
 }
 
-VkShaderStageFlags vulkan_helpers::convert_shader_stage(ShaderType type)
+VkShaderStageFlags vulkan_helpers::convert_shader_stage(ShaderStage type)
 {
     switch(type)
     {
-        case ShaderType::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderType::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderStage::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::TESSELLATION_CONTROL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderStage::TESSELLATION_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderStage::GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderStage::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::NO_SHADER_STAGE: return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
     }
 
     return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
