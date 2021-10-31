@@ -484,6 +484,13 @@ struct DescriptorSetLayoutBinding
     ShaderStages   shader_stages{ 0 };
 };
 
+struct PushConstantRange
+{
+    ShaderStages shader_stages;
+    uint32_t     offset{ 0 };
+    size_t       size{ 0 };
+};
+
 struct VertexBindingInfo
 {
     uint32_t index{ 0 };
