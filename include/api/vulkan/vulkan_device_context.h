@@ -31,7 +31,6 @@ public:
     VulkanDeviceContext& operator=(VulkanDeviceContext&&)      = delete;
 
     PhysicalDevice*                         gpu(void) const;
-    //rend::vkal::memory::GPUMemoryInterface* memory_interface(void) const;
     LogicalDevice*                          get_device(void) const;
 
     StatusCode create(void) override;
@@ -40,17 +39,17 @@ public:
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 
-    [[nodiscard]] VertexBufferHandle  create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
-    [[nodiscard]] IndexBufferHandle   create_index_buffer(uint32_t indices_count, size_t index_size) override;
-    [[nodiscard]] UniformBufferHandle create_uniform_buffer(size_t bytes);
-    [[nodiscard]] TextureHandle       create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage) override;
+    [[nodiscard]] VertexBufferHandle        create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
+    [[nodiscard]] IndexBufferHandle         create_index_buffer(uint32_t indices_count, size_t index_size) override;
+    [[nodiscard]] UniformBufferHandle       create_uniform_buffer(size_t bytes);
+    [[nodiscard]] TextureHandle             create_texture(uint32_t width, uint32_t height, uint32_t depth, uint32_t mips, uint32_t layers, Format format, MSAASamples samples, ImageUsage usage) override;
     [[nodiscard]] ShaderHandle              create_shader(const ShaderStage type, const void* code, const size_t bytes) override;
-    [[nodiscard]] FramebufferHandle   create_framebuffer(const FramebufferInfo& info) override;
-    [[nodiscard]] RenderPassHandle    create_render_pass(const RenderPassInfo& info) override;
-    [[nodiscard]] PipelineHandle      create_pipeline(const PipelineInfo& info) override;
-    [[nodiscard]] CommandPoolHandle   create_command_pool(void) override;
-    [[nodiscard]] CommandBufferHandle create_command_buffer(CommandPoolHandle pool_handle) override;
-    [[nodiscard]] Texture2DHandle     register_swapchain_image(VkImage swapchain_image, VkFormat format);
+    [[nodiscard]] FramebufferHandle         create_framebuffer(const FramebufferInfo& info) override;
+    [[nodiscard]] RenderPassHandle          create_render_pass(const RenderPassInfo& info) override;
+    [[nodiscard]] PipelineHandle            create_pipeline(const PipelineInfo& info) override;
+    [[nodiscard]] CommandPoolHandle         create_command_pool(void) override;
+    [[nodiscard]] CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) override;
+    [[nodiscard]] Texture2DHandle           register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
     void destroy_texture(TextureHandle handle) override;
@@ -68,15 +67,15 @@ public:
     void copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info) override;
     void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) override;
 
-    VkBuffer       get_buffer(VertexBufferHandle handle) const;
-    VkImage        get_image(TextureHandle handle) const;
-    VkImageView    get_image_view(TextureHandle handle) const;
-    VkSampler      get_sampler(TextureHandle handle) const;
-    VkDeviceMemory get_memory(HandleType handle) const;
-    VkShaderModule get_shader(const ShaderHandle handle) const;
-    VkFramebuffer  get_framebuffer(const FramebufferHandle handle) const;
-    VkRenderPass   get_render_pass(const RenderPassHandle handle) const;
-    VkCommandBuffer get_command_buffer(const CommandBufferHandle handle) const;
+    VkBuffer         get_buffer(VertexBufferHandle handle) const;
+    VkImage          get_image(TextureHandle handle) const;
+    VkImageView      get_image_view(TextureHandle handle) const;
+    VkSampler        get_sampler(TextureHandle handle) const;
+    VkDeviceMemory   get_memory(HandleType handle) const;
+    VkShaderModule   get_shader(const ShaderHandle handle) const;
+    VkFramebuffer    get_framebuffer(const FramebufferHandle handle) const;
+    VkRenderPass     get_render_pass(const RenderPassHandle handle) const;
+    VkCommandBuffer  get_command_buffer(const CommandBufferHandle handle) const;
 
 private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
@@ -94,17 +93,17 @@ private:
     PhysicalDevice*                          _chosen_gpu        { nullptr };
     uint16_t _data_array_unique_key{ 1 };
 
-    DataArray<VkBuffer>        _vk_buffers;
-    DataArray<VkImage>         _vk_images;
-    DataArray<VkImageView>     _vk_image_views;
-    DataArray<VkSampler>       _vk_samplers;
-    DataArray<VkDeviceMemory>  _vk_memorys;
-    DataArray<VkShaderModule>  _vk_shaders;
-    DataArray<VkFramebuffer>   _vk_framebuffers;
-    DataArray<VkRenderPass>    _vk_render_passes;
-    DataArray<VkPipeline>      _vk_pipelines;
-    DataArray<VkCommandPool>   _vk_command_pools;
-    DataArray<VkCommandBuffer> _vk_command_buffers;
+    DataArray<VkBuffer>              _vk_buffers;
+    DataArray<VkImage>               _vk_images;
+    DataArray<VkImageView>           _vk_image_views;
+    DataArray<VkSampler>             _vk_samplers;
+    DataArray<VkDeviceMemory>        _vk_memorys;
+    DataArray<VkShaderModule>        _vk_shaders;
+    DataArray<VkFramebuffer>         _vk_framebuffers;
+    DataArray<VkRenderPass>          _vk_render_passes;
+    DataArray<VkPipeline>            _vk_pipelines;
+    DataArray<VkCommandPool>         _vk_command_pools;
+    DataArray<VkCommandBuffer>       _vk_command_buffers;
 
     std::unordered_map<HandleType, MemoryHandle>           _handle_to_memory_handle;
     std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;

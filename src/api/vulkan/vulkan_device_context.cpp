@@ -37,11 +37,6 @@ PhysicalDevice* VulkanDeviceContext::gpu(void) const
     return _chosen_gpu;
 }
 
-//GPUMemoryInterface* VulkanDeviceContext::memory_interface(void) const
-//{
-//    return _memory_interface;
-//}
-
 LogicalDevice* VulkanDeviceContext::get_device(void) const
 {
     return _logical_device;
@@ -149,8 +144,6 @@ StatusCode VulkanDeviceContext::create_device(const VkQueueFlags desired_queues)
         return StatusCode::CONTEXT_DEVICE_CREATE_FAILURE;
     }
 
-    //_memory_interface = new GPUMemoryInterface;
-    //_memory_interface->create(*_chosen_gpu);
     _logical_device = _chosen_gpu->get_logical_device();
 
     return StatusCode::SUCCESS;
@@ -293,8 +286,7 @@ FramebufferHandle VulkanDeviceContext::create_framebuffer(const FramebufferInfo&
     create_info.height          = info.height;
     create_info.layers          = info.depth;
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    VkFramebuffer vk_framebuffer = ctx.get_device()->create_framebuffer(create_info);
+    VkFramebuffer vk_framebuffer = _logical_device->create_framebuffer(create_info);
     if(vk_framebuffer == VK_NULL_HANDLE)
     {
         return NULL_HANDLE;
@@ -447,8 +439,7 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     create_info.dependencyCount = static_cast<uint32_t>(info.subpasses_count + 1);
     create_info.pDependencies   = &vk_subpass_deps[0];
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    VkRenderPass vk_render_pass = ctx.get_device()->create_render_pass(create_info);
+    VkRenderPass vk_render_pass = _logical_device->create_render_pass(create_info);
     if(vk_render_pass == VK_NULL_HANDLE)
     {
         return NULL_HANDLE;

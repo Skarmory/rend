@@ -535,13 +535,13 @@ struct RasteriserInfo
     rend::PolygonMode polygon_mode{ rend::PolygonMode::FILL };
     rend::CullMode    cull_mode{ rend::CullMode::BACK };
     rend::FrontFace   front_face{ rend::FrontFace::CCW };
-    float       constant_factor{ 0.0f };
-    float       clamp{ 0.0f };
-    float       slope_factor{ 0.0f };
-    float       line_width{ 1.0f };
-    bool        depth_clamp_enabled{ false };
-    bool        rasteriser_discard_enabled{ false };
-    bool        depth_bias_enabled{ false };
+    float             clamp{ 0.0f };
+    float             depth_bias_constant_factor{ 0.0f };
+    float             depth_bias_slope_factor{ 0.0f };
+    float             line_width{ 1.0f };
+    bool              depth_bias_enabled{ false };
+    bool              depth_clamp_enabled{ false };
+    bool              discard_enabled{ false };
 
 };
 
@@ -557,11 +557,11 @@ struct MultisamplingInfo
 
 struct DepthStencilInfo
 {
-    bool depth_test_enabled{ true };
-    bool depth_write_enabled{ true };
+    bool      depth_test_enabled{ true };
+    bool      depth_write_enabled{ true };
     CompareOp compare_op{ CompareOp::LESS };
-    bool depth_bounds_test_enabled{ false };
-    bool stencil_test_enabled{ false };
+    bool      depth_bounds_test_enabled{ false };
+    bool      stencil_test_enabled{ false };
     StencilOp front_stencil_fail_op{ StencilOp::KEEP };
     StencilOp front_stencil_success_op{ StencilOp::REPLACE };
     StencilOp front_stencil_depth_fail_op{ StencilOp::KEEP };
@@ -582,8 +582,8 @@ struct DepthStencilInfo
 
 struct ColourBlendAttachment
 {
-    bool blend_enabled{ false };
-    uint32_t colour_write_mask{ 1 };
+    bool        blend_enabled{ false };
+    uint32_t    colour_write_mask{ 1 };
     BlendFactor colour_src_factor{ BlendFactor::SRC_ALPHA };
     BlendFactor colour_dst_factor{ BlendFactor::ONE_MINUS_SRC_ALPHA };
     BlendOp     colour_blend_op{ BlendOp::ADD };

@@ -51,7 +51,6 @@ VkImageViewType vulkan_helpers::find_image_view_type(VkImageType image_type, boo
         {
             return (cube && array ? VK_IMAGE_VIEW_TYPE_CUBE_ARRAY : (cube ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_3D));
         }
-        case VK_IMAGE_TYPE_RANGE_SIZE:
         case VK_IMAGE_TYPE_MAX_ENUM:
             return VK_IMAGE_VIEW_TYPE_MAX_ENUM;
     }
@@ -465,7 +464,6 @@ ImageLayout vulkan_helpers::convert_image_layout(VkImageLayout layout)
             std::cerr << "Unsupported VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
             assert("Invalid conversion" || true);
             return ImageLayout::UNDEFINED;
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:
         case VK_IMAGE_LAYOUT_MAX_ENUM:
             std::cerr << "Invalid VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
             assert("Invalid conversion" || true);
@@ -857,7 +855,6 @@ const char* vulkan_helpers::stringify(VkImageLayout layout)
         case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:                         return "VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR";
         case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:                    return "VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV";
         case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:           return "VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT";
-        case VK_IMAGE_LAYOUT_RANGE_SIZE:                                 return "VK_IMAGE_LAYOUT_RANGE_SIZE";
         case VK_IMAGE_LAYOUT_MAX_ENUM:                                   return "VK_IMAGE_LAYOUT_MAX_ENUM";
         default:                                                         return "Unknown VkImageLayout";
     }

@@ -9,11 +9,11 @@
 #include "logical_device.h"
 #include "rend_defs.h"
 #include "render_pass.h"
-#include "semaphore.h"
 #include "swapchain.h"
+#include "vulkan_device_context.h"
 #include "vulkan_helper_funcs.h"
 #include "vulkan_instance.h"
-#include "vulkan_device_context.h"
+#include "vulkan_semaphore.h"
 
 #include <assert.h>
 #include <cstring>

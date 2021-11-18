@@ -15,7 +15,6 @@ class Fence;
 class PhysicalDevice;
 class Semaphore;
 class Swapchain;
-enum class ShaderType;
 
 class LogicalDevice
 {

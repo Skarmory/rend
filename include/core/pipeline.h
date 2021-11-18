@@ -1,7 +1,6 @@
 #ifndef REND_PIPELINE_H
 #define REND_PIPELINE_H
 
-#include "rend_constants.h"
 #include "rend_defs.h"
 
 namespace rend
@@ -17,7 +16,7 @@ public:
     Pipeline& operator=(const Pipeline&) = delete;
     Pipeline& operator=(Pipeline&&) = delete;
 
-    void create(const PipelineInfo& info);
+    bool create(const PipelineInfo& info);
     void destroy(void);
 
     PipelineHandle handle(void) const;

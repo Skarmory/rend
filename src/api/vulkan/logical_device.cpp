@@ -3,8 +3,8 @@
 #include "physical_device.h"
 #include "command_buffer.h"
 #include "fence.h"
-#include "semaphore.h"
 #include "swapchain.h"
+#include "vulkan_semaphore.h"
 
 #include <array>
 #include <cassert>
