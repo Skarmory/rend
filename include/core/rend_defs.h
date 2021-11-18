@@ -131,20 +131,21 @@ enum class ImageLayout
 
 enum PipelineStage
 {
-    NO_STAGE                = 0,
-    TOP_OF_PIPE             = BIT(0),
-    DRAW_INDIRECT           = BIT(1),
-    VERTEX_INPUT            = BIT(2),
-    VERTEX_SHADER           = BIT(3),
-    TESSELLATION_CONTROL    = BIT(4),
-    TESSELLATION_EVALUATION = BIT(5),
-    GEOMETRY_SHADER         = BIT(6),
-    TRANSFORM_FEEDBACK      = BIT(7),
-    EARLY_FRAGMENT_TEST     = BIT(8),
-    FRAGMENT_SHADER         = BIT(9),
-    LATE_FRAGMENT_TEST      = BIT(10),
-    COLOUR_OUTPUT           = BIT(11),
-    BOTTOM_OF_PIPE          = BIT(12)
+    PIPELINE_STAGE_NONE                    = 0,
+    PIPELINE_STAGE_TOP_OF_PIPE             = BIT(0),
+    PIPELINE_STAGE_DRAW_INDIRECT           = BIT(1),
+    PIPELINE_STAGE_VERTEX_INPUT            = BIT(2),
+    PIPELINE_STAGE_VERTEX_SHADER           = BIT(3),
+    PIPELINE_STAGE_TESSELLATION_CONTROL    = BIT(4),
+    PIPELINE_STAGE_TESSELLATION_EVALUATION = BIT(5),
+    PIPELINE_STAGE_GEOMETRY_SHADER         = BIT(6),
+    PIPELINE_STAGE_TRANSFORM_FEEDBACK      = BIT(7),
+    PIPELINE_STAGE_EARLY_FRAGMENT_TEST     = BIT(8),
+    PIPELINE_STAGE_FRAGMENT_SHADER         = BIT(9),
+    PIPELINE_STAGE_LATE_FRAGMENT_TEST      = BIT(10),
+    PIPELINE_STAGE_COLOUR_OUTPUT           = BIT(11),
+    PIPELINE_STAGE_TRANSFER                = BIT(12),
+    PIPELINE_STAGE_BOTTOM_OF_PIPE          = BIT(13)
 };
 typedef uint32_t PipelineStages;
 

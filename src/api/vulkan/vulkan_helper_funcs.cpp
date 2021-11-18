@@ -223,20 +223,21 @@ VkPipelineStageFlagBits vulkan_helpers::convert_pipeline_stage(PipelineStage sta
 {
     switch(stage)
     {
-        case PipelineStage::NO_STAGE:                return static_cast<VkPipelineStageFlagBits>(0);
-        case PipelineStage::TOP_OF_PIPE:             return VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        case PipelineStage::DRAW_INDIRECT:           return VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-        case PipelineStage::VERTEX_INPUT:            return VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-        case PipelineStage::VERTEX_SHADER:           return VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        case PipelineStage::TESSELLATION_CONTROL:    return VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-        case PipelineStage::TESSELLATION_EVALUATION: return VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-        case PipelineStage::GEOMETRY_SHADER:         return VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-        case PipelineStage::TRANSFORM_FEEDBACK:      return VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;
-        case PipelineStage::EARLY_FRAGMENT_TEST:     return VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        case PipelineStage::FRAGMENT_SHADER:         return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        case PipelineStage::LATE_FRAGMENT_TEST:      return VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        case PipelineStage::COLOUR_OUTPUT:           return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        case PipelineStage::BOTTOM_OF_PIPE:          return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        case PipelineStage::PIPELINE_STAGE_NONE:                    return static_cast<VkPipelineStageFlagBits>(0);
+        case PipelineStage::PIPELINE_STAGE_TOP_OF_PIPE:             return VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        case PipelineStage::PIPELINE_STAGE_DRAW_INDIRECT:           return VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+        case PipelineStage::PIPELINE_STAGE_VERTEX_INPUT:            return VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+        case PipelineStage::PIPELINE_STAGE_VERTEX_SHADER:           return VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+        case PipelineStage::PIPELINE_STAGE_TESSELLATION_CONTROL:    return VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+        case PipelineStage::PIPELINE_STAGE_TESSELLATION_EVALUATION: return VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+        case PipelineStage::PIPELINE_STAGE_GEOMETRY_SHADER:         return VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+        case PipelineStage::PIPELINE_STAGE_TRANSFORM_FEEDBACK:      return VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;
+        case PipelineStage::PIPELINE_STAGE_EARLY_FRAGMENT_TEST:     return VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        case PipelineStage::PIPELINE_STAGE_FRAGMENT_SHADER:         return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        case PipelineStage::PIPELINE_STAGE_LATE_FRAGMENT_TEST:      return VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        case PipelineStage::PIPELINE_STAGE_COLOUR_OUTPUT:           return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        case PipelineStage::PIPELINE_STAGE_TRANSFER:                return VK_PIPELINE_STAGE_TRANSFER_BIT;
+        case PipelineStage::PIPELINE_STAGE_BOTTOM_OF_PIPE:          return VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     }
 
     return static_cast<VkPipelineStageFlagBits>(0);
