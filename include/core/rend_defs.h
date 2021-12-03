@@ -25,6 +25,7 @@ typedef HandleType RenderPassHandle;
 typedef HandleType PipelineHandle;
 typedef HandleType CommandPoolHandle;
 typedef HandleType CommandBufferHandle;
+typedef HandleType DescriptorPoolHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
@@ -230,6 +231,8 @@ enum class DescriptorType
     STORAGE_BUFFER_DYNAMIC,
     INPUT_ATTACHMENT
 };
+
+const uint32_t c_descriptor_types_count = static_cast<uint32_t>( DescriptorType::INPUT_ATTACHMENT ) + 1;
 
 enum class StencilOp
 {
@@ -675,6 +678,19 @@ struct PipelineBarrierInfo
     PipelineStages      dst_stages{};
     ImageMemoryBarrier* image_memory_barriers{ nullptr };
     size_t              image_memory_barrier_count{ 0 };
+};
+
+struct DescriptorPoolSize
+{
+    DescriptorType type;
+    uint32_t       count;
+};
+
+struct DescriptorPoolInfo
+{
+    DescriptorPoolSize* pool_sizes;
+    uint32_t            pool_sizes_count{ 0 };
+    uint32_t            max_sets{ 0 };
 };
 
 }

@@ -568,6 +568,31 @@ CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
     return pool_handle;
 }
 
+DescriptorPoolHandle VulkanDeviceContext::create_descriptor_pool(const DescriptorPoolInfo& info)
+{
+    VkDescriptorPoolSize vk_pool_sizes[c_descriptor_types_count];
+    for(int idx{ 0 }; idx < info.pool_sizes_count; ++idx)
+    {
+        vk_pool_sizes[idx].type            = vulkan_helpers::convert_descriptor_type(info.pool_sizes[idx].type);
+        vk_pool_sizes[idx].descriptorCount = info.pool_sizes[idx].count;
+    }
+
+    VkDescriptorPoolCreateInfo vk_info = vulkan_helpers::gen_descriptor_pool_create_info();
+    vk_info.maxSets = info.max_sets;
+    vk_info.pPoolSizes = vk_pool_sizes;
+    vk_info.poolSizeCount = info.pool_sizes_count;
+
+   VkDescriptorPool vk_pool = _logical_device->create_descriptor_pool(vk_info); 
+   if(vk_pool == VK_NULL_HANDLE)
+   {
+       return NULL_HANDLE;
+   }
+
+   DescriptorPoolHandle handle = _vk_descriptor_pools.allocate(vk_pool);
+
+   return handle;
+}
+
 CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
 {
     VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
@@ -588,6 +613,14 @@ void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_hand
     _logical_device->free_command_buffers(buffers, vk_pool);
 
     _vk_command_buffers.deallocate(buffer_handle);
+}
+
+void VulkanDeviceContext::destroy_descriptor_pool(DescriptorPoolHandle handle)
+{
+    VkDescriptorPool vk_pool = get_descriptor_pool(handle);
+    _logical_device->destroy_descriptor_pool(vk_pool);
+
+    _vk_descriptor_pools.deallocate(handle);
 }
 
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
@@ -873,6 +906,11 @@ VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handl
 VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
 {
     return *_vk_command_buffers.get(handle);
+}
+
+VkDescriptorPool VulkanDeviceContext::get_descriptor_pool(const DescriptorPoolHandle handle) const
+{
+    return *_vk_descriptor_pools.get(handle);
 }
 
 PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)

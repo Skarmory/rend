@@ -49,6 +49,7 @@ public:
     [[nodiscard]] PipelineHandle            create_pipeline(const PipelineInfo& info) override;
     [[nodiscard]] CommandPoolHandle         create_command_pool(void) override;
     [[nodiscard]] CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) override;
+    [[nodiscard]] DescriptorPoolHandle      create_descriptor_pool(const DescriptorPoolInfo& info) override;
     [[nodiscard]] Texture2DHandle           register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
@@ -59,6 +60,7 @@ public:
     void destroy_render_pass(RenderPassHandle handle) override;
     void destroy_pipeline(PipelineHandle handle) override;
     void destroy_command_buffer(CommandBufferHandle handle) override;
+    void destroy_descriptor_pool(DescriptorPoolHandle handle) override;
     void unregister_swapchain_image(TextureHandle swapchain_handle);
 
     void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) override;
@@ -76,6 +78,7 @@ public:
     VkFramebuffer    get_framebuffer(const FramebufferHandle handle) const;
     VkRenderPass     get_render_pass(const RenderPassHandle handle) const;
     VkCommandBuffer  get_command_buffer(const CommandBufferHandle handle) const;
+    VkDescriptorPool get_descriptor_pool(const DescriptorPoolHandle handle) const;
 
 private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
@@ -104,6 +107,7 @@ private:
     DataArray<VkPipeline>            _vk_pipelines;
     DataArray<VkCommandPool>         _vk_command_pools;
     DataArray<VkCommandBuffer>       _vk_command_buffers;
+    DataArray<VkDescriptorPool>      _vk_descriptor_pools;
 
     std::unordered_map<HandleType, MemoryHandle>           _handle_to_memory_handle;
     std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;
