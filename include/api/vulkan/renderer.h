@@ -6,8 +6,8 @@
 #include <vector>
 #include <vulkan.h>
 
-#include "rend_defs.h"
-#include "resource.h"
+#include "core/rend_defs.h"
+#include "core/resource.h"
 
 namespace rend
 {

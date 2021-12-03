@@ -1,7 +1,7 @@
 #ifndef REND_PHYSICAL_DEVICE_H
 #define REND_PHYSICAL_DEVICE_H
 
-#include "queue_family.h"
+#include "api/vulkan/queue_family.h"
 
 #include <vulkan.h>
 #include <vector>

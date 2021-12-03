@@ -1,6 +1,6 @@
-#include "mem_alloc.h"
+#include "api/vulkan/mem_alloc.h"
 
-#include "mem_allocator.h"
+#include "api/vulkan/mem_allocator.h"
 
 using namespace rend;
 using namespace rend::vkal;

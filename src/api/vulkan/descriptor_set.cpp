@@ -1,11 +1,12 @@
-#include "descriptor_set.h"
+#include "api/vulkan/descriptor_set.h"
 
-#include "device_context.h"
-#include "gpu_buffer.h"
-#include "gpu_texture.h"
-#include "logical_device.h"
-#include "vulkan_device_context.h"
-#include "vulkan_helper_funcs.h"
+#include "core/device_context.h"
+#include "core/gpu_buffer.h"
+#include "core/gpu_texture.h"
+
+#include "api/vulkan/logical_device.h"
+#include "api/vulkan/vulkan_device_context.h"
+#include "api/vulkan/vulkan_helper_funcs.h"
 
 #include <iostream>
 

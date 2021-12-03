@@ -1,11 +1,12 @@
-#include "rend.h"
+#include "core/rend.h"
 
-#include "device_context.h"
-#include "vulkan_device_context.h"
-#include "vulkan_instance.h"
-#include "window.h"
-#include "window_context.h"
+#include "core/device_context.h"
+#include "api/vulkan/vulkan_device_context.h"
+#include "api/vulkan/vulkan_instance.h"
+#include "core/window.h"
+#include "core/window_context.h"
 
+#include <iostream>
 #include <vector>
 
 void rend::init_rend(Window& window)

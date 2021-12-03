@@ -1,8 +1,8 @@
 #ifndef REND_GPU_TEXTURE_H
 #define REND_GPU_TEXTURE_H
 
-#include "gpu_resource.h"
-#include "rend_defs.h"
+#include "core/gpu_resource.h"
+#include "core/rend_defs.h"
 
 #include <cstdint>
 

@@ -1,10 +1,8 @@
-#include "framebuffer.h"
+#include "core/framebuffer.h"
 
-#include "device_context.h"
-#include "gpu_texture.h"
-#include "logical_device.h"
-#include "render_pass.h"
-#include "vulkan_device_context.h"
+#include "core/device_context.h"
+#include "core/gpu_texture.h"
+#include "core/render_pass.h"
 
 #include <cassert>
 

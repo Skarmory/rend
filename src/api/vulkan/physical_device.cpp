@@ -1,9 +1,10 @@
-#include "physical_device.h"
+#include "api/vulkan/physical_device.h"
 
-#include "device_context.h"
-#include "logical_device.h"
-#include "window.h"
-#include "window_context.h"
+#include "core/device_context.h"
+#include "core/window.h"
+#include "core/window_context.h"
+
+#include "api/vulkan/logical_device.h"
 
 #include <cassert>
 

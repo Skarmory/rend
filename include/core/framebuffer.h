@@ -1,8 +1,8 @@
 #ifndef REND_FRAME_BUFFER_H
 #define REND_FRAME_BUFFER_H
 
-#include "rend_constants.h"
-#include "rend_defs.h"
+#include "core/rend_constants.h"
+#include "core/rend_defs.h"
 
 namespace rend
 {

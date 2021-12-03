@@ -1,6 +1,6 @@
-#include "window_context.h"
+#include "core/window_context.h"
 
-#include "window.h"
+#include "core/window.h"
 
 using namespace rend;
 

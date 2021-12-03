@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #ifdef GLFW_WINDOW
-#include "glfw_window.h"
+#include "core/glfw_window.h"
 #endif
 
 namespace rend

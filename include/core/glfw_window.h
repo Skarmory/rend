@@ -2,8 +2,8 @@
 #ifndef REND_GLFW_WINDOW_H
 #define REND_GLFW_WINDOW_H
 
-#include "rend_defs.h"
-#include "window_base.h"
+#include "core/rend_defs.h"
+#include "core/window_base.h"
 
 #include <vulkan.h>
 

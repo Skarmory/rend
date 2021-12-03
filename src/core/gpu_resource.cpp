@@ -1,4 +1,4 @@
-#include "gpu_resource.h"
+#include "core/gpu_resource.h"
 
 GPUResource::GPUResource(void)
     : _bytes(0)

@@ -1,6 +1,6 @@
-#include "gpu_buffer.h"
+#include "core/gpu_buffer.h"
 
-#include "device_context.h"
+#include "core/device_context.h"
 
 using namespace rend;
 

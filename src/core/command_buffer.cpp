@@ -1,10 +1,12 @@
 #include "core/command_buffer.h"
 
 #include "core/device_context.h"
+#include "core/framebuffer.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
 #include "core/pipeline.h"
 #include "core/rend_defs.h"
+#include "core/render_pass.h"
 
 #include <iostream>
 

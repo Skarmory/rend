@@ -1,10 +1,11 @@
-#include "logical_device.h"
+#include "api/vulkan/logical_device.h"
 
-#include "physical_device.h"
-#include "command_buffer.h"
-#include "fence.h"
-#include "swapchain.h"
-#include "vulkan_semaphore.h"
+#include "core/command_buffer.h"
+
+#include "api/vulkan/fence.h"
+#include "api/vulkan/physical_device.h"
+#include "api/vulkan/swapchain.h"
+#include "api/vulkan/vulkan_semaphore.h"
 
 #include <array>
 #include <cassert>

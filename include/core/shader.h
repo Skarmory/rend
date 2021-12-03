@@ -1,7 +1,7 @@
 #ifndef REND_SHADER_H
 #define REND_SHADER_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
 
 #include <cstddef>
 #include <cstdint>

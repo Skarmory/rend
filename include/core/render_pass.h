@@ -1,7 +1,7 @@
 #ifndef REND_RENDERPASS_H
 #define REND_RENDERPASS_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
 
 namespace rend
 {

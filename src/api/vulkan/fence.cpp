@@ -1,9 +1,9 @@
-#include "fence.h"
+#include "api/vulkan/fence.h"
 
-#include "device_context.h"
-#include "logical_device.h"
-#include "vulkan_helper_funcs.h"
-#include "vulkan_device_context.h"
+#include "core/device_context.h"
+#include "api/vulkan/logical_device.h"
+#include "api/vulkan/vulkan_helper_funcs.h"
+#include "api/vulkan/vulkan_device_context.h"
 
 #include <cassert>
 

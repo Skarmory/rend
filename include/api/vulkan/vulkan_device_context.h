@@ -1,10 +1,10 @@
 #ifndef REND_VULKAN_DEVICE_CONTEXT_H
 #define REND_VULKAN_DEVICE_CONTEXT_H
 
-#include "data_array.h"
-#include "device_context.h"
-#include "rend_defs.h"
-#include "resource.h"
+#include "core/device_context.h"
+#include "core/rend_defs.h"
+#include "core/data_structures/data_array.h"
+//#include "resource.h"
 
 #include <unordered_map>
 #include <vulkan.h>

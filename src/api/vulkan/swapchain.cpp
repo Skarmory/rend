@@ -1,14 +1,15 @@
-#include "swapchain.h"
+#include "api/vulkan/swapchain.h"
 
-#include "device_context.h"
-#include "fence.h"
-#include "physical_device.h"
-#include "logical_device.h"
-#include "semaphore.h"
-#include "window.h"
-#include "window_context.h"
-#include "vulkan_helper_funcs.h"
-#include "vulkan_device_context.h"
+#include "core/device_context.h"
+#include "core/window.h"
+#include "core/window_context.h"
+
+#include "api/vulkan/fence.h"
+#include "api/vulkan/physical_device.h"
+#include "api/vulkan/logical_device.h"
+#include "api/vulkan/vulkan_semaphore.h"
+#include "api/vulkan/vulkan_helper_funcs.h"
+#include "api/vulkan/vulkan_device_context.h"
 
 #include <cassert>
 #include <limits>

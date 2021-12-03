@@ -1,8 +1,9 @@
 #ifndef REND_LOGICAL_DEVICE_H
 #define REND_LOGICAL_DEVICE_H
 
-#include "queue_family.h"
-#include "rend_defs.h"
+#include "core/rend_defs.h"
+
+#include "api/vulkan/queue_family.h"
 
 #include <vulkan.h>
 #include <vector>

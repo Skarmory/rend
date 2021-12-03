@@ -1,11 +1,11 @@
-#include "vulkan_device_context.h"
+#include "api/vulkan/vulkan_device_context.h"
 
-#include "gpu_memory_interface.h"
-#include "logical_device.h"
-#include "physical_device.h"
-#include "window.h"
-#include "vulkan_helper_funcs.h"
-#include "vulkan_instance.h"
+#include "core/window.h"
+
+#include "api/vulkan/logical_device.h"
+#include "api/vulkan/physical_device.h"
+#include "api/vulkan/vulkan_helper_funcs.h"
+#include "api/vulkan/vulkan_instance.h"
 
 #include <cassert>
 #include <GLFW/glfw3.h>

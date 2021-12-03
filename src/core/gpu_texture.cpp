@@ -1,6 +1,6 @@
-#include "gpu_texture.h"
+#include "core/gpu_texture.h"
 
-#include "device_context.h"
+#include "core/device_context.h"
 
 using namespace rend;
 

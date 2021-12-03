@@ -1,7 +1,7 @@
 #ifndef REND_SEMAPHORE_H
 #define REND_SEMAPHORE_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
 
 #include <vulkan.h>
 

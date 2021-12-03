@@ -4,8 +4,9 @@
 #include <vulkan.h>
 #include <vector>
 
-#include "queue_family.h"
-#include "rend_defs.h"
+#include "core/rend_defs.h"
+
+#include "api/vulkan/queue_family.h"
 
 namespace rend
 {

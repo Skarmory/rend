@@ -1,7 +1,7 @@
 #ifndef REND_VULKAN_INSTANCE_H
 #define REND_VULKAN_INSTANCE_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
 
 #include <vector>
 #include <vulkan.h>

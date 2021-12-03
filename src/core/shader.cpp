@@ -1,6 +1,6 @@
-#include "shader.h"
+#include "core/shader.h"
 
-#include "device_context.h"
+#include "core/device_context.h"
 
 #include <cassert>
 

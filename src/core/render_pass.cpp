@@ -1,7 +1,6 @@
-#include "render_pass.h"
+#include "core/render_pass.h"
 
-#include "device_context.h"
-#include "logical_device.h"
+#include "core/device_context.h"
 
 #include <cassert>
 

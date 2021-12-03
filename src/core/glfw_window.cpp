@@ -1,6 +1,6 @@
-#include "glfw_window.h"
+#include "core/glfw_window.h"
 
-#include "vulkan_instance.h"
+#include "api/vulkan/vulkan_instance.h"
 
 #include <GLFW/glfw3.h>
 
