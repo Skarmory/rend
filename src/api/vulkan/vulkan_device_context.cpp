@@ -593,6 +593,37 @@ DescriptorPoolHandle VulkanDeviceContext::create_descriptor_pool(const Descripto
    return handle;
 }
 
+DescriptorSetLayoutHandle VulkanDeviceContext::create_descriptor_set_layout(const DescriptorSetLayoutInfo& info)
+{
+    std::vector<VkDescriptorSetLayoutBinding> vk_descriptor_set_layout_bindings;
+
+    for(size_t idx{0}; idx < info.layout_bindings_count; ++idx)
+    {
+        VkDescriptorSetLayoutBinding vk_descriptor_set_layout_binding{};
+        vk_descriptor_set_layout_binding.binding            = info.layout_bindings[idx].binding;
+        vk_descriptor_set_layout_binding.descriptorType     = vulkan_helpers::convert_descriptor_type(info.layout_bindings[idx].descriptor_type);
+        vk_descriptor_set_layout_binding.descriptorCount    = info.layout_bindings[idx].descriptor_count;
+        vk_descriptor_set_layout_binding.stageFlags         = info.layout_bindings[idx].shader_stages;
+        vk_descriptor_set_layout_binding.pImmutableSamplers = nullptr;
+
+        vk_descriptor_set_layout_bindings.push_back(vk_descriptor_set_layout_binding);
+    }
+
+    VkDescriptorSetLayoutCreateInfo create_info = vulkan_helpers::gen_descriptor_set_layout_create_info();
+    create_info.pBindings = vk_descriptor_set_layout_bindings.data();
+    create_info.bindingCount = info.layout_bindings_count;
+
+    VkDescriptorSetLayout vk_descriptor_set_layout = _logical_device->create_descriptor_set_layout(create_info);
+    if(vk_descriptor_set_layout == VK_NULL_HANDLE)
+    {
+        return NULL_HANDLE;
+    }
+
+    DescriptorSetLayoutHandle layout_handle = _vk_descriptor_set_layouts.allocate(vk_descriptor_set_layout);
+
+    return layout_handle;
+}
+
 CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
 {
     VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
@@ -621,6 +652,14 @@ void VulkanDeviceContext::destroy_descriptor_pool(DescriptorPoolHandle handle)
     _logical_device->destroy_descriptor_pool(vk_pool);
 
     _vk_descriptor_pools.deallocate(handle);
+}
+
+void VulkanDeviceContext::destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle)
+{
+    VkDescriptorSetLayout vk_layout = *_vk_descriptor_set_layouts.get(handle);
+    _logical_device->destroy_descriptor_set_layout(vk_layout);
+
+    _vk_descriptor_set_layouts.deallocate(handle);
 }
 
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
@@ -906,6 +945,11 @@ VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handl
 VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
 {
     return *_vk_command_buffers.get(handle);
+}
+
+VkDescriptorSetLayout VulkanDeviceContext::get_descriptor_set_layout(const DescriptorSetLayoutHandle handle) const
+{
+    return *_vk_descriptor_set_layouts.get(handle);
 }
 
 VkDescriptorPool VulkanDeviceContext::get_descriptor_pool(const DescriptorPoolHandle handle) const

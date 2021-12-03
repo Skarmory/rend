@@ -26,6 +26,7 @@ typedef HandleType PipelineHandle;
 typedef HandleType CommandPoolHandle;
 typedef HandleType CommandBufferHandle;
 typedef HandleType DescriptorPoolHandle;
+typedef HandleType DescriptorSetLayoutHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
@@ -492,6 +493,12 @@ struct DescriptorSetLayoutBinding
     DescriptorType descriptor_type;
     size_t         descriptor_count{ 0 };
     ShaderStages   shader_stages{ 0 };
+};
+
+struct DescriptorSetLayoutInfo
+{
+    const DescriptorSetLayoutBinding* layout_bindings{ nullptr };
+    uint32_t                          layout_bindings_count{ 0 };
 };
 
 struct PushConstantRange
