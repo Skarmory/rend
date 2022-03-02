@@ -450,9 +450,39 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     return handle;
 }
 
-PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
+PipelineLayoutHandle VulkanDeviceContext::create_pipeline_layout(const PipelineLayoutInfo& info)
 {
-    VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
+    std::vector<VkDescriptorSetLayout> vk_descriptor_set_layouts;
+    vk_descriptor_set_layouts.reserve(info.descriptor_set_layout_count);
+
+    for(size_t idx{0}; idx < info.descriptor_set_layout_count; ++idx)
+    {
+        vk_descriptor_set_layouts.push_back(get_descriptor_set_layout(info.descriptor_set_layouts[idx]));
+    }
+
+    std::vector<VkPushConstantRange> vk_push_constant_ranges;
+    vk_push_constant_ranges.reserve(info.push_constant_range_count);
+
+    for(size_t idx{0}; idx < info.push_constant_range_count; ++idx)
+    {
+        vk_push_constant_ranges.push_back(vulkan_helpers::convert_push_constant_range(info.push_constant_ranges[idx]));
+    }
+
+    VkPipelineLayoutCreateInfo pipeline_layout_create_info = vulkan_helpers::gen_pipeline_layout_create_info();
+    pipeline_layout_create_info.setLayoutCount         = info.descriptor_set_layout_count;
+    pipeline_layout_create_info.pSetLayouts            = vk_descriptor_set_layouts.data();
+    pipeline_layout_create_info.pushConstantRangeCount = info.push_constant_range_count;
+    pipeline_layout_create_info.pPushConstantRanges    = vk_push_constant_ranges.data();
+
+    VkPipelineLayout pipeline_layout = _logical_device->create_pipeline_layout(pipeline_layout_create_info);
+    if(pipeline_layout == VK_NULL_HANDLE)
+    {
+        return NULL_HANDLE;
+    }
+
+    PipelineLayoutHandle handle = _vk_pipeline_layouts.allocate(pipeline_layout);
+    return handle;
+}
 
     // Shader stages
     VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<int>(ShaderType::COUNT)];
@@ -774,6 +804,13 @@ void VulkanDeviceContext::destroy_render_pass(RenderPassHandle handle)
     _vk_render_passes.deallocate(handle);
 }
 
+void VulkanDeviceContext::destroy_pipeline_layout(PipelineLayoutHandle handle)
+{
+    VkPipelineLayout pipeline_layout = *_vk_pipeline_layouts.get(handle);
+    _logical_device->destroy_pipeline_layout(pipeline_layout);
+    _vk_pipeline_layouts.deallocate(handle);
+}
+
 void VulkanDeviceContext::destroy_pipeline(PipelineHandle handle)
 {
     VkPipeline pipeline = *_vk_pipelines.get(handle);
@@ -945,6 +982,11 @@ VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handl
 VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
 {
     return *_vk_command_buffers.get(handle);
+}
+
+VkPipelineLayout VulkanDeviceContext::get_pipeline_layout(const PipelineLayoutHandle handle) const
+{
+    return *_vk_pipeline_layouts.get(handle);
 }
 
 VkDescriptorSetLayout VulkanDeviceContext::get_descriptor_set_layout(const DescriptorSetLayoutHandle handle) const

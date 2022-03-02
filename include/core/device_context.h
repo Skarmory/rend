@@ -26,6 +26,7 @@ public:
     [[nodiscard]] virtual ShaderHandle              create_shader(const ShaderStage type, const void* code, const size_t bytes) = 0;
     [[nodiscard]] virtual FramebufferHandle         create_framebuffer(const FramebufferInfo& info) = 0;
     [[nodiscard]] virtual RenderPassHandle          create_render_pass(const RenderPassInfo& info) = 0;
+    [[nodiscard]] virtual PipelineLayoutHandle      create_pipeline_layout(const PipelineLayoutInfo& info) = 0;
     [[nodiscard]] virtual PipelineHandle            create_pipeline(const PipelineInfo& info) = 0;
     [[nodiscard]] virtual CommandPoolHandle         create_command_pool(void) = 0;
     [[nodiscard]] virtual CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) = 0;
@@ -37,6 +38,7 @@ public:
     virtual void destroy_shader(ShaderHandle handle) = 0;
     virtual void destroy_framebuffer(FramebufferHandle handle) = 0;
     virtual void destroy_render_pass(RenderPassHandle handle) = 0;
+    virtual void destroy_pipeline_layout(PipelineLayoutHandle handle) = 0;
     virtual void destroy_pipeline(PipelineHandle handle) = 0;
     virtual void destroy_command_buffer(CommandBufferHandle handle) = 0;
     virtual void destroy_descriptor_pool(DescriptorPoolHandle handle) = 0;

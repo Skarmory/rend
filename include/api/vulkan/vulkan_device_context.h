@@ -46,6 +46,7 @@ public:
     [[nodiscard]] ShaderHandle              create_shader(const ShaderStage type, const void* code, const size_t bytes) override;
     [[nodiscard]] FramebufferHandle         create_framebuffer(const FramebufferInfo& info) override;
     [[nodiscard]] RenderPassHandle          create_render_pass(const RenderPassInfo& info) override;
+    [[nodiscard]] PipelineLayoutHandle      create_pipeline_layout(const PipelineLayoutInfo& info) override;
     [[nodiscard]] PipelineHandle            create_pipeline(const PipelineInfo& info) override;
     [[nodiscard]] CommandPoolHandle         create_command_pool(void) override;
     [[nodiscard]] CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) override;
@@ -59,6 +60,7 @@ public:
     void destroy_shader(ShaderHandle handle) override;
     void destroy_framebuffer(FramebufferHandle handle) override;
     void destroy_render_pass(RenderPassHandle handle) override;
+    void destroy_pipeline_layout(PipelineLayoutHandle handle) override;
     void destroy_pipeline(PipelineHandle handle) override;
     void destroy_command_buffer(CommandBufferHandle handle) override;
     void destroy_descriptor_pool(DescriptorPoolHandle handle) override;
@@ -80,6 +82,7 @@ public:
     VkFramebuffer    get_framebuffer(const FramebufferHandle handle) const;
     VkRenderPass     get_render_pass(const RenderPassHandle handle) const;
     VkCommandBuffer  get_command_buffer(const CommandBufferHandle handle) const;
+    VkPipelineLayout get_pipeline_layout(const PipelineLayoutHandle handle) const;
     VkDescriptorSetLayout get_descriptor_set_layout(const DescriptorSetLayoutHandle handle) const;
     VkDescriptorPool get_descriptor_pool(const DescriptorPoolHandle handle) const;
 
