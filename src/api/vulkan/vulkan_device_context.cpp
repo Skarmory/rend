@@ -830,7 +830,7 @@ void VulkanDeviceContext::destroy_descriptor_set(DescriptorSetHandle descriptor_
     DescriptorPoolHandle pool_handle = _descriptor_set_handle_to_descriptor_pool_handle.at(descriptor_set_handle);
 
     VkDescriptorSet  vk_descriptor_set = get_descriptor_set(descriptor_set_handle);
-    VkDescriptorPool vk_pool = get_decriptor_pool(pool_handle);
+    VkDescriptorPool vk_pool = get_descriptor_pool(pool_handle);
 
     _logical_device->free_descriptor_sets(&vk_descriptor_set, 1, vk_pool);
 
