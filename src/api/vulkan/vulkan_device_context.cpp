@@ -1190,6 +1190,64 @@ void VulkanDeviceContext::end_render_pass(const CommandBufferHandle command_buff
     vkCmdEndRenderPass(vk_command_buffer);
 }
 
+void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding)
+{
+    VkDescriptorSet vk_set = get_descriptor_set(handle);
+
+    VkWriteDescriptorSet write_desc = {};
+    write_desc.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write_desc.pNext            = nullptr;
+    write_desc.dstSet           = vk_set;
+    write_desc.dstBinding       = binding.slot;
+    write_desc.dstArrayElement  = 0;
+    write_desc.descriptorCount  = 1;
+    write_desc.descriptorType   = vulkan_helpers::convert_descriptor_type(binding.type);
+
+    // TODO update this to be able to write multiple
+
+    switch(binding.type)
+    {
+        case DescriptorType::COMBINED_IMAGE_SAMPLER:
+        case DescriptorType::SAMPLED_IMAGE:
+        {
+            GPUTexture* texture = static_cast<GPUTexture*>(binding.resource);
+
+            VkDescriptorImageInfo vk_image_info{};
+
+            vk_image_info.sampler = get_sampler(texture->get_handle());
+            vk_image_info.imageView = get_image_view(texture->get_handle());
+            vk_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            write_desc.pImageInfo = &vk_image_info;
+
+            _logical_device->update_descriptor_sets( &write_desc, 1 );
+
+            break;
+        }
+
+        case DescriptorType::UNIFORM_BUFFER:
+        {
+            GPUBuffer* buffer = static_cast<GPUBuffer*>(binding.resource);
+
+            VkDescriptorBufferInfo vk_buffer_info{};
+            vk_buffer_info.buffer  = get_buffer(buffer->get_handle());
+            vk_buffer_info.offset = 0;
+            vk_buffer_info.range   = buffer->bytes();
+
+            write_desc.pBufferInfo = &vk_buffer_info;
+
+            _logical_device->update_descriptor_sets( &write_desc, 1 );
+
+            break;
+        }
+        default:
+        {
+            //std::cerr << "Update descriptor sets error: descriptor type " << vulkan_helpers::stringify(binding.type) << " is not supported (yet)." << std::endl;
+            break;
+        }
+    }
+}
+
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
 {
     return *_vk_buffers.get(handle);

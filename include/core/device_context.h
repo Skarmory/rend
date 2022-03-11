@@ -62,6 +62,8 @@ public:
     virtual void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil ) = 0;
     virtual void end_render_pass(const CommandBufferHandle command_buffer_handle) = 0;
 
+    virtual void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) = 0;
+
 protected:
     static DeviceContext* _service;
 };

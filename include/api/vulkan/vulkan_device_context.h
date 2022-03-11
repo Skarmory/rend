@@ -78,6 +78,8 @@ public:
     void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil );
     void end_render_pass(const CommandBufferHandle command_buffer_handle);
 
+    void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) override;
+
     VkBuffer         get_buffer(VertexBufferHandle handle) const;
     VkImage          get_image(TextureHandle handle) const;
     VkImageView      get_image_view(TextureHandle handle) const;
