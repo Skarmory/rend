@@ -52,6 +52,7 @@ public:
     [[nodiscard]] CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) override;
     [[nodiscard]] DescriptorPoolHandle      create_descriptor_pool(const DescriptorPoolInfo& info) override;
     [[nodiscard]] DescriptorSetLayoutHandle create_descriptor_set_layout(const DescriptorSetLayoutInfo& info) override;
+    [[nodiscard]] DescriptorSetHandle       create_descriptor_set(const DescriptorSetInfo& info) override;
     [[nodiscard]] Texture2DHandle           register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
@@ -65,6 +66,7 @@ public:
     void destroy_command_buffer(CommandBufferHandle handle) override;
     void destroy_descriptor_pool(DescriptorPoolHandle handle) override;
     void destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle) override;
+    void destroy_descriptor_set(DescriptorSetHandle handle) override;
     void unregister_swapchain_image(TextureHandle swapchain_handle);
 
     void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) override;
@@ -84,6 +86,7 @@ public:
     VkCommandBuffer  get_command_buffer(const CommandBufferHandle handle) const;
     VkPipelineLayout get_pipeline_layout(const PipelineLayoutHandle handle) const;
     VkDescriptorSetLayout get_descriptor_set_layout(const DescriptorSetLayoutHandle handle) const;
+    VkDescriptorSet get_descriptor_set(const DescriptorSetHandle handle) const;
     VkDescriptorPool get_descriptor_pool(const DescriptorPoolHandle handle) const;
 
 private:
@@ -114,14 +117,14 @@ private:
     DataArray<VkCommandPool>         _vk_command_pools;
     DataArray<VkCommandBuffer>       _vk_command_buffers;
     DataArray<VkDescriptorSetLayout> _vk_descriptor_set_layouts;
+    DataArray<VkDescriptorSet>       _vk_descriptor_sets;
     DataArray<VkDescriptorPool>      _vk_descriptor_pools;
 
     std::unordered_map<HandleType, MemoryHandle>           _handle_to_memory_handle;
     std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;
     std::unordered_map<Texture2DHandle, SamplerHandle>     _texture_handle_to_sampler_handle;
     std::unordered_map<CommandBufferHandle, HandleType>    _buffer_handle_to_pool_handle;
-
-    //HandleType _vk_command_pools_thread_lookup[32];
+    std::unordered_map<DescriptorSetHandle, DescriptorPoolHandle> _descriptor_set_handle_to_descriptor_pool_handle;
 };
 
 }

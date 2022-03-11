@@ -11,6 +11,8 @@
 namespace rend
 {
 
+class DescriptorSet;
+
 class DeviceContext
 {
 public:
@@ -32,6 +34,7 @@ public:
     [[nodiscard]] virtual CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) = 0;
     [[nodiscard]] virtual DescriptorPoolHandle      create_descriptor_pool(const DescriptorPoolInfo& info) = 0;
     [[nodiscard]] virtual DescriptorSetLayoutHandle create_descriptor_set_layout(const DescriptorSetLayoutInfo& info) = 0;
+    [[nodiscard]] virtual DescriptorSetHandle       create_descriptor_set(const DescriptorSetInfo& info) = 0;
 
     virtual void destroy_buffer(BufferHandle handle) = 0;
     virtual void destroy_texture(Texture2DHandle handle ) = 0;
@@ -43,6 +46,7 @@ public:
     virtual void destroy_command_buffer(CommandBufferHandle handle) = 0;
     virtual void destroy_descriptor_pool(DescriptorPoolHandle handle) = 0;
     virtual void destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle) = 0;
+    virtual void destroy_descriptor_set(DescriptorSetHandle handle) = 0;
 
     // Command Buffer functions
     virtual void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) = 0;

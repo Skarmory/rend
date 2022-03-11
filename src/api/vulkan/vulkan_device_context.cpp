@@ -1,5 +1,6 @@
 #include "api/vulkan/vulkan_device_context.h"
 
+#include "core/descriptor_set.h"
 #include "core/window.h"
 
 #include "api/vulkan/logical_device.h"
@@ -654,6 +655,25 @@ DescriptorSetLayoutHandle VulkanDeviceContext::create_descriptor_set_layout(cons
     return layout_handle;
 }
 
+DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorSetInfo& info)
+{
+    VkDescriptorPool vk_pool = get_descriptor_pool(info.pool_handle);
+    VkDescriptorSetLayout vk_layout = get_descriptor_set_layout(info.layout_handle);
+
+    std::vector<VkDescriptorSet> vk_descriptor_sets = _logical_device->allocate_descriptor_sets( &vk_layout, 1, vk_pool);
+
+    if(vk_descriptor_sets.empty())
+    {
+        return NULL_HANDLE;
+    }
+
+    DescriptorSetHandle handle = _vk_descriptor_sets.allocate(vk_descriptor_sets[9]);
+
+    _descriptor_set_handle_to_descriptor_pool_handle[handle] = info.pool_handle;
+    
+    return handle;
+}
+
 CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
 {
     VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
@@ -690,6 +710,25 @@ void VulkanDeviceContext::destroy_descriptor_set_layout(DescriptorSetLayoutHandl
     _logical_device->destroy_descriptor_set_layout(vk_layout);
 
     _vk_descriptor_set_layouts.deallocate(handle);
+}
+
+//TODO: Update to handle multiple
+void VulkanDeviceContext::destroy_descriptor_set(DescriptorSetHandle descriptor_set_handle)
+{
+    auto it = _descriptor_set_handle_to_descriptor_pool_handle.find(descriptor_set_handle);
+    if(it == _descriptor_set_handle_to_descriptor_pool_handle.end())
+    {
+        return;
+    }
+
+    DescriptorPoolHandle pool_handle = _descriptor_set_handle_to_descriptor_pool_handle.at(descriptor_set_handle);
+
+    VkDescriptorSet  vk_descriptor_set = get_descriptor_set(descriptor_set_handle);
+    VkDescriptorPool vk_pool = get_decriptor_pool(pool_handle);
+
+    _logical_device->free_descriptor_sets(&vk_descriptor_set, 1, vk_pool);
+
+    _descriptor_set_handle_to_descriptor_pool_handle.erase(descriptor_set_handle);
 }
 
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
@@ -992,6 +1031,11 @@ VkPipelineLayout VulkanDeviceContext::get_pipeline_layout(const PipelineLayoutHa
 VkDescriptorSetLayout VulkanDeviceContext::get_descriptor_set_layout(const DescriptorSetLayoutHandle handle) const
 {
     return *_vk_descriptor_set_layouts.get(handle);
+}
+
+VkDescriptorSet VulkanDeviceContext::get_descriptor_set(const DescriptorSetHandle handle) const
+{
+    return *_vk_descriptor_sets.get(handle);
 }
 
 VkDescriptorPool VulkanDeviceContext::get_descriptor_pool(const DescriptorPoolHandle handle) const
