@@ -32,7 +32,12 @@ void rend::init_rend(Window& window)
 	vk_instance.create(extensions.data(), extensions.size(), layers.data(), layers.size());
 
 	auto& window_context = WindowContext::instance();
-	window.create_window();
+	if(!window.create_window())
+    {
+        std::cerr << "Failed to create window!" << std::endl;
+        std::abort();
+    }
+
 	window_context.set_window(&window);
 
 	DeviceContext* ctx = new VulkanDeviceContext;
