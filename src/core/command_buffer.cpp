@@ -101,6 +101,13 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     ctx.copy_buffer_to_image(_handle, src.get_handle(), dst.get_handle(), info);
 }
 
+void CommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.push_constant(_handle, layout.handle(), stages, offset, size, data);
+    _recorded = true;
+}
+
 void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout)
 {
     ImageMemoryBarrier image_memory_barrier{};

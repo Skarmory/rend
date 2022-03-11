@@ -35,6 +35,7 @@ public:
     void bind_index_buffer(const GPUBuffer& index_buffer);
     void copy(const GPUBuffer& src, const GPUBuffer& dst);
     void copy(const GPUBuffer& src, const GPUTexture& dst);
+    void push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data);
     void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
     void reset(void);
 

@@ -1124,6 +1124,15 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
     );
 }
 
+void VulkanDeviceContext::push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, size_t size, const void* data)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+    VkPipelineLayout vk_layout = get_pipeline_layout(layout_handle);
+    VkShaderStageFlags shader_stage_flags = vulkan_helpers::convert_shader_stages(stages);
+
+    vkCmdPushConstants(vk_command_buffer, vk_layout, shader_stage_flags, offset, static_cast<uint32_t>(size), data);
+}
+
 // TODO: Figure out max viewports
 // TODO: Support first viewport
 void VulkanDeviceContext::set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count)
