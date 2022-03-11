@@ -5,6 +5,7 @@
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
 #include "core/pipeline.h"
+#include "core/pipeline_layout.h"
 #include "core/rend_defs.h"
 #include "core/render_pass.h"
 
@@ -40,6 +41,13 @@ bool CommandBuffer::recorded(void) const
 CommandBufferHandle CommandBuffer::handle(void) const
 {
     return _handle;
+}
+
+void CommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, DescriptorSet* descriptor_sets, size_t descriptor_sets_count)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.bind_descriptor_sets(_handle, bind_point, pipeline_layout.handle(), descriptor_sets, descriptor_sets_count);
+    _recorded = true;
 }
 
 void CommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline)

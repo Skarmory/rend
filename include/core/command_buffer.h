@@ -6,9 +6,13 @@
 namespace rend
 {
 
+class DescriptorSet;
+class Framebuffer;
 class GPUBuffer;
 class GPUTexture;
 class Pipeline;
+class PipelineLayout;
+class RenderPass;
 
 class CommandBuffer
 {
@@ -25,6 +29,7 @@ public:
     CommandBufferHandle handle(void) const;
     bool recorded(void) const;
 
+    void bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, DescriptorSet* descriptor_sets, size_t descriptor_sets_count);
     void bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline);
     void bind_vertex_buffer(const GPUBuffer& vertex_buffer);
     void bind_index_buffer(const GPUBuffer& index_buffer);

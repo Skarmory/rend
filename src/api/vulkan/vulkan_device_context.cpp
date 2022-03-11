@@ -980,6 +980,27 @@ void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_h
     _vk_images.deallocate(swapchain_handle);
 }
 
+void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count)
+{
+    //TODO: Figure out a good array size
+    const int c_descriptor_set_max = 16;
+
+    assert(descriptor_set_count <= c_descriptor_set_max);
+    assert(descriptor_set_count > 0);
+
+    VkCommandBuffer vk_command_buffer   = *_vk_command_buffers.get(command_buffer_handle);
+    VkPipelineBindPoint vk_bind_point   = vulkan_helpers::convert_pipeline_bind_point(bind_point);
+    VkPipelineLayout vk_pipeline_layout = get_pipeline_layout(pipeline_handle);
+
+    VkDescriptorSet vk_descriptor_sets[c_descriptor_set_max];
+    for(int i = 0; i < descriptor_set_count; ++i)
+    {
+        vk_descriptor_sets[i] = get_descriptor_set(descriptor_set->handle());
+    }
+
+    vkCmdBindDescriptorSets(vk_command_buffer, vk_bind_point, vk_pipeline_layout, 0, static_cast<uint32_t>(descriptor_set_count), vk_descriptor_sets, 0, nullptr);
+}
+
 void VulkanDeviceContext::bind_pipeline(CommandBufferHandle buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle)
 {
     VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(buffer_handle);

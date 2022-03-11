@@ -49,6 +49,7 @@ public:
     virtual void destroy_descriptor_set(DescriptorSetHandle handle) = 0;
 
     // Command Buffer functions
+    virtual void bind_descriptor_sets(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count);
     virtual void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) = 0;
     virtual void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
     virtual void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;

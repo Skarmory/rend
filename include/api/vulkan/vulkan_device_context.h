@@ -64,6 +64,8 @@ public:
     void destroy_descriptor_set(DescriptorSetHandle handle) override;
     void unregister_swapchain_image(TextureHandle swapchain_handle);
 
+    // Command Buffer
+    void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count) override;
     void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) override;
     void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
     void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
