@@ -12,7 +12,7 @@ StatusCode Framebuffer::create(const FramebufferInfo& info)
 {
     assert(_handle == NULL_HANDLE && "Attempt to create a Framebuffer that has already been created.");
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = DeviceContext::instance();
     _handle = ctx.create_framebuffer(info);
     if(_handle == NULL_HANDLE)
     {
@@ -26,7 +26,7 @@ StatusCode Framebuffer::create(const FramebufferInfo& info)
 
 void Framebuffer::destroy(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = DeviceContext::instance();
     ctx.destroy_framebuffer(_handle);
 
     _handle = NULL_HANDLE;
