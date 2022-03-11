@@ -75,6 +75,8 @@ public:
     void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) override;
     void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) override;
     void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) override;
+    void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil );
+    void end_render_pass(const CommandBufferHandle command_buffer_handle);
 
     VkBuffer         get_buffer(VertexBufferHandle handle) const;
     VkImage          get_image(TextureHandle handle) const;

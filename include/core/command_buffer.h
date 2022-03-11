@@ -41,6 +41,9 @@ public:
     void set_viewport(const ViewportInfo* viewport_infos, size_t viewport_infos_count);
     void set_scissor(const ViewportInfo* scissor_infos, size_t scissor_infos_count);
 
+    void begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil);
+    void end_render_pass(void);
+
 private:
     CommandBufferHandle _handle{ NULL_HANDLE };
     bool _recorded{ false };

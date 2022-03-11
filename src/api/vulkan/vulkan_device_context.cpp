@@ -1159,6 +1159,37 @@ void VulkanDeviceContext::set_scissor(const CommandBufferHandle command_buffer_h
     vkCmdSetScissor(vk_command_buffer, 0, infos_count, &vk_scissors[0]);
 }
 
+void VulkanDeviceContext::begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil )
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    VkClearValue vk_clear_values[2];
+    vk_clear_values[0].color        = { clear_colour.r, clear_colour.g, clear_colour.b, clear_colour.a };
+    vk_clear_values[1].depthStencil = { clear_depth_stencil.depth, clear_depth_stencil.stencil };
+
+    VkRect2D vk_render_area{};
+    vk_render_area.extent.width  = render_area.w;
+    vk_render_area.extent.height = render_area.h;
+
+    // TODO Get clear values from Framebuffer per attachment
+    VkRenderPassBeginInfo vk_render_pass_begin_info{};
+    vk_render_pass_begin_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+    vk_render_pass_begin_info.pNext           = nullptr,
+    vk_render_pass_begin_info.renderPass      = get_render_pass(render_pass_handle),
+    vk_render_pass_begin_info.framebuffer     = get_framebuffer(framebuffer_handle),
+    vk_render_pass_begin_info.renderArea      = vk_render_area,
+    vk_render_pass_begin_info.clearValueCount = 2,
+    vk_render_pass_begin_info.pClearValues    = vk_clear_values;
+
+    vkCmdBeginRenderPass(vk_command_buffer, &vk_render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void VulkanDeviceContext::end_render_pass(const CommandBufferHandle command_buffer_handle)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+    vkCmdEndRenderPass(vk_command_buffer);
+}
+
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
 {
     return *_vk_buffers.get(handle);

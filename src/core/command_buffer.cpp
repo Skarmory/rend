@@ -188,3 +188,16 @@ void CommandBuffer::set_scissor(const ViewportInfo* scissor_infos, size_t scisso
     _recorded = true;
 }
 
+void CommandBuffer::begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.begin_render_pass(_handle, render_pass.handle(), framebuffer.handle(), render_area, clear_colour, clear_depth_stencil);
+    _recorded = true;
+}
+
+void CommandBuffer::end_render_pass(void)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.end_render_pass(_handle);
+    _recorded = true;
+}

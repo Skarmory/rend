@@ -59,6 +59,8 @@ public:
     virtual void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) = 0;
     virtual void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
     virtual void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
+    virtual void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil ) = 0;
+    virtual void end_render_pass(const CommandBufferHandle command_buffer_handle) = 0;
 
 protected:
     static DeviceContext* _service;
