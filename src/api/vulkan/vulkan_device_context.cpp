@@ -796,8 +796,9 @@ void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_hand
     VkCommandBuffer vk_buffer = *_vk_command_buffers.get(buffer_handle);
 
     std::vector<VkCommandBuffer> buffers{ vk_buffer };
-    _logical_device->free_command_buffers(buffers, vk_pool);
 
+    _logical_device->free_command_buffers(buffers, vk_pool);
+    _handle_to_memory_handle.erase(buffer_handle);
     _vk_command_buffers.deallocate(buffer_handle);
 }
 
