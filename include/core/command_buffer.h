@@ -26,6 +26,8 @@ public:
     bool recorded(void) const;
 
     void bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline);
+    void bind_vertex_buffer(const GPUBuffer& vertex_buffer);
+    void bind_index_buffer(const GPUBuffer& index_buffer);
     void copy(const GPUBuffer& src, const GPUBuffer& dst);
     void copy(const GPUBuffer& src, const GPUTexture& dst);
     void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);

@@ -49,6 +49,20 @@ void CommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& 
     _recorded = true;
 }
 
+void CommandBuffer::bind_vertex_buffer(const GPUBuffer& vertex_buffer)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.bind_vertex_buffer(_handle, vertex_buffer.get_handle());
+    _recorded = true;
+}
+
+void CommandBuffer::bind_index_buffer(const GPUBuffer& index_buffer)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.bind_index_buffer(_handle, index_buffer.get_handle());
+    _recorded = true;
+}
+
 void CommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst)
 {
 #ifdef DEBUG

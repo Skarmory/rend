@@ -1,6 +1,8 @@
 #include "api/vulkan/vulkan_device_context.h"
 
 #include "core/descriptor_set.h"
+#include "core/gpu_buffer.h"
+#include "core/gpu_texture.h"
 #include "core/window.h"
 
 #include "api/vulkan/logical_device.h"
@@ -984,6 +986,28 @@ void VulkanDeviceContext::bind_pipeline(CommandBufferHandle buffer_handle, Pipel
     VkPipeline      vk_pipeline = *_vk_pipelines.get(pipeline_handle);
 
     vkCmdBindPipeline(vk_command_buffer, vulkan_helpers::convert_pipeline_bind_point(bind_point), vk_pipeline);
+}
+
+void VulkanDeviceContext::bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle)
+{
+    //TODO: Update to bind more than 1 buffer
+    //TODO: Handle non-0 offsets
+    //TODO: Handle non-0 first binding
+    VkDeviceSize offset = 0;
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkBuffer vk_vertex_buffer = get_buffer(handle);
+
+    vkCmdBindVertexBuffers(vk_command_buffer, 0, 1, &vk_vertex_buffer, &offset);
+}
+
+void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle)
+{
+    //TODO: Handle non-0 offsets
+    VkDeviceSize offset = 0;
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkBuffer vk_index_buffer = get_buffer(handle);
+
+    vkCmdBindIndexBuffer(vk_command_buffer, vk_index_buffer, offset, VK_INDEX_TYPE_UINT32);
 }
 
 void VulkanDeviceContext::command_buffer_reset(CommandBufferHandle command_buffer_handle)
