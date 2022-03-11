@@ -57,6 +57,8 @@ public:
     virtual void copy_buffer_to_buffer(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, BufferHandle dst_buffer_handle, const BufferBufferCopyInfo& info) = 0;
     virtual void copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info) = 0;
     virtual void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) = 0;
+    virtual void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
+    virtual void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
 
 protected:
     static DeviceContext* _service;

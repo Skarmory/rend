@@ -1123,6 +1123,42 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
     );
 }
 
+// TODO: Figure out max viewports
+// TODO: Support first viewport
+void VulkanDeviceContext::set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    VkViewport vk_viewports[4];
+    for(size_t i{0}; i < infos_count; ++i)
+    {
+        vk_viewports[i].x        = infos[i].x;
+        vk_viewports[i].y        = infos[i].y;
+        vk_viewports[i].width    = infos[i].width;
+        vk_viewports[i].height   = infos[i].height;
+        vk_viewports[i].minDepth = infos[i].min_depth;
+        vk_viewports[i].maxDepth = infos[i].max_depth;
+    }
+
+    vkCmdSetViewport(vk_command_buffer, 0, infos_count, &vk_viewports[0]);
+}
+
+void VulkanDeviceContext::set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    VkRect2D vk_scissors[4];
+    for(size_t i{0}; i < infos_count; ++i)
+    {
+        vk_scissors[i].offset.x      = infos[i].x;
+        vk_scissors[i].offset.y      = infos[i].y;
+        vk_scissors[i].extent.width  = infos[i].width;
+        vk_scissors[i].extent.height = infos[i].height;
+    }
+
+    vkCmdSetScissor(vk_command_buffer, 0, infos_count, &vk_scissors[0]);
+}
+
 VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
 {
     return *_vk_buffers.get(handle);

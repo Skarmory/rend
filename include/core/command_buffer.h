@@ -38,6 +38,9 @@ public:
     void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
     void reset(void);
 
+    void set_viewport(const ViewportInfo* viewport_infos, size_t viewport_infos_count);
+    void set_scissor(const ViewportInfo* scissor_infos, size_t scissor_infos_count);
+
 private:
     CommandBufferHandle _handle{ NULL_HANDLE };
     bool _recorded{ false };

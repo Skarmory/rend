@@ -173,3 +173,18 @@ void CommandBuffer::reset(void)
     auto& ctx = DeviceContext::instance();
     ctx.command_buffer_reset(_handle);
 }
+
+void CommandBuffer::set_viewport(const ViewportInfo* viewport_infos, size_t viewport_infos_count)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.set_viewport(_handle, viewport_infos, viewport_infos_count);
+    _recorded = true;
+}
+
+void CommandBuffer::set_scissor(const ViewportInfo* scissor_infos, size_t scissor_infos_count)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.set_scissor(_handle, scissor_infos, scissor_infos_count);
+    _recorded = true;
+}
+
