@@ -270,6 +270,16 @@ VkPipelineStageFlags vulkan_helpers::convert_pipeline_stages(PipelineStages stag
     return ret_flags;
 }
 
+VkPushConstantRange vulkan_helpers::convert_push_constant_range(PushConstantRange push_constant_range)
+{
+    VkPushConstantRange vk_push_constant_range{};
+    vk_push_constant_range.stageFlags = convert_shader_stages(push_constant_range.shader_stages);
+    vk_push_constant_range.offset     = push_constant_range.offset;
+    vk_push_constant_range.size       = push_constant_range.size;
+
+    return vk_push_constant_range;
+}
+
 VkPrimitiveTopology vulkan_helpers::convert_topology(Topology topology)
 {
     switch(topology)

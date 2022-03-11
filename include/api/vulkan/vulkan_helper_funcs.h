@@ -27,6 +27,7 @@ VkAccessFlags           convert_memory_accesses(MemoryAccesses accesses);
 VkPipelineBindPoint     convert_pipeline_bind_point(PipelineBindPoint bind_point);
 VkPipelineStageFlagBits convert_pipeline_stage(PipelineStage stage);
 VkPipelineStageFlags    convert_pipeline_stages(PipelineStages stages);
+VkPushConstantRange     convert_push_constant_range(PushConstantRange push_constant_range);
 VkPrimitiveTopology     convert_topology(Topology topology);
 VkPolygonMode           convert_polygon_mode(PolygonMode mode);
 VkFrontFace             convert_front_face(FrontFace face);
