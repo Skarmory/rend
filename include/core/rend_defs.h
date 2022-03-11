@@ -26,6 +26,7 @@ typedef HandleType PipelineHandle;
 typedef HandleType CommandPoolHandle;
 typedef HandleType CommandBufferHandle;
 typedef HandleType DescriptorPoolHandle;
+typedef HandleType DescriptorSetHandle;
 typedef HandleType DescriptorSetLayoutHandle;
 typedef HandleType PipelineLayoutHandle;
 typedef HandleType PipelineHandle;
@@ -731,9 +732,24 @@ struct DescriptorPoolSize
 
 struct DescriptorPoolInfo
 {
-    DescriptorPoolSize* pool_sizes;
+    DescriptorPoolSize* pool_sizes{ nullptr };
     uint32_t            pool_sizes_count{ 0 };
     uint32_t            max_sets{ 0 };
+};
+
+struct DescriptorSetBinding
+{
+    uint32_t             slot;
+    rend::DescriptorType type;
+    void*                resource;
+};
+
+struct DescriptorSetInfo
+{
+    DescriptorPoolHandle         pool_handle{ NULL_HANDLE };
+    DescriptorSetLayoutHandle    layout_handle{ NULL_HANDLE };
+    rend::DescriptorSetBinding*  bindings{ nullptr };
+    uint32_t                     bindings_count{ 0 };
 };
 
 }
