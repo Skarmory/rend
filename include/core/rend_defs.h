@@ -27,6 +27,8 @@ typedef HandleType CommandPoolHandle;
 typedef HandleType CommandBufferHandle;
 typedef HandleType DescriptorPoolHandle;
 typedef HandleType DescriptorSetLayoutHandle;
+typedef HandleType PipelineLayoutHandle;
+typedef HandleType PipelineHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
@@ -426,6 +428,28 @@ inline ImageUsage operator<<(ImageUsage lhs, int rhs)
 
 // Data structs (no functions)
 
+struct RGBA
+{
+    float r{ 0.0f };
+    float g{ 0.0f };
+    float b{ 0.0f };
+    float a{ 1.0f };
+};
+
+typedef RGBA ColourClear;
+
+struct DepthStencilClear
+{
+    float    depth{ 0.0f };
+    uint32_t stencil{ 0 };
+};
+
+struct RenderArea
+{
+    int w;
+    int h;
+};
+
 struct Synchronisation
 {
     PipelineStages stages;
@@ -545,7 +569,7 @@ struct RasteriserInfo
     rend::PolygonMode polygon_mode{ rend::PolygonMode::FILL };
     rend::CullMode    cull_mode{ rend::CullMode::BACK };
     rend::FrontFace   front_face{ rend::FrontFace::CCW };
-    float             clamp{ 0.0f };
+    float             depth_bias_clamp{ 0.0f };
     float             depth_bias_constant_factor{ 0.0f };
     float             depth_bias_slope_factor{ 0.0f };
     float             line_width{ 1.0f };
@@ -562,7 +586,7 @@ struct MultisamplingInfo
     uint32_t    sample_mask{ 1 };
     bool        sample_shading_enabled{ false };
     bool        alpha_to_coverage_enabled{ false };
-    bool        alpha_to_one{ false };
+    bool        alpha_to_one_enabled{ false };
 };
 
 struct DepthStencilInfo
@@ -628,10 +652,19 @@ struct PipelineInfo
     // Tessellation State
     uint32_t patch_control_points{ 0 };
 
-    ViewportInfo      viewport_info{};
-    ViewportInfo      scissor_info{};
+    // Viewport State
+    ViewportInfo      viewport_info[constants::max_viewports];
+    size_t            viewport_info_count{ 0 };
+    ViewportInfo      scissor_info[constants::max_scissors];
+    size_t            scissor_info_count{ 0 };
+
+    // Rasteristion State
     RasteriserInfo    rasteriser_info{};
+
+    // Multisampling State
     MultisamplingInfo multisampling_info{};
+
+    // Depth Stencil State
     DepthStencilInfo  depth_stencil_info{};
 
     // Colour Blend State
@@ -639,8 +672,11 @@ struct PipelineInfo
 
     // Dynamic State
     DynamicStates dynamic_states{ (uint32_t)DynamicState::NONE };
-};
 
+    PipelineLayoutHandle layout_handle{ NULL_HANDLE };
+    RenderPassHandle     render_pass_handle{ NULL_HANDLE };
+    int32_t subpass{ 0 };
+};
 
 struct BufferBufferCopyInfo
 {

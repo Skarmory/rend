@@ -116,6 +116,7 @@ private:
     DataArray<VkPipeline>            _vk_pipelines;
     DataArray<VkCommandPool>         _vk_command_pools;
     DataArray<VkCommandBuffer>       _vk_command_buffers;
+    DataArray<VkPipelineLayout>      _vk_pipeline_layouts;
     DataArray<VkDescriptorSetLayout> _vk_descriptor_set_layouts;
     DataArray<VkDescriptorSet>       _vk_descriptor_sets;
     DataArray<VkDescriptorPool>      _vk_descriptor_pools;

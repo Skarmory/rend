@@ -8,7 +8,7 @@ bool PipelineLayout::create(const PipelineLayoutInfo& info)
 {
     auto& ctx = DeviceContext::instance();
     _handle = ctx.create_pipeline_layout(info);
-    
+
     if(_handle == NULL_HANDLE)
     {
         return false;
