@@ -54,8 +54,9 @@ public:
     VkMemoryRequirements         get_image_memory_reqs(VkImage image);
     VkResult                     bind_image_memory(VkImage image, VkDeviceMemory memory);
 
-    std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
-    void                         update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets);
+    std::vector<VkDescriptorSet> allocate_descriptor_sets(VkDescriptorSetLayout* layouts, uint32_t layouts_count, VkDescriptorPool pool);
+    void                         free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool);
+    void                         update_descriptor_sets(VkWriteDescriptorSet* write_sets, uint32_t write_sets_count);
 
     std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool);
     void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool);

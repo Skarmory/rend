@@ -286,26 +286,31 @@ VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory)
     return vkBindImageMemory(_vk_device, image, memory, 0);
 }
 
-std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool)
+std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(VkDescriptorSetLayout* layouts, uint32_t layouts_count, VkDescriptorPool pool)
 {
     VkDescriptorSetAllocateInfo alloc_info =
     {
         .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .pNext              = nullptr,
         .descriptorPool     = pool,
-        .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
-        .pSetLayouts        = layouts.data()
+        .descriptorSetCount = layouts_count,
+        .pSetLayouts        = layouts
     };
 
-    std::vector<VkDescriptorSet> sets(layouts.size());
+    std::vector<VkDescriptorSet> sets(layouts_count);
     vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
 
     return sets;
 }
 
-void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets)
+void LogicalDevice::update_descriptor_sets(VkWriteDescriptorSet* write_sets, uint32_t write_sets_count)
 {
-    vkUpdateDescriptorSets(_vk_device, write_sets.size(), write_sets.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_vk_device, write_sets_count, write_sets, 0, nullptr);
+}
+
+void LogicalDevice::free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool)
+{
+    vkFreeDescriptorSets(_vk_device, pool, sets_count, sets);
 }
 
 std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool)
