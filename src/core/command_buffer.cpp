@@ -101,6 +101,13 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     ctx.copy_buffer_to_image(_handle, src.get_handle(), dst.get_handle(), info);
 }
 
+void CommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.draw(_handle, vertex_count, instance_count, first_vertex, first_instance);
+    _recorded = true;
+}
+
 void CommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data)
 {
     auto& ctx = DeviceContext::instance();

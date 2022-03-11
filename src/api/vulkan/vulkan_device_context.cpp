@@ -1086,6 +1086,13 @@ void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffe
     );
 }
 
+void VulkanDeviceContext::draw(CommandBufferHandle command_buffer_handle, uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    vkCmdDraw(vk_command_buffer, vertex_count, instance_count, first_vertex, first_instance);
+}
+
 void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
