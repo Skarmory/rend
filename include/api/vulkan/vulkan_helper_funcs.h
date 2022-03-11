@@ -17,7 +17,8 @@ VkImageAspectFlags      find_image_aspects(VkFormat format);
 
 VkAttachmentDescription convert_attachment_description(const AttachmentInfo& info);
 VkFormat                convert_format(Format format);
-VkShaderStageFlags      convert_shader_stage(ShaderStage type);
+VkShaderStageFlagBits   convert_shader_stage(ShaderStage stage);
+VkShaderStageFlags      convert_shader_stages(ShaderStages stages);
 VkImageLayout           convert_image_layout(ImageLayout layout);
 VkAttachmentLoadOp      convert_load_op(LoadOp op);
 VkAttachmentStoreOp     convert_store_op(StoreOp op);

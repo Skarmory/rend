@@ -110,20 +110,34 @@ VkFormat vulkan_helpers::convert_format(Format format)
     return VK_FORMAT_MAX_ENUM;
 }
 
-VkShaderStageFlags vulkan_helpers::convert_shader_stage(ShaderStage type)
+VkShaderStageFlagBits vulkan_helpers::convert_shader_stage(ShaderStage type)
 {
     switch(type)
     {
-        case ShaderStage::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderStage::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderStage::TESSELLATION_CONTROL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case ShaderStage::TESSELLATION_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case ShaderStage::GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderStage::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
-        case ShaderStage::NO_SHADER_STAGE: return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        case ShaderStage::SHADER_STAGE_VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderStage::SHADER_STAGE_FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::SHADER_STAGE_TESSELLATION_CONTROL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderStage::SHADER_STAGE_TESSELLATION_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderStage::SHADER_STAGE_GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderStage::SHADER_STAGE_COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::SHADER_STAGE_NONE: return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
     }
 
     return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+}
+
+VkShaderStageFlags vulkan_helpers::convert_shader_stages(ShaderStages stages)
+{
+    VkShaderStageFlags ret_flags = 0;
+    uint32_t flag_check = 1;
+
+    while(flag_check)
+    {
+        ret_flags |= convert_shader_stage(static_cast<ShaderStage>(stages & flag_check));
+        flag_check <<= 1;
+    }
+
+    return ret_flags;
 }
 
 VkImageLayout vulkan_helpers::convert_image_layout(ImageLayout layout)
