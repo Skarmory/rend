@@ -10,11 +10,6 @@
 #include <vulkan.h>
 #include <vector>
 
-namespace rend::vkal::memory
-{
-	class GPUMemoryInterface;
-}
-
 namespace rend
 {
 
@@ -99,10 +94,9 @@ private:
     void _destroy_sampler(TextureHandle handle);
 
 private:
-    std::vector<PhysicalDevice*>             _physical_devices;
-    //rend::vkal::memory::GPUMemoryInterface*  _memory_interface  { nullptr };
-    LogicalDevice*                           _logical_device    { nullptr };
-    PhysicalDevice*                          _chosen_gpu        { nullptr };
+    std::vector<PhysicalDevice*> _physical_devices;
+    LogicalDevice*               _logical_device    { nullptr };
+    PhysicalDevice*              _chosen_gpu        { nullptr };
     uint16_t _data_array_unique_key{ 1 };
 
     DataArray<VkBuffer>              _vk_buffers;

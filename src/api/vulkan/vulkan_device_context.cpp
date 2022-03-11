@@ -13,8 +13,6 @@
 #include <thread>
 
 using namespace rend;
-using namespace rend::vkal;
-using namespace rend::vkal::memory;
 
 VulkanDeviceContext::VulkanDeviceContext(void)
 {
@@ -299,8 +297,8 @@ FramebufferHandle VulkanDeviceContext::create_framebuffer(const FramebufferInfo&
 
 RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
 {
-    VkSubpassDescription vk_subpass_descs[rend::constants::max_subpasses];
-    VkSubpassDependency  vk_subpass_deps[rend::constants::max_subpasses + 1];
+    VkSubpassDescription    vk_subpass_descs[rend::constants::max_subpasses];
+    VkSubpassDependency     vk_subpass_deps[rend::constants::max_subpasses + 1];
     VkAttachmentDescription vk_attachment_descs[rend::constants::max_framebuffer_attachments];
 
     VkAttachmentReference vk_attachment_refs[rend::constants::max_subpasses * rend::constants::max_framebuffer_attachments];
@@ -382,6 +380,7 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
             {
                 vk_subpass.pResolveAttachments = nullptr;
             }
+
             vk_attachment_ref_block_start  = (resolve_attach_block_start + rend_subpass.resolve_attachment_infos_count);
         }
 
@@ -695,6 +694,7 @@ CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
     VkCommandPoolCreateInfo info = vulkan_helpers::gen_command_pool_create_info();
     info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     info.queueFamilyIndex = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
+
     VkCommandPool vk_pool = _logical_device->create_command_pool(info);
 
     CommandPoolHandle pool_handle = _vk_command_pools.allocate(vk_pool);
