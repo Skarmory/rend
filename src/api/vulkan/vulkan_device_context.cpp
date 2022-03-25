@@ -792,7 +792,7 @@ DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorS
         return NULL_HANDLE;
     }
 
-    DescriptorSetHandle handle = _vk_descriptor_sets.allocate(vk_descriptor_sets[9]);
+    DescriptorSetHandle handle = _vk_descriptor_sets.allocate(vk_descriptor_sets[0]);
 
     _descriptor_set_handle_to_descriptor_pool_handle[handle] = info.pool_handle;
     
