@@ -440,8 +440,8 @@ void Renderer::_create_default_renderpass(void)
     subpass_info.colour_attachment_infos_count = 1;
 
     SubpassDependency dep_info = {};
-    dep_info.src_sync = Synchronisation{ PipelineStage::BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ };
-    dep_info.dst_sync = Synchronisation{ PipelineStage::COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE };
+    dep_info.src_sync = Synchronisation{ PipelineStage::PIPELINE_STAGE_BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ };
+    dep_info.dst_sync = Synchronisation{ PipelineStage::PIPELINE_STAGE_COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE };
 
     RenderPassInfo render_pass_info = {};
     render_pass_info.attachment_infos[0] = colour_attachment;
