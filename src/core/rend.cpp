@@ -23,13 +23,17 @@ void rend::init_rend(Window& window)
 
 	std::vector<const char*> layers =
 	{
-		"VK_LAYER_LUNARG_standard_validation",
+		//"VK_LAYER_LUNARG_standard_validation",
 		"VK_LAYER_KHRONOS_validation"
 	};
 
 	// Init singletons
 	auto& vk_instance = VulkanInstance::instance();
-	vk_instance.create(extensions.data(), extensions.size(), layers.data(), layers.size());
+	if(vk_instance.create(extensions.data(), extensions.size(), layers.data(), layers.size()) == rend::StatusCode::FAILURE)
+    {
+        std::cerr << "Failed to create vulkan instance!" << std::endl;
+        std::abort();
+    }
 
 	auto& window_context = WindowContext::instance();
 	if(!window.create_window())
