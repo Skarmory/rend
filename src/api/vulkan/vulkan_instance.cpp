@@ -1,6 +1,7 @@
 #include "api/vulkan/vulkan_instance.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace rend;
 
@@ -38,8 +39,9 @@ StatusCode VulkanInstance::create(const char** extensions, uint32_t extension_co
         .ppEnabledExtensionNames = extensions
     };
 
-    if (vkCreateInstance(&instance_create_info, nullptr, &_vk_instance) != VK_SUCCESS)
+    if (auto code = vkCreateInstance(&instance_create_info, nullptr, &_vk_instance); code != VK_SUCCESS)
     {
+        std::cerr << code << std::endl;
         return StatusCode::FAILURE;
     }
 
