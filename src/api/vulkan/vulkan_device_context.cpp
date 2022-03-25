@@ -488,11 +488,14 @@ PipelineLayoutHandle VulkanDeviceContext::create_pipeline_layout(const PipelineL
 
 PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 {
+    const int c_vertex_stage   = 0;
+    const int c_fragment_stage = 1;
+
     // Shader stages
     VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<int>(ShaderStage::SHADER_STAGE_COUNT)];
     int create_info_idx{ 0 };
 
-    ShaderHandle vertex_shader_handle = info.shaders[(int)ShaderStage::SHADER_STAGE_VERTEX];
+    ShaderHandle vertex_shader_handle = info.shaders[c_vertex_stage];
     if(vertex_shader_handle != NULL_HANDLE)
     {
         shader_create_infos[create_info_idx]        = vulkan_helpers::gen_shader_stage_create_info();
@@ -503,7 +506,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
         ++create_info_idx;
     }
 
-    ShaderHandle fragment_shader_handle = info.shaders[(int)ShaderStage::SHADER_STAGE_FRAGMENT];
+    ShaderHandle fragment_shader_handle = info.shaders[c_fragment_stage];
     if(fragment_shader_handle != NULL_HANDLE)
     {
         shader_create_infos[create_info_idx] = vulkan_helpers::gen_shader_stage_create_info();
