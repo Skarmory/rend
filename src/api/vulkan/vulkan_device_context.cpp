@@ -491,6 +491,13 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     const int c_vertex_stage   = 0;
     const int c_fragment_stage = 1;
 
+    VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
+    pipeline_create_info.layout             = get_pipeline_layout(info.layout_handle);
+    pipeline_create_info.renderPass         = get_render_pass(info.render_pass_handle);
+    pipeline_create_info.subpass            = info.subpass;
+    pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+    pipeline_create_info.basePipelineIndex  = 0;
+
     // Shader stages
     VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<int>(ShaderStage::SHADER_STAGE_COUNT)];
     int create_info_idx{ 0 };
@@ -516,6 +523,9 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
         shader_create_infos[create_info_idx].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         ++create_info_idx;
     }
+
+    pipeline_create_info.stageCount = create_info_idx;
+    pipeline_create_info.pStages    = &shader_create_infos[0];
 
     // Color blend attachments
     create_info_idx = 0;
@@ -544,6 +554,8 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     colour_blend_state_create_info.blendConstants[2] = info.colour_blending_info.blend_constants[2];
     colour_blend_state_create_info.blendConstants[3] = info.colour_blending_info.blend_constants[3];
 
+    pipeline_create_info.pColorBlendState = &colour_blend_state_create_info;
+
     // Dynamic states 
     create_info_idx = 0;
     VkDynamicState vk_dynamic_states[constants::max_dynamic_states];
@@ -560,6 +572,8 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     VkPipelineDynamicStateCreateInfo dynamic_state_create_info = vulkan_helpers::gen_dynamic_state_create_info();
     dynamic_state_create_info.dynamicStateCount = create_info_idx;
     dynamic_state_create_info.pDynamicStates    = vk_dynamic_states;
+
+    pipeline_create_info.pDynamicState = &dynamic_state_create_info;
 
     // Vertex input info
     create_info_idx = 0;
@@ -584,34 +598,47 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     vertex_input_state_create_info.vertexAttributeDescriptionCount = create_info_idx;
     vertex_input_state_create_info.pVertexAttributeDescriptions    = vk_attribute_descs;
 
+    pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
+
     // Input assembly info
     VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info = vulkan_helpers::gen_input_assembly_state_create_info();
     input_assembly_create_info.topology               = vulkan_helpers::convert_topology(info.topology);
     input_assembly_create_info.primitiveRestartEnable = info.primitive_restart;
 
+    pipeline_create_info.pInputAssemblyState = &input_assembly_create_info;
+
     // Tessellation info
     VkPipelineTessellationStateCreateInfo tessellation_state_create_info = vulkan_helpers::gen_tessellation_state_create_info();
     tessellation_state_create_info.patchControlPoints = info.patch_control_points;
 
+    pipeline_create_info.pTessellationState = &tessellation_state_create_info;
+
     // Viewport info
     VkViewport vk_viewports[rend::constants::max_viewports];
-    for(int i{ 0 }; i < info.viewport_info_count; ++i)
+    VkRect2D vk_scissors[rend::constants::max_scissors];
+
+    if((info.dynamic_states & DynamicState::VIEWPORT) == DynamicState::NONE)
     {
-        vk_viewports[i].x         = info.viewport_info[i].x;
-        vk_viewports[i].y         = info.viewport_info[i].y;
-        vk_viewports[i].width     = info.viewport_info[i].width;
-        vk_viewports[i].height    = info.viewport_info[i].height;
-        vk_viewports[i].minDepth = info.viewport_info[i].min_depth;
-        vk_viewports[i].maxDepth = info.viewport_info[i].max_depth;
+        for(int i{ 0 }; i < info.viewport_info_count; ++i)
+        {
+            vk_viewports[i].x         = info.viewport_info[i].x;
+            vk_viewports[i].y         = info.viewport_info[i].y;
+            vk_viewports[i].width     = info.viewport_info[i].width;
+            vk_viewports[i].height    = info.viewport_info[i].height;
+            vk_viewports[i].minDepth = info.viewport_info[i].min_depth;
+            vk_viewports[i].maxDepth = info.viewport_info[i].max_depth;
+        }
     }
 
-    VkRect2D vk_scissors[rend::constants::max_scissors];
-    for(int i{ 0 }; i < info.scissor_info_count; ++i)
+    if((info.dynamic_states & DynamicState::SCISSOR) == DynamicState::NONE)
     {
-        vk_scissors[i].offset.x         = info.scissor_info[i].x;
-        vk_scissors[i].offset.y         = info.scissor_info[i].y;
-        vk_scissors[i].extent.width     = info.scissor_info[i].width;
-        vk_scissors[i].extent.height    = info.scissor_info[i].height;
+        for(int i{ 0 }; i < info.scissor_info_count; ++i)
+        {
+            vk_scissors[i].offset.x         = info.scissor_info[i].x;
+            vk_scissors[i].offset.y         = info.scissor_info[i].y;
+            vk_scissors[i].extent.width     = info.scissor_info[i].width;
+            vk_scissors[i].extent.height    = info.scissor_info[i].height;
+        }
     }
 
     VkPipelineViewportStateCreateInfo viewport_state_create_info = vulkan_helpers::gen_viewport_state_create_info();
@@ -619,6 +646,8 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     viewport_state_create_info.pViewports    = &vk_viewports[0];
     viewport_state_create_info.scissorCount  = static_cast<uint32_t>(info.scissor_info_count);
     viewport_state_create_info.pScissors     = &vk_scissors[0];
+
+    pipeline_create_info.pViewportState = &viewport_state_create_info;
 
     // Rasterisation info
     VkPipelineRasterizationStateCreateInfo rasterisation_state_create_info = vulkan_helpers::gen_rasterisation_state_create_info();
@@ -633,6 +662,8 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     rasterisation_state_create_info.depthBiasSlopeFactor    = info.rasteriser_info.depth_bias_slope_factor;
     rasterisation_state_create_info.lineWidth               = info.rasteriser_info.line_width;
 
+    pipeline_create_info.pRasterizationState = &rasterisation_state_create_info;
+
     // Multisampling info
     VkPipelineMultisampleStateCreateInfo multisample_state_create_info = vulkan_helpers::gen_multisample_state_create_info();
     multisample_state_create_info.rasterizationSamples  = vulkan_helpers::convert_sample_count(info.multisampling_info.sample_count);
@@ -641,6 +672,8 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     multisample_state_create_info.pSampleMask           = &info.multisampling_info.sample_mask;
     multisample_state_create_info.alphaToCoverageEnable = info.multisampling_info.alpha_to_coverage_enabled;
     multisample_state_create_info.alphaToOneEnable      = info.multisampling_info.alpha_to_one_enabled;
+
+    pipeline_create_info.pMultisampleState = &multisample_state_create_info;
 
     // Depth stencil info
     VkPipelineDepthStencilStateCreateInfo depth_stencil_create_info = vulkan_helpers::gen_depth_stencil_state_create_info();
@@ -666,23 +699,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     depth_stencil_create_info.minDepthBounds        = info.depth_stencil_info.min_depth_bound;
     depth_stencil_create_info.maxDepthBounds        = info.depth_stencil_info.max_depth_bound;
 
-    VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
-    pipeline_create_info.stageCount                   = create_info_idx;
-    pipeline_create_info.pStages                      = &shader_create_infos[0];
-    pipeline_create_info.pColorBlendState             = &colour_blend_state_create_info;
-    pipeline_create_info.pDynamicState                = &dynamic_state_create_info;
-    pipeline_create_info.pVertexInputState            = &vertex_input_state_create_info;
-    pipeline_create_info.pInputAssemblyState          = &input_assembly_create_info;
-    pipeline_create_info.pTessellationState           = &tessellation_state_create_info;
-    pipeline_create_info.pViewportState               = &viewport_state_create_info;
-    pipeline_create_info.pRasterizationState          = &rasterisation_state_create_info;
-    pipeline_create_info.pMultisampleState            = &multisample_state_create_info;
     pipeline_create_info.pDepthStencilState           = &depth_stencil_create_info;
-    pipeline_create_info.layout                       = get_pipeline_layout(info.layout_handle);
-    pipeline_create_info.renderPass                   = get_render_pass(info.render_pass_handle);
-    pipeline_create_info.subpass                      = info.subpass;
-    pipeline_create_info.basePipelineHandle           = VK_NULL_HANDLE;
-    pipeline_create_info.basePipelineIndex            = 0;
 
     VkPipeline pipeline = _logical_device->create_pipeline(pipeline_create_info);
     if(pipeline == VK_NULL_HANDLE)
