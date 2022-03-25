@@ -734,9 +734,9 @@ DescriptorPoolHandle VulkanDeviceContext::create_descriptor_pool(const Descripto
     }
 
     VkDescriptorPoolCreateInfo vk_info = vulkan_helpers::gen_descriptor_pool_create_info();
-    vk_info.maxSets = info.max_sets;
-    vk_info.pPoolSizes = vk_pool_sizes;
-    vk_info.poolSizeCount = info.pool_sizes_count;
+    vk_info.maxSets                    = info.max_sets;
+    vk_info.pPoolSizes                 = vk_pool_sizes;
+    vk_info.poolSizeCount              = info.pool_sizes_count;
 
    VkDescriptorPool vk_pool = _logical_device->create_descriptor_pool(vk_info); 
    if(vk_pool == VK_NULL_HANDLE)
@@ -766,7 +766,7 @@ DescriptorSetLayoutHandle VulkanDeviceContext::create_descriptor_set_layout(cons
     }
 
     VkDescriptorSetLayoutCreateInfo create_info = vulkan_helpers::gen_descriptor_set_layout_create_info();
-    create_info.pBindings = vk_descriptor_set_layout_bindings.data();
+    create_info.pBindings    = vk_descriptor_set_layout_bindings.data();
     create_info.bindingCount = info.layout_bindings_count;
 
     VkDescriptorSetLayout vk_descriptor_set_layout = _logical_device->create_descriptor_set_layout(create_info);
@@ -782,7 +782,7 @@ DescriptorSetLayoutHandle VulkanDeviceContext::create_descriptor_set_layout(cons
 
 DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorSetInfo& info)
 {
-    VkDescriptorPool vk_pool = get_descriptor_pool(info.pool_handle);
+    VkDescriptorPool vk_pool        = get_descriptor_pool(info.pool_handle);
     VkDescriptorSetLayout vk_layout = get_descriptor_set_layout(info.layout_handle);
 
     std::vector<VkDescriptorSet> vk_descriptor_sets = _logical_device->allocate_descriptor_sets( &vk_layout, 1, vk_pool);
