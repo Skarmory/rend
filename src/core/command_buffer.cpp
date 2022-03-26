@@ -109,6 +109,13 @@ void CommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_
     _recorded = true;
 }
 
+void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
+{
+    auto& ctx = DeviceContext::instance();
+    ctx.draw_indexed(_handle, index_count, instance_count, first_index, vertex_offset, first_instance);
+    _recorded = true;
+}
+
 void CommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data)
 {
     auto& ctx = DeviceContext::instance();

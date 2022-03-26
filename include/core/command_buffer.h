@@ -36,6 +36,7 @@ public:
     void copy(const GPUBuffer& src, const GPUBuffer& dst);
     void copy(const GPUBuffer& src, const GPUTexture& dst);
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);
+    void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
     void push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data);
     void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
     void reset(void);
