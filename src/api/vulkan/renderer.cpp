@@ -50,6 +50,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
 
     //_command_pool = new CommandPool;
     //_command_pool->create(context.get_device()->get_queue_family(QueueType::GRAPHICS), true);
+    _command_pool_handle = context.create_command_pool();
 
     _create_default_depth_buffer(_swapchain->get_extent());
     _create_default_renderpass();
@@ -65,7 +66,10 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
         _frame_resources[idx].acquire_sem->create();
         _frame_resources[idx].present_sem->create();
         _frame_resources[idx].submit_fen->create(true);
+
         _frame_resources[idx].command_buffer = new CommandBuffer;
+        _frame_resources[idx].command_buffer->create(_command_pool_handle);
+
         //_frame_resources[idx].command_buffer = _command_pool->allocate_command_buffer();
     }
 
@@ -188,7 +192,7 @@ void Renderer::end_frame(FrameResources& frame_res)
 
     frame_res.submit_fen->reset();
     VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(frame_res.command_buffer->handle());
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
+    ctx.get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
     _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
 }
 
@@ -208,7 +212,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     Fence load_fence;
     load_fence.create(false);
 
-    //resources.command_buffer->begin();
+    resources.command_buffer->begin();
 
     while(!_task_queue.empty())
     {
@@ -218,12 +222,12 @@ void Renderer::_process_task_queue(FrameResources& resources)
         delete task;
     }
 
-    //resources.command_buffer->end();
+    resources.command_buffer->end();
 
     if(resources.command_buffer->recorded())
     {
         VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(resources.command_buffer->handle());
-        static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, {}, {}, &load_fence);
+        ctx.get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, {}, {}, &load_fence);
         load_fence.wait();
     }
 

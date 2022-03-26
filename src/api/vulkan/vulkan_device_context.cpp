@@ -5,6 +5,7 @@
 #include "core/gpu_texture.h"
 #include "core/window.h"
 
+#include "api/vulkan/command_pool.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/vulkan_helper_funcs.h"
@@ -29,8 +30,6 @@ VulkanDeviceContext::VulkanDeviceContext(void)
     _vk_shaders.set_unique_key(_data_array_unique_key++);
     _vk_framebuffers.set_unique_key(_data_array_unique_key++);
     _vk_render_passes.set_unique_key(_data_array_unique_key++);
-    _vk_command_pools.set_unique_key(_data_array_unique_key++);
-    _vk_command_buffers.set_unique_key(_data_array_unique_key++);
 }
 
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
@@ -63,6 +62,13 @@ StatusCode VulkanDeviceContext::create(void)
 
 void VulkanDeviceContext::destroy(void)
 {
+    for(auto& handle : _command_pools)
+    {
+        CommandPool& pool = *_command_pools.get(handle);
+
+        pool.destroy(*_logical_device);
+    }
+
     for (auto& handle : _vk_memorys)
     {
         _logical_device->free_memory(*_vk_memorys.get(handle));
@@ -713,13 +719,10 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 
 CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
 {
-    VkCommandPoolCreateInfo info = vulkan_helpers::gen_command_pool_create_info();
-    info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    info.queueFamilyIndex = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
+    CommandPoolHandle pool_handle = _command_pools.allocate();
+    CommandPool& pool = *_command_pools.get(pool_handle);
 
-    VkCommandPool vk_pool = _logical_device->create_command_pool(info);
-
-    CommandPoolHandle pool_handle = _vk_command_pools.allocate(vk_pool);
+    pool.create(*_logical_device, QueueType::GRAPHICS);
 
     return pool_handle;
 }
@@ -801,9 +804,9 @@ DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorS
 
 CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
 {
-    VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
-    VkCommandBuffer buffer = _logical_device->allocate_command_buffers(1, VK_COMMAND_BUFFER_LEVEL_PRIMARY, vk_pool)[0];
-    CommandBufferHandle buffer_handle = _vk_command_buffers.allocate(buffer);
+    CommandPool& command_pool = *_command_pools.get(pool_handle);
+    CommandBufferHandle buffer_handle = command_pool.allocate_command_buffer(*_logical_device);
+
     _buffer_handle_to_pool_handle[buffer_handle] = pool_handle;
 
     return buffer_handle;
@@ -812,14 +815,11 @@ CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle
 void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_handle)
 {
     HandleType pool_handle = _buffer_handle_to_pool_handle.at(buffer_handle);
-    VkCommandPool vk_pool = *_vk_command_pools.get(pool_handle);
-    VkCommandBuffer vk_buffer = *_vk_command_buffers.get(buffer_handle);
+    CommandPool& command_pool = *_command_pools.get(pool_handle);
 
-    std::vector<VkCommandBuffer> buffers{ vk_buffer };
+    command_pool.free_command_buffer(*_logical_device, buffer_handle);
 
-    _logical_device->free_command_buffers(buffers, vk_pool);
     _handle_to_memory_handle.erase(buffer_handle);
-    _vk_command_buffers.deallocate(buffer_handle);
 }
 
 void VulkanDeviceContext::destroy_descriptor_pool(DescriptorPoolHandle handle)
@@ -1009,7 +1009,7 @@ void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffe
     assert(descriptor_set_count <= c_descriptor_set_max);
     assert(descriptor_set_count > 0);
 
-    VkCommandBuffer vk_command_buffer   = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer   = get_command_buffer(command_buffer_handle);
     VkPipelineBindPoint vk_bind_point   = vulkan_helpers::convert_pipeline_bind_point(bind_point);
     VkPipelineLayout vk_pipeline_layout = get_pipeline_layout(pipeline_handle);
 
@@ -1024,7 +1024,7 @@ void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffe
 
 void VulkanDeviceContext::bind_pipeline(CommandBufferHandle buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle)
 {
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(buffer_handle);
     VkPipeline      vk_pipeline = *_vk_pipelines.get(pipeline_handle);
 
     vkCmdBindPipeline(vk_command_buffer, vulkan_helpers::convert_pipeline_bind_point(bind_point), vk_pipeline);
@@ -1036,7 +1036,7 @@ void VulkanDeviceContext::bind_vertex_buffer(CommandBufferHandle command_buffer_
     //TODO: Handle non-0 offsets
     //TODO: Handle non-0 first binding
     VkDeviceSize offset = 0;
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     VkBuffer vk_vertex_buffer = get_buffer(handle);
 
     vkCmdBindVertexBuffers(vk_command_buffer, 0, 1, &vk_vertex_buffer, &offset);
@@ -1046,7 +1046,7 @@ void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_h
 {
     //TODO: Handle non-0 offsets
     VkDeviceSize offset = 0;
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     VkBuffer vk_index_buffer = get_buffer(handle);
 
     vkCmdBindIndexBuffer(vk_command_buffer, vk_index_buffer, offset, VK_INDEX_TYPE_UINT32);
@@ -1054,7 +1054,7 @@ void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_h
 
 void VulkanDeviceContext::command_buffer_reset(CommandBufferHandle command_buffer_handle)
 {
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     vkResetCommandBuffer(vk_command_buffer, 0);
 }
 
@@ -1067,7 +1067,7 @@ void VulkanDeviceContext::copy_buffer_to_buffer(CommandBufferHandle command_buff
         .size      = info.size_bytes
     };
 
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     VkBuffer vk_src_buffer = *_vk_buffers.get(src_handle);
     VkBuffer vk_dst_buffer = *_vk_buffers.get(dst_handle);
 
@@ -1092,7 +1092,7 @@ void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffe
         .imageExtent            = VkExtent3D{ info.image_width, info.image_height, info.image_depth }
     };
 
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     VkBuffer vk_buffer = *_vk_buffers.get(src_buffer_handle);
     VkImage vk_image = *_vk_images.get(dst_texture_handle);
 
@@ -1139,7 +1139,7 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
         };
     }
 
-    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(command_buffer_handle);
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     vkCmdPipelineBarrier(
        vk_command_buffer,
        vulkan_helpers::convert_pipeline_stages(info.src_stages),
@@ -1330,7 +1330,15 @@ VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handl
 
 VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
 {
-    return *_vk_command_buffers.get(handle);
+    auto it = _buffer_handle_to_pool_handle.find(handle);
+    if(it == _buffer_handle_to_pool_handle.end())
+    {
+        return VK_NULL_HANDLE;
+    }
+
+    CommandPool& pool = *_command_pools.get(it->second);
+
+    return pool.get_vk_command_buffer(handle);
 }
 
 VkPipelineLayout VulkanDeviceContext::get_pipeline_layout(const PipelineLayoutHandle handle) const

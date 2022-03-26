@@ -121,7 +121,7 @@ private:
 
 private:
     Swapchain*                _swapchain { nullptr };
-    //CommandPool*              _command_pool { nullptr };
+    CommandPoolHandle         _command_pool_handle { NULL_HANDLE };
     std::vector<Framebuffer*> _default_framebuffers;
     GPUTexture*               _default_depth_buffer { nullptr };
     RenderPass*               _default_render_pass { nullptr };

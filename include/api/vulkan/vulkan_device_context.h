@@ -13,6 +13,7 @@
 namespace rend
 {
 
+class CommandPool;
 class PhysicalDevice;
 class LogicalDevice;
 
@@ -120,12 +121,12 @@ private:
     DataArray<VkFramebuffer>         _vk_framebuffers;
     DataArray<VkRenderPass>          _vk_render_passes;
     DataArray<VkPipeline>            _vk_pipelines;
-    DataArray<VkCommandPool>         _vk_command_pools;
-    DataArray<VkCommandBuffer>       _vk_command_buffers;
     DataArray<VkPipelineLayout>      _vk_pipeline_layouts;
     DataArray<VkDescriptorSetLayout> _vk_descriptor_set_layouts;
     DataArray<VkDescriptorSet>       _vk_descriptor_sets;
     DataArray<VkDescriptorPool>      _vk_descriptor_pools;
+
+    DataArray<CommandPool> _command_pools;
 
     std::unordered_map<HandleType, MemoryHandle>           _handle_to_memory_handle;
     std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;
