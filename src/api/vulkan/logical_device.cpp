@@ -313,7 +313,7 @@ void LogicalDevice::free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_co
     vkFreeDescriptorSets(_vk_device, pool, sets_count, sets);
 }
 
-std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool)
+std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool) const
 {
     VkCommandBufferAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -333,7 +333,7 @@ std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t co
     return vk_buffers;
 }
 
-void LogicalDevice::free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool)
+void LogicalDevice::free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool) const
 {
     vkFreeCommandBuffers(_vk_device, pool, buffers.size(), buffers.data());
 }
@@ -409,14 +409,14 @@ void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool)
     vkDestroyDescriptorPool(_vk_device, pool, nullptr);
 }
 
-VkCommandPool LogicalDevice::create_command_pool(VkCommandPoolCreateInfo& create_info)
+VkCommandPool LogicalDevice::create_command_pool(VkCommandPoolCreateInfo& create_info) const
 {
     VkCommandPool pool = VK_NULL_HANDLE;
     vkCreateCommandPool(_vk_device, &create_info, nullptr, &pool);
     return pool;
 }
 
-void LogicalDevice::destroy_command_pool(VkCommandPool pool)
+void LogicalDevice::destroy_command_pool(VkCommandPool pool) const
 {
     vkDestroyCommandPool(_vk_device, pool, nullptr);
 }

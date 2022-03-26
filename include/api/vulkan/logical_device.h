@@ -58,8 +58,8 @@ public:
     void                         free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool);
     void                         update_descriptor_sets(VkWriteDescriptorSet* write_sets, uint32_t write_sets_count);
 
-    std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool);
-    void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool);
+    std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool) const;
+    void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool) const;
 
     VkDeviceMemory        allocate_memory(VkMemoryAllocateInfo& alloc_info);
     void                  free_memory(VkDeviceMemory memory);
@@ -81,8 +81,8 @@ public:
     VkDescriptorSetLayout create_descriptor_set_layout(VkDescriptorSetLayoutCreateInfo& create_info);
     void                  destroy_descriptor_set_layout(VkDescriptorSetLayout layout);
 
-    VkCommandPool         create_command_pool(VkCommandPoolCreateInfo& create_info);
-    void                  destroy_command_pool(VkCommandPool pool);
+    VkCommandPool         create_command_pool(VkCommandPoolCreateInfo& create_info) const;
+    void                  destroy_command_pool(VkCommandPool pool) const;
 
     VkImageView           create_image_view(VkImageViewCreateInfo& create_info);
     void                  destroy_image_view(VkImageView image_view);
