@@ -53,6 +53,8 @@ public:
     virtual void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) = 0;
     virtual void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
     virtual void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
+    virtual void command_buffer_begin(CommandBufferHandle command_buffer_handle) = 0;
+    virtual void command_buffer_end(CommandBufferHandle command_buffer_handle) = 0;
     virtual void command_buffer_reset(CommandBufferHandle command_buffer_handle) = 0;
     virtual void copy_buffer_to_buffer(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, BufferHandle dst_buffer_handle, const BufferBufferCopyInfo& info) = 0;
     virtual void copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info) = 0;

@@ -1052,6 +1052,28 @@ void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_h
     vkCmdBindIndexBuffer(vk_command_buffer, vk_index_buffer, offset, VK_INDEX_TYPE_UINT32);
 }
 
+void VulkanDeviceContext::command_buffer_begin(CommandBufferHandle command_buffer_handle)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    VkCommandBufferBeginInfo info =
+    {
+        .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext            = nullptr,
+        .flags            = 0,
+        .pInheritanceInfo = nullptr
+    };
+
+    vkBeginCommandBuffer(vk_command_buffer, &info);
+}
+
+void VulkanDeviceContext::command_buffer_end(CommandBufferHandle command_buffer_handle)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+
+    vkEndCommandBuffer(vk_command_buffer);
+}
+
 void VulkanDeviceContext::command_buffer_reset(CommandBufferHandle command_buffer_handle)
 {
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
