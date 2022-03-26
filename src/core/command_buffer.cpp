@@ -94,6 +94,7 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     info.buffer_height = dst.height();
     info.image_width = dst.width();
     info.image_height = dst.height();
+    info.image_depth = dst.depth();
     info.image_layout = dst.layout();
     info.layer_count = dst.layers();
 
