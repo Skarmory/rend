@@ -270,6 +270,15 @@ enum class LogicOp
     SET
 };
 
+enum ColourComponent
+{
+    COLOUR_COMPONENT_R = BIT(0),
+    COLOUR_COMPONENT_G = BIT(1),
+    COLOUR_COMPONENT_B = BIT(2),
+    COLOUR_COMPONENT_A = BIT(3)
+};
+typedef uint32_t ColourComponents;
+
 enum class BlendFactor
 {
     ZERO,
@@ -617,14 +626,14 @@ struct DepthStencilInfo
 
 struct ColourBlendAttachment
 {
-    bool        blend_enabled{ false };
-    uint32_t    colour_write_mask{ 1 };
-    BlendFactor colour_src_factor{ BlendFactor::SRC_ALPHA };
-    BlendFactor colour_dst_factor{ BlendFactor::ONE_MINUS_SRC_ALPHA };
-    BlendOp     colour_blend_op{ BlendOp::ADD };
-    BlendFactor alpha_src_factor{ BlendFactor::ONE };
-    BlendFactor alpha_dst_factor{ BlendFactor::ZERO };
-    BlendOp     alpha_blend_op{ BlendOp::ADD };
+    bool             blend_enabled{ false };
+    ColourComponents colour_write_mask{ COLOUR_COMPONENT_R | COLOUR_COMPONENT_G | COLOUR_COMPONENT_B | COLOUR_COMPONENT_R };
+    BlendFactor      colour_src_factor{ BlendFactor::ONE };
+    BlendFactor      colour_dst_factor{ BlendFactor::ZERO };
+    BlendOp          colour_blend_op{ BlendOp::ADD };
+    BlendFactor      alpha_src_factor{ BlendFactor::SRC_ALPHA };
+    BlendFactor      alpha_dst_factor{ BlendFactor::ONE_MINUS_SRC_ALPHA };
+    BlendOp          alpha_blend_op{ BlendOp::ADD };
 };
 
 struct ColourBlendingInfo
