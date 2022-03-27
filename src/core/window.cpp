@@ -22,3 +22,8 @@ bool Window::create_window(void)
 {
     return create_window(_width, _height, _title);
 }
+
+void Window::destroy_window(void)
+{
+    destroy_window_api();
+}

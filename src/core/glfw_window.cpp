@@ -6,12 +6,6 @@
 
 using namespace rend;
 
-GLFWWindow::~GLFWWindow(void)
-{
-    VulkanInstance::instance().destroy_surface(_vk_surface);
-    glfwDestroyWindow(_glfw_window);
-}
-
 StatusCode GLFWWindow::create_window_api(uint32_t width, uint32_t height, const char* title)
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -28,6 +22,12 @@ StatusCode GLFWWindow::create_window_api(uint32_t width, uint32_t height, const 
     }
 
     return StatusCode::SUCCESS;
+}
+
+void GLFWWindow::destroy_window_api(void)
+{
+    VulkanInstance::instance().destroy_surface(_vk_surface);
+    glfwDestroyWindow(_glfw_window);
 }
 
 VkSurfaceKHR GLFWWindow::get_vk_surface(void) const

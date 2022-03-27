@@ -15,15 +15,15 @@ namespace rend
 class GLFWWindow : public WindowBase
 {
 public:
-    GLFWWindow(void) = default;
-    ~GLFWWindow(void);
-
+    GLFWWindow(void)                         = default;
+    ~GLFWWindow(void)                        = default;
     GLFWWindow(const GLFWWindow&)            = delete;
     GLFWWindow(GLFWWindow&&)                 = delete;
     GLFWWindow& operator=(const GLFWWindow&) = delete;
     GLFWWindow& operator=(GLFWWindow&&)      = delete;
 
     StatusCode create_window_api(uint32_t width, uint32_t height, const char* title);
+    void       destroy_window_api(void);
 
     VkSurfaceKHR get_vk_surface(void) const;
 
