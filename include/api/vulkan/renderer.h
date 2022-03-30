@@ -50,11 +50,11 @@ struct BufferLoadTask : public Task
 {
     GPUBuffer*  buffer{ nullptr };
     BufferUsage buffer_usage{ 0 };
-    void*       data{ nullptr };
+    const void* data{ nullptr };
     size_t      size_bytes{ 0 };
     uint32_t    offset{ 0 };
 
-    BufferLoadTask(GPUBuffer* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset)
+    BufferLoadTask(GPUBuffer* buffer, BufferUsage usage, const void* data, size_t bytes, uint32_t offset)
         : buffer(buffer), buffer_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
     void execute(FrameResources& resources) override;
 };
@@ -63,11 +63,11 @@ struct ImageLoadTask : public Task
 {
     GPUTexture* image{ nullptr };
     ImageUsage  image_usage{ 0 };
-    void*       data{ nullptr };
+    const void* data{ nullptr };
     size_t      size_bytes{ 0 };
     uint32_t    offset{ 0 };
 
-    ImageLoadTask(GPUTexture* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset)
+    ImageLoadTask(GPUTexture* texture, ImageUsage usage, const void* data, size_t bytes, uint32_t offset)
         : image(texture), image_usage(usage), data(data), size_bytes(bytes), offset(offset) {}
     void execute(FrameResources& resources) override;
 };
@@ -99,8 +99,8 @@ public:
     RenderPass* get_default_render_pass(void) const;
 
     // Resource functions
-    void load(GPUTexture* texture, ImageUsage usage, void* data, size_t bytes, uint32_t offset);
-    void load(GPUBuffer* buffer, BufferUsage usage, void* data, size_t bytes, uint32_t offset);
+    void load(GPUTexture* texture, ImageUsage usage, const void* data, size_t bytes, uint32_t offset);
+    void load(GPUBuffer* buffer, BufferUsage usage, const void* data, size_t bytes, uint32_t offset);
     void transition(GPUTexture* texture, PipelineStages src, PipelineStages dst, ImageLayout final_layout);
 
     // Functions

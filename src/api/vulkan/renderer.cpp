@@ -138,13 +138,13 @@ RenderPass* Renderer::get_default_render_pass(void) const
     return _default_render_pass;
 }
 
-void Renderer::load(GPUTexture* texture, ImageUsage type, void* data, size_t bytes, uint32_t offset)
+void Renderer::load(GPUTexture* texture, ImageUsage type, const void* data, size_t bytes, uint32_t offset)
 {
     ImageLoadTask* task = new ImageLoadTask(texture, type, data, bytes, offset);
     _task_queue.push(task);
 }
 
-void Renderer::load(GPUBuffer* buffer, BufferUsage type, void* data, size_t bytes, uint32_t offset)
+void Renderer::load(GPUBuffer* buffer, BufferUsage type, const void* data, size_t bytes, uint32_t offset)
 {
     BufferLoadTask* task = new BufferLoadTask(buffer, type, data, bytes, offset);
     _task_queue.push(task);
