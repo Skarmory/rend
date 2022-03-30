@@ -22,8 +22,11 @@ public:
     Window& operator=(const Window&) = delete;
     Window& operator=(Window&&)      = delete;
 
-    [[nodiscard]] bool create_window(uint32_t width, uint32_t height, const char* title);
-    [[nodiscard]] bool create_window(void);
+    [[nodiscard]]
+    bool create_window(uint32_t width, uint32_t height, const char* title);
+
+    [[nodiscard]]
+    bool create_window(void);
 
     void destroy_window(void);
 
