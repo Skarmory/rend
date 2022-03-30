@@ -26,6 +26,8 @@ public:
     [[nodiscard]] bool create_window(void);
 
     void destroy_window(void);
+
+    void* get_handle(void);
 };
 
 }

@@ -27,3 +27,8 @@ void Window::destroy_window(void)
 {
     destroy_window_api();
 }
+
+void* Window::get_handle(void)
+{
+    return get_handle_api();
+}

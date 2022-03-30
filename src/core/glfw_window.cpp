@@ -35,7 +35,7 @@ VkSurfaceKHR GLFWWindow::get_vk_surface(void) const
     return _vk_surface;
 }
 
-GLFWwindow* GLFWWindow::get_glfw_handle(void) const
+GLFWwindow* GLFWWindow::get_handle_api(void) const
 {
     return _glfw_window;
 }

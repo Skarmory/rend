@@ -26,8 +26,7 @@ public:
     void       destroy_window_api(void);
 
     VkSurfaceKHR get_vk_surface(void) const;
-
-    GLFWwindow* get_glfw_handle(void) const;
+    GLFWwindow*  get_handle_api(void) const;
 
 private:
     GLFWwindow* _glfw_window{ nullptr };
