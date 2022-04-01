@@ -52,6 +52,7 @@ void rend::destroy_rend(void)
 {
 	DeviceContext::instance().destroy();
 
+    WindowContext::instance().window()->destroy_window();
 	WindowContext::instance().set_window(nullptr);
 
 	VulkanInstance::instance().destroy();

@@ -668,20 +668,11 @@ struct PipelineInfo
     ViewportInfo      scissor_info[constants::max_scissors];
     size_t            scissor_info_count{ 0 };
 
-    // Rasteristion State
-    RasteriserInfo    rasteriser_info{};
-
-    // Multisampling State
-    MultisamplingInfo multisampling_info{};
-
-    // Depth Stencil State
-    DepthStencilInfo  depth_stencil_info{};
-
-    // Colour Blend State
+    RasteriserInfo     rasteriser_info{};
+    MultisamplingInfo  multisampling_info{};
+    DepthStencilInfo   depth_stencil_info{};
     ColourBlendingInfo colour_blending_info{};
-
-    // Dynamic State
-    DynamicStates dynamic_states{ (uint32_t)DynamicState::NONE };
+    DynamicStates      dynamic_states{ (uint32_t)DynamicState::NONE };
 
     PipelineLayoutHandle layout_handle{ NULL_HANDLE };
     RenderPassHandle     render_pass_handle{ NULL_HANDLE };
