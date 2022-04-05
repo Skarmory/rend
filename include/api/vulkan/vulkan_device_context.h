@@ -66,7 +66,7 @@ public:
     void unregister_swapchain_image(TextureHandle swapchain_handle);
 
     // Command Buffer
-    void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count) override;
+    void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) override;
     void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) override;
     void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
     void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
@@ -78,9 +78,9 @@ public:
     void draw(CommandBufferHandle command_buffer_handle, uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) override;
     void draw_indexed(CommandBufferHandle command_buffer_handle, uint32_t index_count, uint32_t instance_count, uint32_t first_index, uint32_t vertex_offset, uint32_t first_instance) override;
     void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) override;
-    void push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, size_t size, const void* data) override;
-    void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) override;
-    void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) override;
+    void push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, uint32_t size, const void* data) override;
+    void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) override;
+    void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) override;
     void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil );
     void end_render_pass(const CommandBufferHandle command_buffer_handle);
 

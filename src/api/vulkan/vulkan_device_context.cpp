@@ -422,7 +422,7 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     vk_subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
     vk_subpass_deps[info.subpass_dependency_count] =
     {
-        static_cast<uint32_t>(info.subpass_dependency_count - 1),
+        info.subpass_dependency_count - 1,
         VK_SUBPASS_EXTERNAL,
         final_dep.dstStageMask,
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
@@ -440,11 +440,11 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
     }
 
     VkRenderPassCreateInfo create_info = vulkan_helpers::gen_render_pass_create_info();
-    create_info.attachmentCount = static_cast<uint32_t>(info.attachment_infos_count);
+    create_info.attachmentCount = info.attachment_infos_count;
     create_info.pAttachments    = &vk_attachment_descs[0];
-    create_info.subpassCount    = static_cast<uint32_t>(info.subpasses_count);
+    create_info.subpassCount    = info.subpasses_count;
     create_info.pSubpasses      = &vk_subpass_descs[0];
-    create_info.dependencyCount = static_cast<uint32_t>(info.subpasses_count + 1);
+    create_info.dependencyCount = info.subpasses_count + 1;
     create_info.pDependencies   = &vk_subpass_deps[0];
 
     VkRenderPass vk_render_pass = _logical_device->create_render_pass(create_info);
@@ -505,7 +505,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     pipeline_create_info.basePipelineIndex  = 0;
 
     // Shader stages
-    VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<int>(ShaderStage::SHADER_STAGE_COUNT)];
+    VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<uint32_t>(ShaderStage::SHADER_STAGE_COUNT)];
     int create_info_idx{ 0 };
 
     ShaderHandle vertex_shader_handle = info.shaders[c_vertex_stage];
@@ -648,9 +648,9 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     }
 
     VkPipelineViewportStateCreateInfo viewport_state_create_info = vulkan_helpers::gen_viewport_state_create_info();
-    viewport_state_create_info.viewportCount = static_cast<uint32_t>(info.viewport_info_count);
+    viewport_state_create_info.viewportCount = info.viewport_info_count;
     viewport_state_create_info.pViewports    = &vk_viewports[0];
-    viewport_state_create_info.scissorCount  = static_cast<uint32_t>(info.scissor_info_count);
+    viewport_state_create_info.scissorCount  = info.scissor_info_count;
     viewport_state_create_info.pScissors     = &vk_scissors[0];
 
     pipeline_create_info.pViewportState = &viewport_state_create_info;
@@ -1001,7 +1001,7 @@ void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_h
     _vk_images.deallocate(swapchain_handle);
 }
 
-void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count)
+void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count)
 {
     //TODO: Figure out a good array size
     const int c_descriptor_set_max = 16;
@@ -1019,7 +1019,7 @@ void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffe
         vk_descriptor_sets[i] = get_descriptor_set(descriptor_set->handle());
     }
 
-    vkCmdBindDescriptorSets(vk_command_buffer, vk_bind_point, vk_pipeline_layout, 0, static_cast<uint32_t>(descriptor_set_count), vk_descriptor_sets, 0, nullptr);
+    vkCmdBindDescriptorSets(vk_command_buffer, vk_bind_point, vk_pipeline_layout, 0, descriptor_set_count, vk_descriptor_sets, 0, nullptr);
 }
 
 void VulkanDeviceContext::bind_pipeline(CommandBufferHandle buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle)
@@ -1144,8 +1144,6 @@ void VulkanDeviceContext::draw_indexed(CommandBufferHandle command_buffer_handle
 
 void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-
     VkImageMemoryBarrier vk_image_memory_barriers[8];
     for(size_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
     {
@@ -1157,7 +1155,7 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
         vk_image_memory_barriers[barrier_idx].newLayout           = vulkan_helpers::convert_image_layout(info.image_memory_barriers[barrier_idx].new_layout);
         vk_image_memory_barriers[barrier_idx].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         vk_image_memory_barriers[barrier_idx].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        vk_image_memory_barriers[barrier_idx].image               = ctx.get_image(info.image_memory_barriers[barrier_idx].image_handle);
+        vk_image_memory_barriers[barrier_idx].image               = get_image(info.image_memory_barriers[barrier_idx].image_handle);
         vk_image_memory_barriers[barrier_idx].subresourceRange    =
         {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -1180,18 +1178,18 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
     );
 }
 
-void VulkanDeviceContext::push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, size_t size, const void* data)
+void VulkanDeviceContext::push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, uint32_t size, const void* data)
 {
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
     VkPipelineLayout vk_layout = get_pipeline_layout(layout_handle);
     VkShaderStageFlags shader_stage_flags = vulkan_helpers::convert_shader_stages(stages);
 
-    vkCmdPushConstants(vk_command_buffer, vk_layout, shader_stage_flags, offset, static_cast<uint32_t>(size), data);
+    vkCmdPushConstants(vk_command_buffer, vk_layout, shader_stage_flags, offset, size, data);
 }
 
 // TODO: Figure out max viewports
 // TODO: Support first viewport
-void VulkanDeviceContext::set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count)
+void VulkanDeviceContext::set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count)
 {
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
 
@@ -1209,7 +1207,7 @@ void VulkanDeviceContext::set_viewport(const CommandBufferHandle command_buffer_
     vkCmdSetViewport(vk_command_buffer, 0, infos_count, &vk_viewports[0]);
 }
 
-void VulkanDeviceContext::set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count)
+void VulkanDeviceContext::set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count)
 {
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
 

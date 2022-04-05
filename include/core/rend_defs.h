@@ -486,18 +486,18 @@ struct SubpassInfo
     uint32_t          resolve_attachment_infos[rend::constants::max_framebuffer_attachments];
     uint32_t          depth_stencil_attachment{};
     uint32_t          preserve_attachments[rend::constants::max_framebuffer_attachments];
-    size_t            colour_attachment_infos_count{ 0 };
-    size_t            input_attachment_infos_count{ 0 };
-    size_t            resolve_attachment_infos_count{ 0 };
-    size_t            preserve_attachments_count{ 0 };
+    uint32_t          colour_attachment_infos_count{ 0 };
+    uint32_t          input_attachment_infos_count{ 0 };
+    uint32_t          resolve_attachment_infos_count{ 0 };
+    uint32_t          preserve_attachments_count{ 0 };
 };
 
 struct SubpassDependency
 {
-    uint32_t                src_subpass{ 0 };
-    uint32_t                dst_subpass{ 0 };
-    Synchronisation         src_sync{};
-    Synchronisation         dst_sync{};
+    uint32_t        src_subpass{ 0 };
+    uint32_t        dst_subpass{ 0 };
+    Synchronisation src_sync{};
+    Synchronisation dst_sync{};
 };
 
 struct RenderPassInfo
@@ -505,9 +505,9 @@ struct RenderPassInfo
     AttachmentInfo    attachment_infos[rend::constants::max_framebuffer_attachments];
     SubpassInfo       subpasses[rend::constants::max_subpasses];
     SubpassDependency subpass_dependencies[rend::constants::max_subpasses];
-    size_t            attachment_infos_count{ 0 };
-    size_t            subpasses_count{ 0 };
-    size_t            subpass_dependency_count{ 0 };
+    uint32_t          attachment_infos_count{ 0 };
+    uint32_t          subpasses_count{ 0 };
+    uint32_t          subpass_dependency_count{ 0 };
 };
 
 struct FramebufferInfo
@@ -518,48 +518,48 @@ struct FramebufferInfo
     RenderPassHandle render_pass_handle{ NULL_HANDLE };
     Texture2DHandle  depth_buffer_handle{ NULL_HANDLE };
     Texture2DHandle  render_target_handles[rend::constants::max_framebuffer_attachments]{ NULL_HANDLE };
-    size_t           render_target_handles_count{ 0 };
+    uint32_t         render_target_handles_count{ 0 };
 };
 
 struct DescriptorSetLayoutBinding
 {
     uint32_t       binding{ 0 };
     DescriptorType descriptor_type;
-    size_t         descriptor_count{ 0 };
+    uint32_t       descriptor_count{ 0 };
     ShaderStages   shader_stages{ 0 };
 };
 
 struct DescriptorSetLayoutInfo
 {
     const DescriptorSetLayoutBinding* layout_bindings{ nullptr };
-    size_t                            layout_bindings_count{ 0 };
+    uint32_t                          layout_bindings_count{ 0 };
 };
 
 struct PushConstantRange
 {
     ShaderStages shader_stages;
-    size_t       offset{ 0 };
-    size_t       size{ 0 };
+    uint32_t     offset{ 0 };
+    uint32_t     size{ 0 };
 };
 
 struct PipelineLayoutInfo
 {
     const DescriptorSetLayoutHandle* descriptor_set_layouts{ nullptr };
-    size_t                           descriptor_set_layout_count{ 0 };
+    uint32_t                         descriptor_set_layout_count{ 0 };
     const PushConstantRange*         push_constant_ranges{ nullptr };
-    size_t                           push_constant_range_count{ 0 };
+    uint32_t                         push_constant_range_count{ 0 };
 };
 
 struct VertexBindingInfo
 {
-    size_t index{ 0 };
-    size_t stride{ 0 };
+    uint32_t index{ 0 };
+    uint32_t stride{ 0 };
 };
 
 struct VertexAttributeInfo
 {
     uint32_t           shader_location{ 0 };
-    size_t             offset{ 0 };
+    uint32_t           offset{ 0 };
     VertexBindingInfo* binding{ nullptr };
     rend::Format       format{ rend::Format::R32G32B32_SFLOAT };
 };
@@ -642,18 +642,18 @@ struct ColourBlendingInfo
     LogicOp               logic_op{ LogicOp::NO_OP }; 
     float                 blend_constants[constants::max_blend_constants];
     ColourBlendAttachment blend_attachments[constants::max_framebuffer_attachments];
-    size_t                blend_attachments_count{ 0 };
+    uint32_t              blend_attachments_count{ 0 };
 };
 
 struct PipelineInfo
 {
     // Shader State
-    ShaderHandle        shaders[(size_t)ShaderStage::SHADER_STAGE_COUNT];
+    ShaderHandle        shaders[(uint32_t)ShaderStage::SHADER_STAGE_COUNT];
 
     // Vertex Input State
     VertexBindingInfo   vertex_binding_info{};
     VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
-    size_t              vertex_attribute_info_count{ 0 };
+    uint32_t            vertex_attribute_info_count{ 0 };
 
     // Input Assembly State
     Topology topology{ Topology::TRIANGLE_LIST };
@@ -664,15 +664,15 @@ struct PipelineInfo
 
     // Viewport State
     ViewportInfo      viewport_info[constants::max_viewports];
-    size_t            viewport_info_count{ 0 };
+    uint32_t          viewport_info_count{ 0 };
     ViewportInfo      scissor_info[constants::max_scissors];
-    size_t            scissor_info_count{ 0 };
+    uint32_t          scissor_info_count{ 0 };
 
     RasteriserInfo     rasteriser_info{};
     MultisamplingInfo  multisampling_info{};
     DepthStencilInfo   depth_stencil_info{};
     ColourBlendingInfo colour_blending_info{};
-    DynamicStates      dynamic_states{ (size_t)DynamicState::NONE };
+    DynamicStates      dynamic_states{ (uint32_t)DynamicState::NONE };
 
     PipelineLayoutHandle layout_handle{ NULL_HANDLE };
     RenderPassHandle     render_pass_handle{ NULL_HANDLE };
@@ -681,9 +681,9 @@ struct PipelineInfo
 
 struct BufferBufferCopyInfo
 {
-    size_t size_bytes;
-    size_t src_offset;
-    size_t dst_offset;
+    uint32_t size_bytes;
+    uint32_t src_offset;
+    uint32_t dst_offset;
 };
 
 struct BufferImageCopyInfo
@@ -721,19 +721,19 @@ struct PipelineBarrierInfo
     PipelineStages      src_stages{};
     PipelineStages      dst_stages{};
     ImageMemoryBarrier* image_memory_barriers{ nullptr };
-    size_t              image_memory_barrier_count{ 0 };
+    uint32_t            image_memory_barrier_count{ 0 };
 };
 
 struct DescriptorPoolSize
 {
     DescriptorType type;
-    size_t         count;
+    uint32_t       count;
 };
 
 struct DescriptorPoolInfo
 {
     DescriptorPoolSize* pool_sizes{ nullptr };
-    size_t              pool_sizes_count{ 0 };
+    uint32_t            pool_sizes_count{ 0 };
     uint32_t            max_sets{ 0 };
 };
 
@@ -749,7 +749,7 @@ struct DescriptorSetInfo
     DescriptorPoolHandle         pool_handle{ NULL_HANDLE };
     DescriptorSetLayoutHandle    layout_handle{ NULL_HANDLE };
     rend::DescriptorSetBinding*  bindings{ nullptr };
-    size_t                       bindings_count{ 0 };
+    uint32_t                     bindings_count{ 0 };
 };
 
 }

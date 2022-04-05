@@ -49,7 +49,7 @@ public:
     virtual void destroy_descriptor_set(DescriptorSetHandle handle) = 0;
 
     // Command Buffer functions
-    virtual void bind_descriptor_sets(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, size_t descriptor_set_count) = 0;
+    virtual void bind_descriptor_sets(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) = 0;
     virtual void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) = 0;
     virtual void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
     virtual void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
@@ -61,9 +61,9 @@ public:
     virtual void draw(CommandBufferHandle command_buffer_handle, uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) = 0;
     virtual void draw_indexed(CommandBufferHandle command_buffer_handle, uint32_t index_count, uint32_t instance_count, uint32_t first_index, uint32_t vertex_offset, uint32_t first_instance) = 0;
     virtual void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) = 0;
-    virtual void push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, size_t size, const void* data) = 0;
-    virtual void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
-    virtual void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, size_t infos_count) = 0;
+    virtual void push_constant(const CommandBufferHandle command_buffer_handle, const PipelineLayoutHandle layout_handle, ShaderStages stages, uint32_t offset, uint32_t size, const void* data) = 0;
+    virtual void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) = 0;
+    virtual void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) = 0;
     virtual void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil ) = 0;
     virtual void end_render_pass(const CommandBufferHandle command_buffer_handle) = 0;
 
