@@ -9,29 +9,31 @@ namespace rend
 
 struct BufferInfo
 {
-    size_t      element_count;
-    size_t      element_size;
-    BufferUsage usage;
+    uint32_t    element_count{ 0 };
+    size_t      element_size{ 0 };
+    BufferUsage usage{ BufferUsage::NONE };
 };
 
 class GPUBuffer : public GPUResource
 {
 public:
-    GPUBuffer(void) = default;
-    ~GPUBuffer(void) = default;
+    GPUBuffer(const BufferInfo& info);
+    ~GPUBuffer(void);
 
     GPUBuffer(const GPUBuffer&)            = delete;
     GPUBuffer(GPUBuffer&&)                 = delete;
     GPUBuffer& operator=(const GPUBuffer&) = delete;
     GPUBuffer& operator=(GPUBuffer&&)      = delete;
 
-    bool create(const BufferInfo& info);
-    void destroy(void);
+    BufferHandle handle(void) const { return _handle; }
 
-    BufferHandle get_handle(void) const { return _handle; }
+    uint32_t elements_count(void) const { return _info.element_count; }
+    size_t element_size(void) const { return _info.element_size; }
+    BufferUsage usage(void) const { return _info.usage; }
 
 private:
     BufferHandle _handle{ NULL_HANDLE };
+    BufferInfo   _info{};
 };
 
 }

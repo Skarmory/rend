@@ -60,14 +60,14 @@ void CommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& 
 void CommandBuffer::bind_vertex_buffer(const GPUBuffer& vertex_buffer)
 {
     auto& ctx = DeviceContext::instance();
-    ctx.bind_vertex_buffer(_handle, vertex_buffer.get_handle());
+    ctx.bind_vertex_buffer(_handle, vertex_buffer.handle());
     _recorded = true;
 }
 
 void CommandBuffer::bind_index_buffer(const GPUBuffer& index_buffer)
 {
     auto& ctx = DeviceContext::instance();
-    ctx.bind_index_buffer(_handle, index_buffer.get_handle());
+    ctx.bind_index_buffer(_handle, index_buffer.handle());
     _recorded = true;
 }
 
@@ -83,7 +83,7 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst)
     info.dst_offset = 0;
 
     auto& ctx = DeviceContext::instance();
-    ctx.copy_buffer_to_buffer(_handle, src.get_handle(), dst.get_handle(), info);
+    ctx.copy_buffer_to_buffer(_handle, src.handle(), dst.handle(), info);
 }
 
 void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
@@ -99,7 +99,7 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     info.layer_count = dst.layers();
 
     auto& ctx = DeviceContext::instance();
-    ctx.copy_buffer_to_image(_handle, src.get_handle(), dst.get_handle(), info);
+    ctx.copy_buffer_to_image(_handle, src.handle(), dst.handle(), info);
 }
 
 void CommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
@@ -128,7 +128,7 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
     ImageMemoryBarrier image_memory_barrier{};
     image_memory_barrier.old_layout = texture.layout();
     image_memory_barrier.new_layout = new_layout;
-    image_memory_barrier.image_handle = texture.get_handle();
+    image_memory_barrier.image_handle = texture.handle();
     image_memory_barrier.mip_level_count = texture.mips();
     image_memory_barrier.layers_count = texture.layers();
 

@@ -4,7 +4,8 @@
 
 using namespace rend;
 
-bool GPUBuffer::create(const BufferInfo& info)
+GPUBuffer::GPUBuffer(const BufferInfo& info)
+    : _info(info)
 {
     auto& ctx = DeviceContext::instance();
 
@@ -22,21 +23,12 @@ bool GPUBuffer::create(const BufferInfo& info)
         _handle = ctx.create_uniform_buffer(info.element_count * info.element_size);
     }
 
-    if(_handle == NULL_HANDLE)
-    {
-        return false;
-    }
-
     _bytes = info.element_size * info.element_count;
-
-    return true;
 }
 
-void GPUBuffer::destroy(void)
+GPUBuffer::~GPUBuffer(void)
 {
     auto& ctx = DeviceContext::instance();
 
     ctx.destroy_buffer(_handle);
-
-    _handle = NULL_HANDLE;
 }

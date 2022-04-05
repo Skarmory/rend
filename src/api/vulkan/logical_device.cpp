@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cassert>
+#include <iostream>
 #include <set>
 
 using namespace rend;
@@ -298,7 +299,7 @@ std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(VkDescripto
     };
 
     std::vector<VkDescriptorSet> sets(layouts_count);
-    vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
+    VkResult result = vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
 
     return sets;
 }

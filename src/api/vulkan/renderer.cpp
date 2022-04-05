@@ -248,16 +248,16 @@ void ImageLoadTask::execute(FrameResources& resources)
     void* mapped = NULL;
 
     BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
-    GPUBuffer* staging_buffer = new GPUBuffer;
+    GPUBuffer* staging_buffer = new GPUBuffer(info);
+    resources.staging_buffers.push_back(staging_buffer);
+
 #ifdef DEBUG
     std::stringstream dbg_sstream;
     dbg_sstream << "Frame #" << resources.frame << " Staging Buffer #" << resources.staging_buffers.size();
     staging_buffer->dbg_name(dbg_sstream.str());
 #endif
-    staging_buffer->create(info);
-    resources.staging_buffers.push_back(staging_buffer);
 
-    VkDeviceMemory memory = ctx.get_memory(staging_buffer->get_handle());
+    VkDeviceMemory memory = ctx.get_memory(staging_buffer->handle());
     ctx.get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
     memcpy(mapped, data, size_bytes);
     ctx.get_device()->unmap_memory(memory);
@@ -282,17 +282,16 @@ void BufferLoadTask::execute(FrameResources& resources)
     if(is_device_local)
     {
         BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
-        GPUBuffer* staging_buffer = new GPUBuffer;
+        GPUBuffer* staging_buffer = new GPUBuffer(info);
+        resources.staging_buffers.push_back(staging_buffer);
+
 #ifdef DEBUG
         std::stringstream dbg_sstream;
         dbg_sstream << "Frame #" << resources.frame << " Staging Buffer #" << resources.staging_buffers.size();
         staging_buffer->dbg_name(dbg_sstream.str());
 #endif
-        staging_buffer->create(info);
 
-        resources.staging_buffers.push_back(staging_buffer);
-
-        memory = ctx.get_memory(staging_buffer->get_handle());
+        memory = ctx.get_memory(staging_buffer->handle());
 
         ctx.get_device()->map_memory(memory, staging_buffer->bytes(), 0, &mapped);
         memcpy(mapped, data, size_bytes);
@@ -302,7 +301,7 @@ void BufferLoadTask::execute(FrameResources& resources)
     }
     else
     {
-        memory = ctx.get_memory(buffer->get_handle());
+        memory = ctx.get_memory(buffer->handle());
 
         ctx.get_device()->map_memory(memory, size_bytes, 0, &mapped);
         memcpy(mapped, data, size_bytes);
@@ -414,11 +413,12 @@ void ImageTransitionTask::execute(FrameResources& resources)
 void Renderer::_create_default_depth_buffer(VkExtent2D extent)
 {
     if(_default_depth_buffer)
+    {
         delete _default_depth_buffer;
+    }
 
     TextureInfo info{ extent.width, extent.height, 1, 1, 1, Format::D24_S8, ImageLayout::UNDEFINED,  MSAASamples::MSAA_1X, ImageUsage::DEPTH_STENCIL };
-    _default_depth_buffer = new GPUTexture;
-    _default_depth_buffer->create(info);
+    _default_depth_buffer = new GPUTexture(info);
 }
 
 void Renderer::_create_default_renderpass(void)
@@ -482,7 +482,7 @@ void Renderer::_create_default_framebuffers(bool recreate)
         fb_info.height = swapchain_extent.height;
         fb_info.depth  = 1;
         fb_info.render_pass_handle = _default_render_pass->handle();
-        fb_info.depth_buffer_handle = _default_depth_buffer->get_handle();
+        fb_info.depth_buffer_handle = _default_depth_buffer->handle();
         fb_info.render_target_handles[0] = targets[idx];
         fb_info.render_target_handles_count = 1;
 

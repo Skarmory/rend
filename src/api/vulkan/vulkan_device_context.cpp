@@ -13,7 +13,7 @@
 
 #include <cassert>
 #include <GLFW/glfw3.h>
-#include <thread>
+#include <iostream>
 
 using namespace rend;
 
@@ -1280,8 +1280,8 @@ void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handl
 
             VkDescriptorImageInfo vk_image_info{};
 
-            vk_image_info.sampler = get_sampler(texture->get_handle());
-            vk_image_info.imageView = get_image_view(texture->get_handle());
+            vk_image_info.sampler = get_sampler(texture->handle());
+            vk_image_info.imageView = get_image_view(texture->handle());
             vk_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             write_desc.pImageInfo = &vk_image_info;
@@ -1296,7 +1296,7 @@ void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handl
             GPUBuffer* buffer = static_cast<GPUBuffer*>(binding.resource);
 
             VkDescriptorBufferInfo vk_buffer_info{};
-            vk_buffer_info.buffer  = get_buffer(buffer->get_handle());
+            vk_buffer_info.buffer  = get_buffer(buffer->handle());
             vk_buffer_info.offset = 0;
             vk_buffer_info.range   = buffer->bytes();
 
