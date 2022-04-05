@@ -136,7 +136,7 @@ public:
 
     void clear(void)
     {
-        for(int i{ 0 }; i < _count; ++i)
+        for(uint32_t i{ 0 }; i < _count; ++i)
         {
             if (!check_valid(_handles[i]))
             {

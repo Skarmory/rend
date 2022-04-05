@@ -456,8 +456,8 @@ struct DepthStencilClear
 
 struct RenderArea
 {
-    int w;
-    int h;
+    uint32_t w;
+    uint32_t h;
 };
 
 struct Synchronisation
@@ -532,34 +532,34 @@ struct DescriptorSetLayoutBinding
 struct DescriptorSetLayoutInfo
 {
     const DescriptorSetLayoutBinding* layout_bindings{ nullptr };
-    uint32_t                          layout_bindings_count{ 0 };
+    size_t                            layout_bindings_count{ 0 };
 };
 
 struct PushConstantRange
 {
     ShaderStages shader_stages;
-    uint32_t     offset{ 0 };
+    size_t       offset{ 0 };
     size_t       size{ 0 };
 };
 
 struct PipelineLayoutInfo
 {
     const DescriptorSetLayoutHandle* descriptor_set_layouts{ nullptr };
-    uint32_t                         descriptor_set_layout_count{ 0 };
+    size_t                           descriptor_set_layout_count{ 0 };
     const PushConstantRange*         push_constant_ranges{ nullptr };
-    uint32_t                         push_constant_range_count{ 0 };
+    size_t                           push_constant_range_count{ 0 };
 };
 
 struct VertexBindingInfo
 {
-    uint32_t index{ 0 };
-    uint32_t stride{ 0 };
+    size_t index{ 0 };
+    size_t stride{ 0 };
 };
 
 struct VertexAttributeInfo
 {
     uint32_t           shader_location{ 0 };
-    uint32_t           offset{ 0 };
+    size_t             offset{ 0 };
     VertexBindingInfo* binding{ nullptr };
     rend::Format       format{ rend::Format::R32G32B32_SFLOAT };
 };
@@ -648,7 +648,7 @@ struct ColourBlendingInfo
 struct PipelineInfo
 {
     // Shader State
-    ShaderHandle        shaders[(uint32_t)ShaderStage::SHADER_STAGE_COUNT];
+    ShaderHandle        shaders[(size_t)ShaderStage::SHADER_STAGE_COUNT];
 
     // Vertex Input State
     VertexBindingInfo   vertex_binding_info{};
@@ -672,7 +672,7 @@ struct PipelineInfo
     MultisamplingInfo  multisampling_info{};
     DepthStencilInfo   depth_stencil_info{};
     ColourBlendingInfo colour_blending_info{};
-    DynamicStates      dynamic_states{ (uint32_t)DynamicState::NONE };
+    DynamicStates      dynamic_states{ (size_t)DynamicState::NONE };
 
     PipelineLayoutHandle layout_handle{ NULL_HANDLE };
     RenderPassHandle     render_pass_handle{ NULL_HANDLE };
@@ -688,19 +688,19 @@ struct BufferBufferCopyInfo
 
 struct BufferImageCopyInfo
 {
-    size_t      buffer_offset{ 0 };
-    size_t      buffer_width{ 0 };
-    size_t      buffer_height{ 0 };
-    size_t      image_offset_x{ 0 };
-    size_t      image_offset_y{ 0 };
-    size_t      image_offset_z{ 0 };
-    size_t      image_width{ 0 };
-    size_t      image_height{ 0 };
-    size_t      image_depth{ 0 };
+    uint32_t    buffer_offset{ 0 };
+    uint32_t    buffer_width{ 0 };
+    uint32_t    buffer_height{ 0 };
+    int32_t     image_offset_x{ 0 };
+    int32_t     image_offset_y{ 0 };
+    int32_t     image_offset_z{ 0 };
+    uint32_t    image_width{ 0 };
+    uint32_t    image_height{ 0 };
+    uint32_t    image_depth{ 0 };
     ImageLayout image_layout{ ImageLayout::UNDEFINED };
-    size_t      mip_level{ 0 };
-    size_t      base_layer{ 0 };
-    size_t      layer_count{ 0 };
+    uint32_t    mip_level{ 0 };
+    uint32_t    base_layer{ 0 };
+    uint32_t    layer_count{ 0 };
 };
 
 struct ImageMemoryBarrier
@@ -727,13 +727,13 @@ struct PipelineBarrierInfo
 struct DescriptorPoolSize
 {
     DescriptorType type;
-    uint32_t       count;
+    size_t         count;
 };
 
 struct DescriptorPoolInfo
 {
     DescriptorPoolSize* pool_sizes{ nullptr };
-    uint32_t            pool_sizes_count{ 0 };
+    size_t              pool_sizes_count{ 0 };
     uint32_t            max_sets{ 0 };
 };
 
@@ -749,7 +749,7 @@ struct DescriptorSetInfo
     DescriptorPoolHandle         pool_handle{ NULL_HANDLE };
     DescriptorSetLayoutHandle    layout_handle{ NULL_HANDLE };
     rend::DescriptorSetBinding*  bindings{ nullptr };
-    uint32_t                     bindings_count{ 0 };
+    size_t                       bindings_count{ 0 };
 };
 
 }

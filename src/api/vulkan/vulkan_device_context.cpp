@@ -536,7 +536,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     // Color blend attachments
     create_info_idx = 0;
     VkPipelineColorBlendAttachmentState vk_colour_blend_attachments[constants::max_framebuffer_attachments];
-    for(int colour_blend_idx{ 0 }; colour_blend_idx < info.colour_blending_info.blend_attachments_count; ++colour_blend_idx)
+    for(size_t colour_blend_idx{ 0 }; colour_blend_idx < info.colour_blending_info.blend_attachments_count; ++colour_blend_idx)
     {
         const ColourBlendAttachment* attachment = &info.colour_blending_info.blend_attachments[colour_blend_idx];
         vk_colour_blend_attachments[colour_blend_idx].blendEnable         = attachment->blend_enabled;
@@ -589,7 +589,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     vk_input_binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkVertexInputAttributeDescription vk_attribute_descs[constants::max_vertex_attributes];
-    for(int vertex_attribute_idx{ 0 }; vertex_attribute_idx < info.vertex_attribute_info_count; ++vertex_attribute_idx)
+    for(size_t vertex_attribute_idx{ 0 }; vertex_attribute_idx < info.vertex_attribute_info_count; ++vertex_attribute_idx)
     {
         vk_attribute_descs[vertex_attribute_idx].location = info.vertex_attribute_infos[vertex_attribute_idx].shader_location;
         vk_attribute_descs[vertex_attribute_idx].binding = info.vertex_attribute_infos[vertex_attribute_idx].binding->index;
@@ -625,7 +625,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 
     if((info.dynamic_states & DynamicState::VIEWPORT) == DynamicState::NONE)
     {
-        for(int i{ 0 }; i < info.viewport_info_count; ++i)
+        for(size_t i{ 0 }; i < info.viewport_info_count; ++i)
         {
             vk_viewports[i].x         = info.viewport_info[i].x;
             vk_viewports[i].y         = info.viewport_info[i].y;
@@ -638,7 +638,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 
     if((info.dynamic_states & DynamicState::SCISSOR) == DynamicState::NONE)
     {
-        for(int i{ 0 }; i < info.scissor_info_count; ++i)
+        for(size_t i{ 0 }; i < info.scissor_info_count; ++i)
         {
             vk_scissors[i].offset.x         = info.scissor_info[i].x;
             vk_scissors[i].offset.y         = info.scissor_info[i].y;
@@ -730,7 +730,7 @@ CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
 DescriptorPoolHandle VulkanDeviceContext::create_descriptor_pool(const DescriptorPoolInfo& info)
 {
     VkDescriptorPoolSize vk_pool_sizes[c_descriptor_types_count];
-    for(int idx{ 0 }; idx < info.pool_sizes_count; ++idx)
+    for(size_t idx{ 0 }; idx < info.pool_sizes_count; ++idx)
     {
         vk_pool_sizes[idx].type            = vulkan_helpers::convert_descriptor_type(info.pool_sizes[idx].type);
         vk_pool_sizes[idx].descriptorCount = info.pool_sizes[idx].count;
@@ -1014,7 +1014,7 @@ void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffe
     VkPipelineLayout vk_pipeline_layout = get_pipeline_layout(pipeline_handle);
 
     VkDescriptorSet vk_descriptor_sets[c_descriptor_set_max];
-    for(int i = 0; i < descriptor_set_count; ++i)
+    for(size_t i = 0; i < descriptor_set_count; ++i)
     {
         vk_descriptor_sets[i] = get_descriptor_set(descriptor_set->handle());
     }
@@ -1147,7 +1147,7 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
 
     VkImageMemoryBarrier vk_image_memory_barriers[8];
-    for(uint32_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
+    for(size_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
     {
         vk_image_memory_barriers[barrier_idx].sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         vk_image_memory_barriers[barrier_idx].pNext               = nullptr;
