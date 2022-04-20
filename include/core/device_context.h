@@ -43,7 +43,8 @@ public:
     virtual void destroy_render_pass(RenderPassHandle handle) = 0;
     virtual void destroy_pipeline_layout(PipelineLayoutHandle handle) = 0;
     virtual void destroy_pipeline(PipelineHandle handle) = 0;
-    virtual void destroy_command_buffer(CommandBufferHandle handle) = 0;
+    virtual void destroy_command_buffer(CommandBufferHandle handle, CommandPoolHandle pool_handle) = 0;
+    virtual void destroy_command_pool(CommandPoolHandle handle) = 0;
     virtual void destroy_descriptor_pool(DescriptorPoolHandle handle) = 0;
     virtual void destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle) = 0;
     virtual void destroy_descriptor_set(DescriptorSetHandle handle) = 0;

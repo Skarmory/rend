@@ -177,7 +177,6 @@ void Swapchain::_clean_up_images(void)
 
     for(auto handle : _swapchain_image_handles)
     {
-        ctx.destroy_image_view(handle);
         ctx.unregister_swapchain_image(handle);
     }
 

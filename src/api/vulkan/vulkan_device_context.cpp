@@ -21,15 +21,6 @@ VulkanDeviceContext::VulkanDeviceContext(void)
 {
     assert(_service == nullptr);
     _service = this;
-
-    _vk_buffers.set_unique_key(_data_array_unique_key++);
-    _vk_images.set_unique_key(_data_array_unique_key++);
-    _vk_image_views.set_unique_key(_data_array_unique_key++);
-    _vk_samplers.set_unique_key(_data_array_unique_key++);
-    _vk_memorys.set_unique_key(_data_array_unique_key++);
-    _vk_shaders.set_unique_key(_data_array_unique_key++);
-    _vk_framebuffers.set_unique_key(_data_array_unique_key++);
-    _vk_render_passes.set_unique_key(_data_array_unique_key++);
 }
 
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
@@ -62,44 +53,26 @@ StatusCode VulkanDeviceContext::create(void)
 
 void VulkanDeviceContext::destroy(void)
 {
-    for(auto& handle : _command_pools)
+    for (auto& vk_memory : _vk_memorys)
     {
-        CommandPool& pool = *_command_pools.get(handle);
-
-        pool.destroy(*_logical_device);
+        _logical_device->free_memory(vk_memory);
     }
 
-    for (auto& handle : _vk_memorys)
+    for (auto& vk_sampler : _vk_samplers)
     {
-        _logical_device->free_memory(*_vk_memorys.get(handle));
+        _logical_device->destroy_sampler(vk_sampler);
     }
 
-    for (auto& handle : _vk_buffers)
+    for (auto& vk_image_view : _vk_image_views)
     {
-        _logical_device->destroy_buffer(*_vk_buffers.get(handle));
+        _logical_device->destroy_image_view(vk_image_view);
     }
 
-    for (auto& handle : _vk_samplers)
+    for(auto& vk_shader : _vk_shaders)
     {
-        _logical_device->destroy_sampler(*_vk_samplers.get(handle));
+        _logical_device->destroy_shader_module(vk_shader);
     }
 
-    for (auto& handle : _vk_image_views)
-    {
-        _logical_device->destroy_image_view(*_vk_image_views.get(handle));
-    }
-
-    for (auto& handle : _vk_images)
-    {
-        _logical_device->destroy_image(*_vk_images.get(handle));
-    }
-
-    for(auto& handle : _vk_shaders)
-    {
-        _logical_device->destroy_shader_module(*_vk_shaders.get(handle));
-    }
-
-    //for(size_t physical_device_index = 0; physical_device_index < _physical_devices.size(); physical_device_index++)
     for(auto physical_device : _physical_devices)
     {
         physical_device->destroy();
@@ -109,12 +82,6 @@ void VulkanDeviceContext::destroy(void)
     _logical_device = nullptr;
     _chosen_gpu     = nullptr;
     _physical_devices.clear();
-    _data_array_unique_key = 1;
-    _handle_to_memory_handle.clear();
-    _texture_handle_to_view_handle.clear();
-    _texture_handle_to_sampler_handle.clear();
-
-    //TODO: Clear data arrays (pending testing of DataArray::clear() function
 }
 
 StatusCode VulkanDeviceContext::choose_gpu(const VkPhysicalDeviceFeatures& desired_features)
@@ -230,14 +197,13 @@ TextureHandle VulkanDeviceContext::create_texture(uint32_t width, uint32_t heigh
     VkImageView view = _create_image_view(image, vk_format, VK_IMAGE_VIEW_TYPE_2D, vk_aspect, mips, layers);
     VkSampler sampler = _create_sampler();
 
-    auto handle = _vk_images.allocate(image);
-    auto view_handle = _vk_image_views.allocate(view);
-    auto mem_handle = _vk_memorys.allocate(memory);
-    auto sampler_handle = _vk_samplers.allocate(sampler);
+    VulkanImageInfo image_info{};
+    image_info.image = image;
+    image_info.memory_handle = _vk_memorys.allocate(memory);
+    image_info.view_handle = _vk_image_views.allocate(view);
+    image_info.sampler_handle = _vk_samplers.allocate(sampler);
 
-    _handle_to_memory_handle[handle] = mem_handle;
-    _texture_handle_to_view_handle[handle] = view_handle;
-    _texture_handle_to_sampler_handle[handle] = sampler_handle;
+    auto handle = _vk_image_infos.allocate(image_info);
 
     return handle;
 }
@@ -270,18 +236,18 @@ FramebufferHandle VulkanDeviceContext::create_framebuffer(const FramebufferInfo&
     for(size_t idx{ 0 }; idx < info.render_target_handles_count; ++idx)
     {
         TextureHandle attachment_handle = info.render_target_handles[idx];
-        TextureViewHandle view_handle = _texture_handle_to_view_handle.at(attachment_handle);
-        VkImageView vk_image_view = *_vk_image_views.get(view_handle);
+        VulkanImageInfo& image_info = *_vk_image_infos.get(attachment_handle);
+        VkImageView vk_image_view = *_vk_image_views.get(image_info.view_handle);
 
         vk_image_views[idx] = vk_image_view;
     }
 
     if(info.depth_buffer_handle != NULL_HANDLE)
     {
-        TextureViewHandle view_handle = _texture_handle_to_view_handle.at(info.depth_buffer_handle);
-        VkImageView vk_image_view = *_vk_image_views.get(view_handle);
+        VulkanImageInfo& image_info = *_vk_image_infos.get(info.depth_buffer_handle);
+        VkImageView vk_image_view = *_vk_image_views.get(image_info.view_handle);
 
-        vk_image_views[attachment_count] =vk_image_view;
+        vk_image_views[attachment_count] = vk_image_view;
         ++attachment_count;
     }
 
@@ -379,7 +345,6 @@ RenderPassHandle VulkanDeviceContext::create_render_pass(const RenderPassInfo& i
                 ref.layout     = VK_IMAGE_LAYOUT_UNDEFINED;
             }
 
-            //vk_subpass.resolveAttachmentCount = rend_subpass.resolve_attachment_infos_count;
             if(rend_subpass.resolve_attachment_infos_count > 0)
             {
                 vk_subpass.pResolveAttachments = &vk_attachment_refs[resolve_attach_block_start];
@@ -719,10 +684,13 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 
 CommandPoolHandle VulkanDeviceContext::create_command_pool(void)
 {
-    CommandPoolHandle pool_handle = _command_pools.allocate();
-    CommandPool& pool = *_command_pools.get(pool_handle);
+    VkCommandPoolCreateInfo create_info = vulkan_helpers::gen_command_pool_create_info();
+    create_info.flags                   = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    create_info.queueFamilyIndex        = _logical_device->get_queue_family(QueueType::GRAPHICS)->get_index();
 
-    pool.create(*_logical_device, QueueType::GRAPHICS);
+    VkCommandPool vk_command_pool = _logical_device->create_command_pool(create_info);
+
+    CommandPoolHandle pool_handle = _vk_command_pools.allocate(vk_command_pool);
 
     return pool_handle;
 }
@@ -804,22 +772,31 @@ DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorS
 
 CommandBufferHandle VulkanDeviceContext::create_command_buffer(CommandPoolHandle pool_handle)
 {
-    CommandPool& command_pool = *_command_pools.get(pool_handle);
-    CommandBufferHandle buffer_handle = command_pool.allocate_command_buffer(*_logical_device);
+    VkCommandPool vk_command_pool = *_vk_command_pools.get(pool_handle);
 
-    _buffer_handle_to_pool_handle[buffer_handle] = pool_handle;
+    auto vk_command_buffers = _logical_device->allocate_command_buffers(1, VK_COMMAND_BUFFER_LEVEL_PRIMARY, vk_command_pool);
 
-    return buffer_handle;
+    CommandBufferHandle command_buffer_handle = _vk_command_buffers.allocate(vk_command_buffers[0]);
+
+    return command_buffer_handle;
 }
 
-void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_handle)
+void VulkanDeviceContext::destroy_command_buffer(CommandBufferHandle buffer_handle, CommandPoolHandle pool_handle)
 {
-    HandleType pool_handle = _buffer_handle_to_pool_handle.at(buffer_handle);
-    CommandPool& command_pool = *_command_pools.get(pool_handle);
+    VkCommandBuffer vk_command_buffer = *_vk_command_buffers.get(buffer_handle);
+    VkCommandPool vk_command_pool     = *_vk_command_pools.get(pool_handle);
 
-    command_pool.free_command_buffer(*_logical_device, buffer_handle);
+    std::vector<VkCommandBuffer> vk_command_buffers{ vk_command_buffer };
+    _logical_device->free_command_buffers(vk_command_buffers, vk_command_pool);
+}
 
-    _handle_to_memory_handle.erase(buffer_handle);
+void VulkanDeviceContext::destroy_command_pool(CommandPoolHandle handle)
+{
+    VkCommandPool vk_command_pool = *_vk_command_pools.get(handle);
+
+    _logical_device->destroy_command_pool(vk_command_pool);
+
+    _vk_command_pools.deallocate(handle);
 }
 
 void VulkanDeviceContext::destroy_descriptor_pool(DescriptorPoolHandle handle)
@@ -859,93 +836,57 @@ void VulkanDeviceContext::destroy_descriptor_set(DescriptorSetHandle descriptor_
 
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
 {
-    Texture2DHandle image_handle = _vk_images.allocate(swapchain_image);
-
-    VkImage* image = _vk_images.get(image_handle);
-    VkImageView view = _create_image_view(*image, format, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1);
+    VkImageView view = _create_image_view(swapchain_image, format, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 1);
     TextureViewHandle view_handle = _vk_image_views.allocate(view);
-    _texture_handle_to_view_handle[image_handle] = view_handle;
 
-    return image_handle;
+    VulkanImageInfo image_info{};
+    image_info.image = swapchain_image;
+    image_info.view_handle = view_handle;
+
+    TextureHandle handle = _vk_image_infos.allocate(image_info);
+
+    return handle;
 }
 
 void VulkanDeviceContext::destroy_buffer(BufferHandle buffer_handle)
 {
-    auto it = _handle_to_memory_handle.find(buffer_handle);
-    if (it == _handle_to_memory_handle.end())
-    {
-        return;
-    }
+    VulkanBufferInfo& buffer_info = *_vk_buffer_infos.get(buffer_handle);
+    VkDeviceMemory memory = *_vk_memorys.get(buffer_info.memory_handle);
 
-    MemoryHandle mem_handle = it->second;
-    VkBuffer* buffer = _vk_buffers.get(buffer_handle);
-    VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
+    _logical_device->destroy_buffer(buffer_info.buffer);
+    _logical_device->free_memory(memory);
 
-    if (buffer)
-    {
-        _logical_device->destroy_buffer(*buffer);
-        _vk_buffers.deallocate(buffer_handle);
-    }
-
-    if (memory)
-    {
-        // TODO: Eventually I want to conserve memory usage and pack buffers
-        //       into memory blocks. So this will have to be removed.
-        _logical_device->free_memory(*memory);
-        _vk_memorys.deallocate(mem_handle);
-    }
-
-    _handle_to_memory_handle.erase(buffer_handle);
+    _vk_memorys.deallocate(buffer_info.memory_handle);
+    _vk_buffer_infos.deallocate(buffer_handle);
 }
 
 void VulkanDeviceContext::destroy_texture(Texture2DHandle texture_handle)
 {
-    _destroy_sampler(texture_handle);
-    destroy_image_view(texture_handle);
+    VulkanImageInfo& image_info = *_vk_image_infos.get(texture_handle);
 
-    auto it = _handle_to_memory_handle.find(texture_handle);
-    if (it == _handle_to_memory_handle.end())
+    if(image_info.sampler_handle != NULL_HANDLE)
     {
-        return;
+        _destroy_sampler(image_info.sampler_handle);
     }
 
-    MemoryHandle mem_handle = it->second;
-    VkImage* image = _vk_images.get(texture_handle);
-    VkDeviceMemory* memory = _vk_memorys.get(mem_handle);
+    destroy_image_view(image_info.view_handle);
 
-    if (image)
-    {
-        _logical_device->destroy_image(*image);
-        _vk_images.deallocate(texture_handle);
-    }
+    VkImage image = image_info.image;//_vk_images.get(texture_handle);
+    VkDeviceMemory memory = *_vk_memorys.get(image_info.memory_handle);
 
-    if (memory)
-    {
-        _logical_device->free_memory(*memory);
-        _vk_memorys.deallocate(mem_handle);
-    }
+    _logical_device->destroy_image(image);
+    _logical_device->free_memory(memory);
 
-    _handle_to_memory_handle.erase(texture_handle);
+    _vk_memorys.deallocate(image_info.memory_handle);
+    _vk_image_infos.deallocate(texture_handle);
 }
 
-void VulkanDeviceContext::destroy_image_view(Texture2DHandle texture_handle)
+void VulkanDeviceContext::destroy_image_view(Texture2DHandle view_handle)
 {
-    auto it = _texture_handle_to_view_handle.find(texture_handle);
-    if (it == _texture_handle_to_view_handle.end())
-    {
-        return;
-    }
+    VkImageView image_view = *_vk_image_views.get(view_handle);
 
-    TextureViewHandle view_handle = it->second;
-    VkImageView* image_view = _vk_image_views.get(view_handle);
-
-    if (image_view)
-    {
-        _logical_device->destroy_image_view(*image_view);
-        _vk_image_views.deallocate(view_handle);
-    }
-
-    _texture_handle_to_view_handle.erase(texture_handle);
+    _logical_device->destroy_image_view(image_view);
+    _vk_image_views.deallocate(view_handle);
 }
 
 void VulkanDeviceContext::destroy_shader(ShaderHandle handle)
@@ -985,20 +926,11 @@ void VulkanDeviceContext::destroy_pipeline(PipelineHandle handle)
 
 void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_handle)
 {
-    auto it = _texture_handle_to_view_handle.find(swapchain_handle);
-    if (it != _texture_handle_to_view_handle.end())
-    {
-        TextureViewHandle view_handle = it->second;
-        VkImageView* image_view = _vk_image_views.get(view_handle);
-        if (image_view)
-        {
-            _logical_device->destroy_image_view(*image_view);
-            _vk_image_views.deallocate(view_handle);
-        }
-    }
+    VulkanImageInfo& info = *_vk_image_infos.get(swapchain_handle);
 
-    _texture_handle_to_view_handle.erase(swapchain_handle);
-    _vk_images.deallocate(swapchain_handle);
+    destroy_image_view(info.view_handle);
+
+    _vk_image_infos.deallocate(swapchain_handle);
 }
 
 void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count)
@@ -1037,9 +969,9 @@ void VulkanDeviceContext::bind_vertex_buffer(CommandBufferHandle command_buffer_
     //TODO: Handle non-0 first binding
     VkDeviceSize offset = 0;
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
-    VkBuffer vk_vertex_buffer = get_buffer(handle);
+    VulkanBufferInfo& vertex_buffer_info = *_vk_buffer_infos.get(handle);
 
-    vkCmdBindVertexBuffers(vk_command_buffer, 0, 1, &vk_vertex_buffer, &offset);
+    vkCmdBindVertexBuffers(vk_command_buffer, 0, 1, &vertex_buffer_info.buffer, &offset);
 }
 
 void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle)
@@ -1047,9 +979,9 @@ void VulkanDeviceContext::bind_index_buffer(CommandBufferHandle command_buffer_h
     //TODO: Handle non-0 offsets
     VkDeviceSize offset = 0;
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
-    VkBuffer vk_index_buffer = get_buffer(handle);
+    VulkanBufferInfo& index_buffer_info = *_vk_buffer_infos.get(handle);
 
-    vkCmdBindIndexBuffer(vk_command_buffer, vk_index_buffer, offset, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(vk_command_buffer, index_buffer_info.buffer, offset, VK_INDEX_TYPE_UINT32);
 }
 
 void VulkanDeviceContext::command_buffer_begin(CommandBufferHandle command_buffer_handle)
@@ -1090,10 +1022,10 @@ void VulkanDeviceContext::copy_buffer_to_buffer(CommandBufferHandle command_buff
     };
 
     VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
-    VkBuffer vk_src_buffer = *_vk_buffers.get(src_handle);
-    VkBuffer vk_dst_buffer = *_vk_buffers.get(dst_handle);
+    VulkanBufferInfo& src_buffer_info = *_vk_buffer_infos.get(src_handle);
+    VulkanBufferInfo& dst_buffer_info = *_vk_buffer_infos.get(dst_handle);
 
-    vkCmdCopyBuffer(vk_command_buffer, vk_src_buffer, vk_dst_buffer, 1, &copy);
+    vkCmdCopyBuffer(vk_command_buffer, src_buffer_info.buffer, dst_buffer_info.buffer, 1, &copy);
 }
 
 void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info)
@@ -1114,14 +1046,14 @@ void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffe
         .imageExtent            = VkExtent3D{ info.image_width, info.image_height, info.image_depth }
     };
 
-    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
-    VkBuffer vk_buffer = *_vk_buffers.get(src_buffer_handle);
-    VkImage vk_image = *_vk_images.get(dst_texture_handle);
+    VkCommandBuffer  vk_command_buffer = get_command_buffer(command_buffer_handle);
+    VulkanBufferInfo& buffer_info = *_vk_buffer_infos.get(src_buffer_handle);
+    VulkanImageInfo&  image_info  = *_vk_image_infos.get(dst_texture_handle);
 
     vkCmdCopyBufferToImage(
         vk_command_buffer,
-        vk_buffer,
-        vk_image,
+        buffer_info.buffer,
+        image_info.image,
         vulkan_helpers::convert_image_layout(info.image_layout),
         1,
         &copy
@@ -1147,6 +1079,8 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
     VkImageMemoryBarrier vk_image_memory_barriers[8];
     for(size_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
     {
+        VulkanImageInfo& image_info = *_vk_image_infos.get(info.image_memory_barriers[barrier_idx].image_handle);
+
         vk_image_memory_barriers[barrier_idx].sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         vk_image_memory_barriers[barrier_idx].pNext               = nullptr;
         vk_image_memory_barriers[barrier_idx].srcAccessMask       = vulkan_helpers::convert_memory_accesses(info.image_memory_barriers[barrier_idx].src_accesses);
@@ -1155,7 +1089,7 @@ void VulkanDeviceContext::pipeline_barrier(const CommandBufferHandle command_buf
         vk_image_memory_barriers[barrier_idx].newLayout           = vulkan_helpers::convert_image_layout(info.image_memory_barriers[barrier_idx].new_layout);
         vk_image_memory_barriers[barrier_idx].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         vk_image_memory_barriers[barrier_idx].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        vk_image_memory_barriers[barrier_idx].image               = get_image(info.image_memory_barriers[barrier_idx].image_handle);
+        vk_image_memory_barriers[barrier_idx].image               = image_info.image;
         vk_image_memory_barriers[barrier_idx].subresourceRange    =
         {
             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -1276,13 +1210,14 @@ void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handl
         {
             GPUTexture* texture = static_cast<GPUTexture*>(binding.resource);
 
-            VkDescriptorImageInfo vk_image_info{};
+            VulkanImageInfo& image_info = *_vk_image_infos.get(texture->handle());
 
-            vk_image_info.sampler = get_sampler(texture->handle());
-            vk_image_info.imageView = get_image_view(texture->handle());
-            vk_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            VkDescriptorImageInfo vk_descriptor_image_info{};
+            vk_descriptor_image_info.sampler = *_vk_samplers.get(image_info.sampler_handle);
+            vk_descriptor_image_info.imageView = *_vk_image_views.get(image_info.view_handle);
+            vk_descriptor_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-            write_desc.pImageInfo = &vk_image_info;
+            write_desc.pImageInfo = &vk_descriptor_image_info;
 
             _logical_device->update_descriptor_sets( &write_desc, 1 );
 
@@ -1293,8 +1228,10 @@ void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handl
         {
             GPUBuffer* buffer = static_cast<GPUBuffer*>(binding.resource);
 
+            VulkanBufferInfo& buffer_info = *_vk_buffer_infos.get(buffer->handle());
+
             VkDescriptorBufferInfo vk_buffer_info{};
-            vk_buffer_info.buffer  = get_buffer(buffer->handle());
+            vk_buffer_info.buffer  = buffer_info.buffer;
             vk_buffer_info.offset = 0;
             vk_buffer_info.range   = buffer->bytes();
 
@@ -1306,38 +1243,46 @@ void VulkanDeviceContext::add_descriptor_binding(const DescriptorSetHandle handl
         }
         default:
         {
-            //std::cerr << "Update descriptor sets error: descriptor type " << vulkan_helpers::stringify(binding.type) << " is not supported (yet)." << std::endl;
             break;
         }
     }
 }
 
-VkBuffer VulkanDeviceContext::get_buffer(VertexBufferHandle handle) const
+void* VulkanDeviceContext::map_buffer_memory(BufferHandle handle, size_t bytes)
 {
-    return *_vk_buffers.get(handle);
+    void* mapped = nullptr;
+    VulkanBufferInfo& buffer_info = *_vk_buffer_infos.get(handle);
+    VkDeviceMemory memory = *_vk_memorys.get(buffer_info.memory_handle);
+    _logical_device->map_memory(memory, bytes, 0, &mapped);
+    return mapped;
 }
 
-VkImage VulkanDeviceContext::get_image(Texture2DHandle handle) const
+void VulkanDeviceContext::unmap_buffer_memory(BufferHandle handle)
 {
-    return *_vk_images.get(handle);
+    VulkanBufferInfo& buffer_info = *_vk_buffer_infos.get(handle);
+    VkDeviceMemory memory = *_vk_memorys.get(buffer_info.memory_handle);
+    _logical_device->unmap_memory(memory);
 }
 
-VkImageView VulkanDeviceContext::get_image_view(Texture2DHandle handle) const
+void* VulkanDeviceContext::map_image_memory(TextureHandle handle, size_t bytes)
 {
-    TextureViewHandle view_handle = _texture_handle_to_view_handle.at(handle);
-    return *_vk_image_views.get(view_handle);
+    void* mapped = nullptr;
+    VulkanImageInfo& image_info = *_vk_image_infos.get(handle);
+    VkDeviceMemory memory = *_vk_memorys.get(image_info.memory_handle);
+    _logical_device->map_memory(memory, bytes, 0, &mapped);
+    return mapped;
 }
 
-VkSampler VulkanDeviceContext::get_sampler(Texture2DHandle handle) const
+void VulkanDeviceContext::unmap_image_memory(TextureHandle handle)
 {
-    SamplerHandle sampler_handle = _texture_handle_to_sampler_handle.at(handle);
-    return *_vk_samplers.get(sampler_handle);
+    VulkanImageInfo& image_info = *_vk_image_infos.get(handle);
+    VkDeviceMemory memory = *_vk_memorys.get(image_info.memory_handle);
+    _logical_device->unmap_memory(memory);
 }
 
-VkDeviceMemory VulkanDeviceContext::get_memory(HandleType handle) const
+VkDeviceMemory VulkanDeviceContext::get_memory(MemoryHandle handle) const
 {
-    MemoryHandle mem_handle = _handle_to_memory_handle.at(handle);
-    return *_vk_memorys.get(mem_handle);
+    return *_vk_memorys.get(handle);
 }
 
 VkShaderModule VulkanDeviceContext::get_shader(const ShaderHandle handle) const
@@ -1357,15 +1302,7 @@ VkRenderPass   VulkanDeviceContext::get_render_pass(const RenderPassHandle handl
 
 VkCommandBuffer VulkanDeviceContext::get_command_buffer(const CommandBufferHandle handle) const
 {
-    auto it = _buffer_handle_to_pool_handle.find(handle);
-    if(it == _buffer_handle_to_pool_handle.end())
-    {
-        return VK_NULL_HANDLE;
-    }
-
-    CommandPool& pool = *_command_pools.get(it->second);
-
-    return pool.get_vk_command_buffer(handle);
+    return *_vk_command_buffers.get(handle);
 }
 
 VkPipelineLayout VulkanDeviceContext::get_pipeline_layout(const PipelineLayoutHandle handle) const
@@ -1424,10 +1361,11 @@ BufferHandle VulkanDeviceContext::_create_buffer_internal(size_t bytes, VkBuffer
 
     _logical_device->bind_buffer_memory(buffer, memory);
 
-    BufferHandle handle = _vk_buffers.allocate(buffer);
-    MemoryHandle mem_handle = _vk_memorys.allocate(memory);
+    VulkanBufferInfo buffer_info{};
+    buffer_info.buffer = buffer;
+    buffer_info.memory_handle = _vk_memorys.allocate(memory);
 
-    _handle_to_memory_handle[handle] = mem_handle;
+    BufferHandle handle = _vk_buffer_infos.allocate(buffer_info);
 
     return handle;
 }
@@ -1473,20 +1411,10 @@ VkSampler VulkanDeviceContext::_create_sampler(void)
     return sampler;
 }
 
-void VulkanDeviceContext::_destroy_sampler(TextureHandle handle)
+void VulkanDeviceContext::_destroy_sampler(SamplerHandle handle)
 {
-    auto it = _texture_handle_to_sampler_handle.find(handle);
-    if (it == _texture_handle_to_sampler_handle.end())
-    {
-        return;
-    }
+    VkSampler sampler = *_vk_samplers.get(handle);
 
-    SamplerHandle sampler_handle = it->second;
-
-    if (VkSampler* sampler = _vk_samplers.get(sampler_handle); sampler_handle)
-    {
-        _texture_handle_to_sampler_handle.erase(handle);
-        _logical_device->destroy_sampler(*sampler);
-        _vk_samplers.deallocate(sampler_handle);
-    }
+    _logical_device->destroy_sampler(sampler);
+    _vk_samplers.deallocate(handle);
 }

@@ -59,7 +59,8 @@ public:
     void destroy_render_pass(RenderPassHandle handle) override;
     void destroy_pipeline_layout(PipelineLayoutHandle handle) override;
     void destroy_pipeline(PipelineHandle handle) override;
-    void destroy_command_buffer(CommandBufferHandle handle) override;
+    void destroy_command_buffer(CommandBufferHandle handle, CommandPoolHandle pool_handle) override;
+    void destroy_command_pool(CommandPoolHandle handle) override;
     void destroy_descriptor_pool(DescriptorPoolHandle handle) override;
     void destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle) override;
     void destroy_descriptor_set(DescriptorSetHandle handle) override;
@@ -86,10 +87,15 @@ public:
 
     void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) override;
 
-    VkBuffer         get_buffer(VertexBufferHandle handle) const;
-    VkImage          get_image(TextureHandle handle) const;
-    VkImageView      get_image_view(TextureHandle handle) const;
-    VkSampler        get_sampler(TextureHandle handle) const;
+    void* map_buffer_memory(BufferHandle handle, size_t bytes);
+    void  unmap_buffer_memory(BufferHandle handle);
+    void* map_image_memory(TextureHandle handle, size_t bytes);
+    void  unmap_image_memory(TextureHandle handle);
+
+    //VkBuffer         get_buffer(VertexBufferHandle handle) const;
+    //VkImage          get_image(TextureHandle handle) const;
+    //VkImageView      get_image_view(TextureHandle handle) const;
+    //VkSampler        get_sampler(TextureHandle handle) const;
     VkDeviceMemory   get_memory(HandleType handle) const;
     VkShaderModule   get_shader(const ShaderHandle handle) const;
     VkFramebuffer    get_framebuffer(const FramebufferHandle handle) const;
@@ -113,10 +119,21 @@ private:
     std::vector<PhysicalDevice*> _physical_devices;
     LogicalDevice*               _logical_device    { nullptr };
     PhysicalDevice*              _chosen_gpu        { nullptr };
-    uint16_t _data_array_unique_key{ 1 };
 
-    DataArray<VkBuffer>              _vk_buffers;
-    DataArray<VkImage>               _vk_images;
+    struct VulkanImageInfo
+    {
+        VkImage         image{ VK_NULL_HANDLE };
+        DataArrayHandle memory_handle{ NULL_HANDLE };
+        DataArrayHandle view_handle{ NULL_HANDLE };
+        DataArrayHandle sampler_handle{ NULL_HANDLE };
+    };
+
+    struct VulkanBufferInfo
+    {
+        VkBuffer buffer{ VK_NULL_HANDLE };
+        DataArrayHandle memory_handle{ NULL_HANDLE };
+    };
+
     DataArray<VkImageView>           _vk_image_views;
     DataArray<VkSampler>             _vk_samplers;
     DataArray<VkDeviceMemory>        _vk_memorys;
@@ -128,13 +145,12 @@ private:
     DataArray<VkDescriptorSetLayout> _vk_descriptor_set_layouts;
     DataArray<VkDescriptorSet>       _vk_descriptor_sets;
     DataArray<VkDescriptorPool>      _vk_descriptor_pools;
+    DataArray<VkCommandBuffer>       _vk_command_buffers;
+    DataArray<VkCommandPool>         _vk_command_pools;
 
-    DataArray<CommandPool> _command_pools;
+    DataArray<VulkanImageInfo> _vk_image_infos;
+    DataArray<VulkanBufferInfo> _vk_buffer_infos;
 
-    std::unordered_map<HandleType, MemoryHandle>           _handle_to_memory_handle;
-    std::unordered_map<Texture2DHandle, TextureViewHandle> _texture_handle_to_view_handle;
-    std::unordered_map<Texture2DHandle, SamplerHandle>     _texture_handle_to_sampler_handle;
-    std::unordered_map<CommandBufferHandle, HandleType>    _buffer_handle_to_pool_handle;
     std::unordered_map<DescriptorSetHandle, DescriptorPoolHandle> _descriptor_set_handle_to_descriptor_pool_handle;
 };
 
