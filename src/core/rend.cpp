@@ -1,51 +1,55 @@
 #include "core/rend.h"
 
+#include "api/vulkan/vulkan_instance.h"
+
 #include "core/device_context.h"
 #include "api/vulkan/vulkan_device_context.h"
-#include "api/vulkan/vulkan_instance.h"
 #include "core/window.h"
 #include "core/window_context.h"
 
 #include <iostream>
 #include <vector>
 
-void rend::init_rend(Window& window)
+namespace
 {
-	std::vector<const char*> extensions =
-	{
-		"VK_KHR_surface"
-#ifdef __linux__
-		, "VK_KHR_xcb_surface"
-#elif defined(_WIN32)
-		, "VK_KHR_win32_surface"
-#endif
-	};
-
-	std::vector<const char*> layers =
-	{
-		//"VK_LAYER_LUNARG_standard_validation",
-		"VK_LAYER_KHRONOS_validation"
-	};
-
-	// Init singletons
-	auto& vk_instance = VulkanInstance::instance();
-	if(vk_instance.create(extensions.data(), extensions.size(), layers.data(), layers.size()) == rend::StatusCode::FAILURE)
+    void init_vulkan(const rend::VulkanInfo& info)
     {
-        std::cerr << "Failed to create vulkan instance!" << std::endl;
-        std::abort();
+        auto& vk_instance = rend::VulkanInstance::instance();
+        if(vk_instance.create(info.extensions, info.extensions_count, info.layers, info.layers_count) == rend::StatusCode::FAILURE)
+        {
+            std::cerr << "Failed to create vulkan instance!" << std::endl;
+            std::abort();
+        }
     }
 
-	auto& window_context = WindowContext::instance();
-	if(!window.create_window())
+    void init_window(const rend::RendInfo& info)
     {
-        std::cerr << "Failed to create window!" << std::endl;
-        std::abort();
+        auto& window_context = rend::WindowContext::instance();
+        if(!info.window->create_window())
+        {
+            std::cerr << "Failed to create window!" << std::endl;
+            std::abort();
+        }
+
+        window_context.set_window(info.window);
+    }
+}
+
+void rend::init_rend(const RendInfo& info)
+{
+    rend::DeviceContext* ctx{ nullptr };
+
+    switch(info.api)
+    {
+        case API::API_VULKAN:
+        {
+            ::init_vulkan(*static_cast<const VulkanInfo*>(info.api_info));
+            ::init_window(info);
+            ctx = new rend::VulkanDeviceContext;
+        }
     }
 
-	window_context.set_window(&window);
-
-	DeviceContext* ctx = new VulkanDeviceContext;
-	ctx->create();
+    ctx->create();
 }
 
 void rend::destroy_rend(void)
