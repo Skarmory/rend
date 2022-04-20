@@ -13,24 +13,14 @@
 
 using namespace rend;
 
-bool CommandBuffer::create(CommandPoolHandle pool_handle)
+CommandBuffer::CommandBuffer(CommandBufferHandle command_buffer_handle, CommandBufferHandle pool_reference_handle)
+    : _handle(command_buffer_handle),
+      _pool_reference_handle(pool_reference_handle)
 {
-    auto& ctx = DeviceContext::instance();
-
-    _handle = ctx.create_command_buffer(pool_handle);
-    if(_handle == NULL_HANDLE)
-    {
-        return false;
-    }
-
-    return true;
 }
 
-void CommandBuffer::destroy(void)
+CommandBuffer::~CommandBuffer(void)
 {
-    auto& ctx = DeviceContext::instance();
-    ctx.destroy_command_buffer(_handle);
-    _handle = NULL_HANDLE;
 }
 
 bool CommandBuffer::recorded(void) const
@@ -158,7 +148,6 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
         case ImageLayout::PRESENT:
             image_memory_barrier.src_accesses = MemoryAccess::MEMORY_READ; break;
         default:
-            //std::cerr << "Image transition error: src layout " << vulkan_helpers::stringify(vulkan_helpers::convert_image_layout(image.layout())) << " is not supported" << std::endl;
             return;
     }
 
@@ -180,7 +169,6 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
         //case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
             image_memory_barrier.dst_accesses = MemoryAccess::MEMORY_READ; break;
         default:
-            //std::cerr << "Image transition error: dst layout " << vulkan_helpers::stringify(transition_to) << " is not supported" << std::endl;
             return;
     }
 

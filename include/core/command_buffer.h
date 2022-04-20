@@ -1,7 +1,7 @@
 #ifndef REND_COMMAND_BUFFER_H
 #define REND_COMMAND_BUFFER_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
 
 namespace rend
 {
@@ -16,16 +16,14 @@ class RenderPass;
 
 class CommandBuffer
 {
-public:
-    CommandBuffer(void)                            = default;
-    ~CommandBuffer(void)                           = default;
-    CommandBuffer(const CommandBuffer&)            = delete;
-    CommandBuffer(CommandBuffer&&)                 = delete;
-    CommandBuffer& operator=(const CommandBuffer&) = delete;
-    CommandBuffer& operator=(CommandBuffer&&)      = delete;
+    friend class CommandPool;
 
-    bool create(CommandPoolHandle pool_handle);
-    void destroy(void);
+public:
+    CommandBuffer(const CommandBuffer&)            = delete;
+    CommandBuffer(CommandBuffer&&)                 = default;
+    CommandBuffer& operator=(const CommandBuffer&) = delete;
+    CommandBuffer& operator=(CommandBuffer&&)      = default;
+
     CommandBufferHandle handle(void) const;
     bool recorded(void) const;
 
@@ -50,8 +48,13 @@ public:
     void end_render_pass(void);
 
 private:
+    CommandBuffer(CommandBufferHandle command_buffer_handle, CommandBufferHandle pool_reference_handle);
+    ~CommandBuffer(void);
+
+private:
     CommandBufferHandle _handle{ NULL_HANDLE };
-    bool _recorded{ false };
+    CommandBufferHandle _pool_reference_handle{ NULL_HANDLE };
+    bool                _recorded{ false };
 };
 
 }
