@@ -5,6 +5,7 @@ NAME=librend.so
 
 SRCS=$(wildcard src/*.cpp)
 SRCS+=$(wildcard src/core/*.cpp)
+SRCS+=$(wildcard src/core/data_structures/*.cpp)
 SRCS+=$(wildcard src/api/vulkan/*.cpp)
 SRCS+=$(wildcard src/lights/*.cpp)
 
