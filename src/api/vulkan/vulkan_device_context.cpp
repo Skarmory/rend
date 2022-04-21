@@ -709,6 +709,7 @@ DescriptorPoolHandle VulkanDeviceContext::create_descriptor_pool(const Descripto
     }
 
     VkDescriptorPoolCreateInfo vk_info = vulkan_helpers::gen_descriptor_pool_create_info();
+    vk_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     vk_info.maxSets                    = info.max_sets;
     vk_info.pPoolSizes                 = vk_pool_sizes;
     vk_info.poolSizeCount              = info.pool_sizes_count;
