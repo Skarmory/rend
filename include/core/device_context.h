@@ -18,6 +18,8 @@ class DeviceContext
 public:
     static DeviceContext& instance(void);
 
+    virtual ~DeviceContext(void) = default;
+
     virtual StatusCode create(void) = 0;
     virtual void       destroy(void) = 0;
 

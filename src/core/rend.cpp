@@ -33,28 +33,29 @@ namespace
 
         window_context.set_window(info.window);
     }
+
+    rend::DeviceContext* ctx{ nullptr };
 }
 
 void rend::init_rend(const RendInfo& info)
 {
-    rend::DeviceContext* ctx{ nullptr };
-
     switch(info.api)
     {
         case API::API_VULKAN:
         {
             ::init_vulkan(*static_cast<const VulkanInfo*>(info.api_info));
             ::init_window(info);
-            ctx = new rend::VulkanDeviceContext;
+            ::ctx = new rend::VulkanDeviceContext;
         }
     }
 
-    ctx->create();
+    ::ctx->create();
 }
 
 void rend::destroy_rend(void)
 {
 	DeviceContext::instance().destroy();
+    delete ctx;
 
     WindowContext::instance().window()->destroy_window();
 	WindowContext::instance().set_window(nullptr);

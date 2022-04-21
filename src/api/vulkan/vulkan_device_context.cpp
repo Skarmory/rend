@@ -23,6 +23,10 @@ VulkanDeviceContext::VulkanDeviceContext(void)
     _service = this;
 }
 
+VulkanDeviceContext::~VulkanDeviceContext(void)
+{
+}
+
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
 {
     return _chosen_gpu;
