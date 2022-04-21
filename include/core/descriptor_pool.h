@@ -9,14 +9,12 @@ namespace rend
 class DescriptorPool
 {
 public:
-    DescriptorPool(void)                             = default;
+    explicit DescriptorPool(const DescriptorPoolInfo& info);
+    ~DescriptorPool(void);
     DescriptorPool(const DescriptorPool&)            = delete;
     DescriptorPool(DescriptorPool&&)                 = delete;
     DescriptorPool& operator=(const DescriptorPool&) = delete;
     DescriptorPool& operator=(DescriptorPool&&)      = delete;
-
-    bool create(const DescriptorPoolInfo& info);
-    void destroy(void);
 
     DescriptorPoolHandle handle(void) const;
 
