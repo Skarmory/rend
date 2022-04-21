@@ -9,7 +9,7 @@ namespace rend
 class DescriptorSet
 {
 public:
-    DescriptorSet(const DescriptorSetInfo& info);
+    explicit DescriptorSet(const DescriptorSetInfo& info);
     ~DescriptorSet(void);
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;

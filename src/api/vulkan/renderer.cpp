@@ -93,7 +93,6 @@ StatusCode Renderer::destroy(void)
 
     for(Framebuffer* framebuffer : _default_framebuffers)
     {
-        framebuffer->destroy();
         delete framebuffer;
     }
 
@@ -363,7 +362,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
     {
         for(uint32_t idx = 0; idx < _default_framebuffers.size(); ++idx)
         {
-            _default_framebuffers[idx]->destroy();
             delete _default_framebuffers[idx];
         }
     }
@@ -380,7 +378,6 @@ void Renderer::_create_default_framebuffers(bool recreate)
         fb_info.render_target_handles[0] = targets[idx];
         fb_info.render_target_handles_count = 1;
 
-        _default_framebuffers[idx] = new Framebuffer;
-        _default_framebuffers[idx]->create(fb_info);
+        _default_framebuffers[idx] = new Framebuffer(fb_info);
     }
 }

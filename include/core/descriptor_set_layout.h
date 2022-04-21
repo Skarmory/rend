@@ -9,7 +9,7 @@ namespace rend
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(const DescriptorSetLayoutInfo& info);
+    explicit DescriptorSetLayout(const DescriptorSetLayoutInfo& info);
     ~DescriptorSetLayout(void);
     DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout(DescriptorSetLayout&&) = delete;
