@@ -44,8 +44,6 @@ void CommandPool::destroy_command_buffer(CommandBuffer* command_buffer)
 {
     auto& ctx = DeviceContext::instance();
 
-    std::cout << "CommandPool::destroy_command_buffer: " << command_buffer->_handle << std::endl;
-
     ctx.destroy_command_buffer(command_buffer->_handle, _handle);
 
     _command_buffers.deallocate(command_buffer->_pool_reference_handle);
