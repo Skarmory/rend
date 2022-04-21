@@ -4,26 +4,15 @@
 
 using namespace rend;
 
-bool DescriptorSet::create(const DescriptorSetInfo& info)
+DescriptorSet::DescriptorSet(const DescriptorSetInfo& info)
 {
     auto& ctx = DeviceContext::instance();
-
-    DescriptorSetHandle handle = ctx.create_descriptor_set(info);
-
-    if(handle == NULL_HANDLE)
-    {
-        return false;
-    }
-
-    _handle = handle;
-
-    return true;
+    _handle = ctx.create_descriptor_set(info);
 }
 
-void DescriptorSet::destroy(void)
+DescriptorSet::~DescriptorSet(void)
 {
     auto& ctx = DeviceContext::instance();
-
     ctx.destroy_descriptor_set(_handle);
 }
 

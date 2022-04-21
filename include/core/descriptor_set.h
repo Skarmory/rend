@@ -9,14 +9,12 @@ namespace rend
 class DescriptorSet
 {
 public:
-    DescriptorSet(void)                            = default;
+    DescriptorSet(const DescriptorSetInfo& info);
+    ~DescriptorSet(void);
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
     DescriptorSet& operator=(DescriptorSet&&)      = delete;
-
-    bool create(const DescriptorSetInfo& info);
-    void destroy(void);
 
     void add_binding(const rend::DescriptorSetBinding& binding) const;
 
