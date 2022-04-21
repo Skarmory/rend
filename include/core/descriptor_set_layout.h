@@ -9,14 +9,12 @@ namespace rend
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(void) = default;
+    DescriptorSetLayout(const DescriptorSetLayoutInfo& info);
+    ~DescriptorSetLayout(void);
     DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout(DescriptorSetLayout&&) = delete;
     DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
     DescriptorSetLayout& operator=(DescriptorSetLayout&&) = delete;
-
-    bool create(const DescriptorSetLayoutInfo& info);
-    void destroy(void);
 
     DescriptorSetLayoutHandle handle(void) const;
 
