@@ -96,7 +96,6 @@ StatusCode Renderer::destroy(void)
         delete framebuffer;
     }
 
-    _default_render_pass->destroy();
     delete _default_render_pass;
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
@@ -316,8 +315,6 @@ void Renderer::_create_default_depth_buffer(VkExtent2D extent)
 
 void Renderer::_create_default_renderpass(void)
 {
-    _default_render_pass = new RenderPass;
-
     AttachmentInfo colour_attachment = {};
     colour_attachment.format = _swapchain->get_format();
     colour_attachment.load_op = LoadOp::CLEAR;
@@ -349,7 +346,7 @@ void Renderer::_create_default_renderpass(void)
     render_pass_info.subpass_dependencies[0] = dep_info;
     render_pass_info.subpass_dependency_count = 1;
 
-    _default_render_pass->create(render_pass_info);
+    _default_render_pass = new RenderPass(render_pass_info);
 }
 
 void Renderer::_create_default_framebuffers(bool recreate)
