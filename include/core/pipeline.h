@@ -9,20 +9,18 @@ namespace rend
 class Pipeline
 {
 public:
-    Pipeline(void) = default;
-    ~Pipeline(void) = default;
+    explicit Pipeline(const PipelineInfo& info);
+    ~Pipeline(void);
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     Pipeline& operator=(Pipeline&&) = delete;
 
-    bool create(const PipelineInfo& info);
-    void destroy(void);
-
     PipelineHandle handle(void) const;
 
 private:
-    PipelineHandle _handle;
+    PipelineHandle _handle{ NULL_HANDLE };
+    PipelineInfo _info{};
 };
 
 }

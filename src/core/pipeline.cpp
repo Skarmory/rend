@@ -4,24 +4,17 @@
 
 using namespace rend;
 
-bool Pipeline::create(const PipelineInfo& info)
+Pipeline::Pipeline(const PipelineInfo& info)
+    : _info(info)
 {
     auto& ctx = DeviceContext::instance();
     _handle = ctx.create_pipeline(info);
-
-    if(_handle == NULL_HANDLE)
-    {
-        return false;
-    }
-
-    return true;
 }
 
-void Pipeline::destroy(void)
+Pipeline::~Pipeline(void)
 {
     auto& ctx = DeviceContext::instance();
     ctx.destroy_pipeline(_handle);
-    _handle = NULL_HANDLE;
 }
 
 PipelineHandle Pipeline::handle(void) const
