@@ -9,20 +9,18 @@ namespace rend
 class PipelineLayout
 {
 public:
-    PipelineLayout(void) = default;
-    ~PipelineLayout(void) = default;
+    explicit PipelineLayout(const PipelineLayoutInfo& info);
+    ~PipelineLayout(void);
     PipelineLayout(const PipelineLayout&) = delete;
     PipelineLayout(PipelineLayout&&) = delete;
     PipelineLayout& operator=(const PipelineLayout&) = delete;
     PipelineLayout& operator=(PipelineLayout&&) = delete;
 
-    bool create(const PipelineLayoutInfo& info);
-    void destroy(void);
-
     PipelineLayoutHandle handle(void) const;
 
 private:
-    PipelineLayoutHandle _handle;
+    PipelineLayoutHandle _handle{ NULL_HANDLE };
+    PipelineLayoutInfo   _info{};
 };
 
 }
