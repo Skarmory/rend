@@ -9,28 +9,19 @@
 
 using namespace rend;
 
-bool Fence::create(bool start_signalled)
+Fence::Fence(bool start_signalled)
 {
-    assert(_vk_fence == VK_NULL_HANDLE && "Attempt to create a Fence that has already been created.");
-
     VkFenceCreateInfo create_info = vulkan_helpers::gen_fence_create_info();
     create_info.flags = static_cast<VkFenceCreateFlags>(start_signalled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
 
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    _vk_fence = ctx.get_device()->create_fence(create_info);
-    if(_vk_fence == VK_NULL_HANDLE)
-    {
-        return false;
-    }
-
-    return true;
+    _vk_fence = ctx.create_fence(create_info);
 }
 
-void Fence::destroy(void)
+Fence::~Fence(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    ctx.get_device()->destroy_fence(_vk_fence);
-    _vk_fence = VK_NULL_HANDLE;
+    ctx.destroy_fence(_vk_fence);
 }
 
 VkFence Fence::get_handle(void) const

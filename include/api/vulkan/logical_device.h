@@ -99,7 +99,7 @@ public:
     VkEvent               create_event(const VkEventCreateInfo& create_info);
     void                  destroy_event(VkEvent event);
 
-    VkFence               create_fence(VkFenceCreateInfo& create_info);
+    VkFence               create_fence(const VkFenceCreateInfo& create_info);
     void                  destroy_fence(VkFence fence);
 
     VkSemaphore           create_semaphore(VkSemaphoreCreateInfo& create_info);

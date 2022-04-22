@@ -494,7 +494,7 @@ void LogicalDevice::destroy_event(VkEvent event)
     vkDestroyEvent(_vk_device, event, nullptr);
 }
 
-VkFence LogicalDevice::create_fence(VkFenceCreateInfo& create_info)
+VkFence LogicalDevice::create_fence(const VkFenceCreateInfo& create_info)
 {
     VkFence fence = VK_NULL_HANDLE;
     vkCreateFence(_vk_device, &create_info, nullptr, &fence);

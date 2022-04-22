@@ -10,15 +10,12 @@ namespace rend
 class Fence
 {
 public:
-    Fence(void)                    = default;
-    ~Fence(void)                   = default;
+    explicit Fence(bool start_signalled);
+    ~Fence(void);
     Fence(const Fence&)            = delete;
     Fence(Fence&&)                 = delete;
     Fence& operator=(const Fence&) = delete;
     Fence& operator=(Fence&&)      = delete;
-
-    bool create(bool start_signalled);
-    void destroy(void);
 
     VkFence  get_handle(void) const;
     void     reset(void) const;
