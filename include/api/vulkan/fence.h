@@ -17,7 +17,7 @@ public:
     Fence& operator=(const Fence&) = delete;
     Fence& operator=(Fence&&)      = delete;
 
-    VkFence  get_handle(void) const;
+    VkFence  handle(void) const;
     void     reset(void) const;
     VkResult wait(uint64_t timeout=std::numeric_limits<uint64_t>::max()) const;
 

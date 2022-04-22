@@ -102,7 +102,7 @@ public:
     VkFence               create_fence(const VkFenceCreateInfo& create_info);
     void                  destroy_fence(VkFence fence);
 
-    VkSemaphore           create_semaphore(VkSemaphoreCreateInfo& create_info);
+    VkSemaphore           create_semaphore(const VkSemaphoreCreateInfo& create_info);
     void                  destroy_semaphore(VkSemaphore semaphore);
 
     VkImage               create_image(VkImageCreateInfo& create_info);

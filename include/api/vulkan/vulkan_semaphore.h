@@ -11,17 +11,14 @@ namespace rend
 class Semaphore
 {
 public:
-    Semaphore(void)                        = default;
-    ~Semaphore(void)                       = default;
+    explicit Semaphore(void);
+    ~Semaphore(void);
     Semaphore(const Semaphore&)            = delete;
     Semaphore(Semaphore&&)                 = delete;
     Semaphore& operator=(const Semaphore&) = delete;
     Semaphore& operator=(Semaphore&&)      = delete;
 
-    StatusCode create(void);
-    void       destroy(void);
-
-    VkSemaphore get_handle(void) const;
+    VkSemaphore handle(void) const;
 
 private:
     VkSemaphore _vk_semaphore { VK_NULL_HANDLE };

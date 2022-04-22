@@ -62,9 +62,6 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
         _frame_resources[idx].present_sem = new Semaphore;
         _frame_resources[idx].submit_fen  = new Fence(true);
 
-        _frame_resources[idx].acquire_sem->create();
-        _frame_resources[idx].present_sem->create();
-
         _frame_resources[idx].command_buffer = _command_pool->create_command_buffer();
     }
 
@@ -99,12 +96,8 @@ StatusCode Renderer::destroy(void)
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
-        _frame_resources[idx].acquire_sem->destroy();
         delete _frame_resources[idx].acquire_sem;
-
-        _frame_resources[idx].present_sem->destroy();
         delete _frame_resources[idx].present_sem;
-
         delete _frame_resources[idx].submit_fen;
 
         _command_pool->destroy_command_buffer(_frame_resources[idx].command_buffer);

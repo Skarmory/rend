@@ -948,6 +948,11 @@ VkFence VulkanDeviceContext::create_fence(const VkFenceCreateInfo& info)
     return _logical_device->create_fence(info);
 }
 
+VkSemaphore VulkanDeviceContext::create_semaphore(const VkSemaphoreCreateInfo& info)
+{
+    return _logical_device->create_semaphore(info);
+}
+
 void VulkanDeviceContext::destroy_event(VkEvent event)
 {
     _logical_device->destroy_event(event);
@@ -956,6 +961,11 @@ void VulkanDeviceContext::destroy_event(VkEvent event)
 void VulkanDeviceContext::destroy_fence(VkFence fence)
 {
     _logical_device->destroy_fence(fence);
+}
+
+void VulkanDeviceContext::destroy_semaphore(VkSemaphore semaphore)
+{
+    _logical_device->destroy_semaphore(semaphore);
 }
 
 void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count)

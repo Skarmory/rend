@@ -142,12 +142,12 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
 
     for(Semaphore* sem : wait_sems)
     {
-        vk_wait_sems.push_back(sem->get_handle());
+        vk_wait_sems.push_back(sem->handle());
     }
 
     for(Semaphore* sem : signal_sems)
     {
-        vk_sig_sems.push_back(sem->get_handle());
+        vk_sig_sems.push_back(sem->handle());
     }
 
     VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -167,7 +167,7 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
 
     VkQueue queue = get_queue(type);
 
-    if(vkQueueSubmit(queue, 1, &submit_info, fence->get_handle()) != VK_SUCCESS)
+    if(vkQueueSubmit(queue, 1, &submit_info, fence->handle()) != VK_SUCCESS)
     {
         return false;
     }
@@ -214,8 +214,8 @@ VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeou
         _vk_device,
         swapchain->get_handle(),
         timeout,
-        semaphore ? semaphore->get_handle() : VK_NULL_HANDLE,
-        fence ? fence->get_handle() : VK_NULL_HANDLE,
+        semaphore ? semaphore->handle() : VK_NULL_HANDLE,
+        fence ? fence->handle() : VK_NULL_HANDLE,
         image_index
     );
 }
@@ -235,7 +235,7 @@ VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphor
 
     for(Semaphore* sem : wait_sems)
     {
-        vk_sems.push_back(sem->get_handle());
+        vk_sems.push_back(sem->handle());
     }
 
     VkPresentInfoKHR present_info =
@@ -506,7 +506,7 @@ void LogicalDevice::destroy_fence(VkFence fence)
     vkDestroyFence(_vk_device, fence, nullptr);
 }
 
-VkSemaphore LogicalDevice::create_semaphore(VkSemaphoreCreateInfo& create_info)
+VkSemaphore LogicalDevice::create_semaphore(const VkSemaphoreCreateInfo& create_info)
 {
     VkSemaphore semaphore;
     vkCreateSemaphore(_vk_device, &create_info, nullptr, &semaphore);

@@ -24,7 +24,7 @@ Fence::~Fence(void)
     ctx.destroy_fence(_vk_fence);
 }
 
-VkFence Fence::get_handle(void) const
+VkFence Fence::handle(void) const
 {
     return _vk_fence;
 }

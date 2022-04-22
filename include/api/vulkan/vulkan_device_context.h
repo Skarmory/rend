@@ -70,9 +70,11 @@ public:
     // Vulkan creation
     [[nodiscard]] VkEvent create_event(const VkEventCreateInfo& info);
     [[nodiscard]] VkFence create_fence(const VkFenceCreateInfo& info);
+    [[nodiscard]] VkSemaphore create_semaphore(const VkSemaphoreCreateInfo& info);
 
     void destroy_event(VkEvent event);
     void destroy_fence(VkFence fence);
+    void destroy_semaphore(VkSemaphore semaphore);
 
     // Command Buffer
     void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) override;
