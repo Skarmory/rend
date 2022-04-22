@@ -482,7 +482,7 @@ void LogicalDevice::destroy_pipeline(VkPipeline pipeline)
     vkDestroyPipeline(_vk_device, pipeline, nullptr);
 }
 
-VkEvent LogicalDevice::create_event(VkEventCreateInfo& create_info)
+VkEvent LogicalDevice::create_event(const VkEventCreateInfo& create_info)
 {
     VkEvent event = VK_NULL_HANDLE;
     vkCreateEvent(_vk_device, &create_info, nullptr, &event);

@@ -9,17 +9,14 @@ namespace rend
 class Event
 {
 public:
-    Event(void)                    = default;
-    ~Event(void)                   = default;
+    explicit Event(void);
+    ~Event(void);
     Event(const Event&)            = delete;
     Event(Event&&)                 = delete;
     Event& operator=(const Event&) = delete;
     Event& operator=(Event&&)      = delete;
 
-    bool create(void);
-    void destroy(void);
-
-    VkEvent get_handle(void) const;
+    VkEvent handle(void) const;
 
 private:
     VkEvent _vk_event { VK_NULL_HANDLE };

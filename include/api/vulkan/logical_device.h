@@ -96,7 +96,7 @@ public:
     VkPipeline            create_pipeline(VkGraphicsPipelineCreateInfo& create_info);
     void                  destroy_pipeline(VkPipeline pipeline);
 
-    VkEvent               create_event(VkEventCreateInfo& create_info);
+    VkEvent               create_event(const VkEventCreateInfo& create_info);
     void                  destroy_event(VkEvent event);
 
     VkFence               create_fence(VkFenceCreateInfo& create_info);

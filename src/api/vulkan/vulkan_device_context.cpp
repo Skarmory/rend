@@ -938,6 +938,16 @@ void VulkanDeviceContext::unregister_swapchain_image(Texture2DHandle swapchain_h
     _vk_image_infos.deallocate(swapchain_handle);
 }
 
+VkEvent VulkanDeviceContext::create_event(const VkEventCreateInfo& info)
+{
+    return _logical_device->create_event(info);
+}
+
+void VulkanDeviceContext::destroy_event(VkEvent event)
+{
+    _logical_device->destroy_event(event);
+}
+
 void VulkanDeviceContext::bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count)
 {
     //TODO: Figure out a good array size

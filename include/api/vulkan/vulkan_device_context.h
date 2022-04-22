@@ -4,7 +4,6 @@
 #include "core/device_context.h"
 #include "core/rend_defs.h"
 #include "core/data_structures/data_array.h"
-//#include "resource.h"
 
 #include <unordered_map>
 #include <vulkan.h>
@@ -36,6 +35,7 @@ public:
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 
+    // Common creation
     [[nodiscard]] VertexBufferHandle        create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
     [[nodiscard]] IndexBufferHandle         create_index_buffer(uint32_t indices_count, size_t index_size) override;
     [[nodiscard]] UniformBufferHandle       create_uniform_buffer(size_t bytes);
@@ -66,6 +66,11 @@ public:
     void destroy_descriptor_set_layout(DescriptorSetLayoutHandle handle) override;
     void destroy_descriptor_set(DescriptorSetHandle handle) override;
     void unregister_swapchain_image(TextureHandle swapchain_handle);
+
+    // Vulkan creation
+    [[nodiscard]] VkEvent create_event(const VkEventCreateInfo& info);
+
+    void destroy_event(VkEvent event);
 
     // Command Buffer
     void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) override;
