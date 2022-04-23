@@ -47,8 +47,7 @@ StatusCode VulkanDeviceContext::create(void)
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
-        PhysicalDevice* pdev = new PhysicalDevice;
-        pdev->create(physical_device_index, physical_devices[physical_device_index]);
+        PhysicalDevice* pdev = new PhysicalDevice(physical_device_index, physical_devices[physical_device_index]);
         _physical_devices.push_back(pdev);
     }
 
@@ -79,7 +78,6 @@ void VulkanDeviceContext::destroy(void)
 
     for(auto physical_device : _physical_devices)
     {
-        physical_device->destroy();
         delete physical_device;
     }
 

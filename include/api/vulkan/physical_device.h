@@ -15,15 +15,12 @@ class Window;
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(void)                             = default;
-    ~PhysicalDevice(void)                            = default;
+    PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device);
+    ~PhysicalDevice(void);
     PhysicalDevice(const PhysicalDevice&)            = delete;
     PhysicalDevice(PhysicalDevice&&)                 = delete;
     PhysicalDevice& operator=(const PhysicalDevice&) = delete;
     PhysicalDevice& operator=(PhysicalDevice&&)      = delete;
-
-    bool create(uint32_t physical_device_index, VkPhysicalDevice physical_device);
-    void destroy(void);
 
     bool create_logical_device(const VkQueueFlags queue_flags);
 

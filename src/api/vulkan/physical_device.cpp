@@ -10,7 +10,7 @@
 
 using namespace rend;
 
-bool PhysicalDevice::create(uint32_t physical_device_index, VkPhysicalDevice physical_device)
+PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
     assert(_vk_physical_device == VK_NULL_HANDLE && "Attempt to create a PhysicalDevice that has already been created.");
 
@@ -25,50 +25,18 @@ bool PhysicalDevice::create(uint32_t physical_device_index, VkPhysicalDevice phy
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
     VkSurfaceKHR surface = window->get_vk_surface();
-    if(!_find_queue_families(surface))
-    {
-        goto physical_device_create_error;
-    }
-
-    if(!_find_surface_formats(surface))
-    {
-        goto physical_device_create_error;
-    }
-
-    if(!_find_surface_present_modes(surface))
-    {
-        goto physical_device_create_error;
-    }
-
-    return true;
-
-physical_device_create_error:
-    _vk_physical_device = VK_NULL_HANDLE;
-    _physical_device_index = 0;
-    return false;
+    _find_queue_families(surface);
+    _find_surface_formats(surface);
+    _find_surface_present_modes(surface);
 }
 
-void PhysicalDevice::destroy(void)
+PhysicalDevice::~PhysicalDevice(void)
 {
     delete _logical_device;
-
-    _logical_device = nullptr;
-    _physical_device_index = -1;
-    _vk_physical_device = VK_NULL_HANDLE;
-    _vk_physical_device_properties = {};
-    _vk_physical_device_features = {};
-    _vk_physical_device_memory_properties = {};
-    _vk_surface_formats.clear();
-    _vk_present_modes.clear();
-    _queue_families.clear();
-    _graphics_queue_families.clear();
-    _present_queue_families.clear();
 }
 
 bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
 {
-    assert(!_logical_device && "Attempt to create a LogicalDevice from a PhysicalDevice that has already been created.");
-
     QueueFamily* graphics_family = nullptr;
     QueueFamily* present_family = nullptr;
 
