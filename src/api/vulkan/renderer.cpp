@@ -46,9 +46,7 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     context.choose_gpu(desired_features);
     context.create_device(desired_queues);
 
-    _swapchain = new Swapchain;
-    _swapchain->create(3);
-
+    _swapchain = new Swapchain(3);
     _command_pool = new CommandPool;
 
     _create_default_depth_buffer(_swapchain->get_extent());
@@ -104,8 +102,6 @@ StatusCode Renderer::destroy(void)
     }
 
     delete _command_pool;
-
-    _swapchain->destroy();
     delete _swapchain;
 
     destroy_resource();

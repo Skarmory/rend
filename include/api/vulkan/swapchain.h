@@ -19,15 +19,13 @@ class Semaphore;
 class Swapchain
 {
 public:
-    Swapchain(void)                        = default;
-    ~Swapchain(void)                       = default;
+    explicit Swapchain(uint32_t desired_images);
+    ~Swapchain(void);
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
     Swapchain& operator=(const Swapchain&) = delete;
     Swapchain& operator=(Swapchain&&)      = delete;
 
-    StatusCode create(uint32_t desired_images);
-    void       destroy(void);
     StatusCode recreate(void);
 
     // Accessors

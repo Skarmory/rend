@@ -16,23 +16,12 @@
 
 using namespace rend;
 
-StatusCode Swapchain::create(uint32_t desired_images)
+Swapchain::Swapchain(uint32_t desired_images)
 {
-    assert(_vk_swapchain == VK_NULL_HANDLE && "Attempt to create a Swapchain that is already created.");
-
-    return _create(desired_images);
+    _create(desired_images);
 }
 
-StatusCode Swapchain::recreate(void)
-{
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    ctx.get_device()->wait_idle();
-
-    _clean_up_images();
-    return _create(_image_count);
-}
-
-void Swapchain::destroy(void)
+Swapchain::~Swapchain(void)
 {
     _clean_up_images();
 
@@ -45,6 +34,15 @@ void Swapchain::destroy(void)
     _vk_swapchain = VK_NULL_HANDLE;
     _vk_extent = {};
     _swapchain_image_handles.clear();
+}
+
+StatusCode Swapchain::recreate(void)
+{
+    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    ctx.get_device()->wait_idle();
+
+    _clean_up_images();
+    return _create(_image_count);
 }
 
 Format Swapchain::get_format(void) const
