@@ -20,25 +20,7 @@ using namespace rend;
 VulkanDeviceContext::VulkanDeviceContext(void)
 {
     assert(_service == nullptr);
-    _service = this;
-}
 
-VulkanDeviceContext::~VulkanDeviceContext(void)
-{
-}
-
-PhysicalDevice* VulkanDeviceContext::gpu(void) const
-{
-    return _chosen_gpu;
-}
-
-LogicalDevice* VulkanDeviceContext::get_device(void) const
-{
-    return _logical_device;
-}
-
-StatusCode VulkanDeviceContext::create(void)
-{
     assert(_chosen_gpu == nullptr && _logical_device == nullptr && "Attempt to create a VulkanDeviceContext that has already been created.");
 
     // Create physical devices
@@ -51,10 +33,10 @@ StatusCode VulkanDeviceContext::create(void)
         _physical_devices.push_back(pdev);
     }
 
-    return StatusCode::SUCCESS;
+    _service = this;
 }
 
-void VulkanDeviceContext::destroy(void)
+VulkanDeviceContext::~VulkanDeviceContext(void)
 {
     for (auto& vk_memory : _vk_memorys)
     {
@@ -81,9 +63,17 @@ void VulkanDeviceContext::destroy(void)
         delete physical_device;
     }
 
-    _logical_device = nullptr;
-    _chosen_gpu     = nullptr;
-    _physical_devices.clear();
+    _service = nullptr;
+}
+
+PhysicalDevice* VulkanDeviceContext::gpu(void) const
+{
+    return _chosen_gpu;
+}
+
+LogicalDevice* VulkanDeviceContext::get_device(void) const
+{
+    return _logical_device;
 }
 
 StatusCode VulkanDeviceContext::choose_gpu(const VkPhysicalDeviceFeatures& desired_features)

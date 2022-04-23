@@ -29,9 +29,6 @@ public:
     PhysicalDevice*                         gpu(void) const;
     LogicalDevice*                          get_device(void) const;
 
-    StatusCode create(void) override;
-    void       destroy(void) override;
-
     StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
     StatusCode create_device(const VkQueueFlags desired_queues);
 

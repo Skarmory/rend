@@ -48,13 +48,10 @@ void rend::init_rend(const RendInfo& info)
             ::ctx = new rend::VulkanDeviceContext;
         }
     }
-
-    ::ctx->create();
 }
 
 void rend::destroy_rend(void)
 {
-	DeviceContext::instance().destroy();
     delete ctx;
 
     WindowContext::instance().window()->destroy_window();
