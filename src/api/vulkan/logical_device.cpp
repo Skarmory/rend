@@ -14,10 +14,8 @@
 
 using namespace rend;
 
-bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
+LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
 {
-    assert(_vk_device == VK_NULL_HANDLE && "Attempt to initialise LogicalDevice that has already been initialised.");
-
     // Step 1: Construct queue creation info
     float priority = 1.0f;
 
@@ -61,10 +59,8 @@ bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFam
         .pEnabledFeatures = nullptr
     };
 
-    if(vkCreateDevice(physical_device->get_handle(), &device_create_info, nullptr, &_vk_device) != VK_SUCCESS)
-    {
-        return false;
-    }
+    VkResult result = vkCreateDevice(physical_device->get_handle(), &device_create_info, nullptr, &_vk_device);
+    assert(result == VK_SUCCESS);
 
     // Step 3: Get queue handles
     if(graphics_family)
@@ -76,11 +72,9 @@ bool LogicalDevice::create(const PhysicalDevice* physical_device, const QueueFam
     _physical_device = physical_device;
     _graphics_family = graphics_family;
     _transfer_family = transfer_family;
-
-    return true;
 }
 
-void LogicalDevice::destroy(void)
+LogicalDevice::~LogicalDevice(void)
 {
     vkDestroyDevice(_vk_device, nullptr);
 

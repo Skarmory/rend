@@ -50,7 +50,6 @@ physical_device_create_error:
 
 void PhysicalDevice::destroy(void)
 {
-    _logical_device->destroy();
     delete _logical_device;
 
     _logical_device = nullptr;
@@ -84,8 +83,7 @@ bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
         present_family  = _present_queue_families[0];
     }
 
-    _logical_device = new LogicalDevice;
-    _logical_device->create(this, graphics_family, present_family);
+    _logical_device = new LogicalDevice(this, graphics_family, present_family);
 
     return true;
 }

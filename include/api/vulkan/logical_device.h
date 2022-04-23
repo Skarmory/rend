@@ -21,15 +21,12 @@ class LogicalDevice
 {
 
 public:
-    LogicalDevice(void)                            = default;
-    ~LogicalDevice(void)                           = default;
+    LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
+    ~LogicalDevice(void);
     LogicalDevice(const LogicalDevice&)            = delete;
     LogicalDevice(LogicalDevice&&)                 = delete;
     LogicalDevice& operator=(const LogicalDevice&) = delete;
     LogicalDevice& operator=(LogicalDevice&&)      = delete;
-
-    bool create(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
-    void destroy(void);
 
     // Retrieval
     const PhysicalDevice& get_physical_device(void) const;
