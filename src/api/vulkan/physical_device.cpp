@@ -1,9 +1,11 @@
 #include "api/vulkan/physical_device.h"
 
 #include "core/device_context.h"
+#include "core/rend_service.h"
 #include "core/window.h"
 
 #include "api/vulkan/logical_device.h"
+#include "api/vulkan/vulkan_instance.h"
 
 #include <cassert>
 
@@ -18,7 +20,7 @@ PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice 
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
-    VkSurfaceKHR surface = window->get_vk_surface();
+    VkSurfaceKHR surface = RendService::vulkan_instance()->surface();
     _find_queue_families(surface);
     _find_surface_formats(surface);
     _find_surface_present_modes(surface);
@@ -26,10 +28,9 @@ PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice 
 
 PhysicalDevice::~PhysicalDevice(void)
 {
-    delete _logical_device;
 }
 
-bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
+LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
 {
     QueueFamily* graphics_family = nullptr;
     QueueFamily* present_family = nullptr;
@@ -38,21 +39,16 @@ bool PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
     {
         if(_graphics_queue_families.empty() || _present_queue_families.empty())
         {
-            return false;
+            return nullptr;
         }
 
         graphics_family = _graphics_queue_families[0];
         present_family  = _present_queue_families[0];
     }
 
-    _logical_device = new LogicalDevice(this, graphics_family, present_family);
+    LogicalDevice* logical_device = new LogicalDevice(this, graphics_family, present_family);
 
-    return true;
-}
-
-LogicalDevice* PhysicalDevice::get_logical_device(void) const
-{
-    return _logical_device;
+    return logical_device;
 }
 
 uint32_t PhysicalDevice::get_index(void) const
@@ -79,9 +75,9 @@ VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
 {
     VkSurfaceCapabilitiesKHR caps{};
 
-    auto* window = WindowContext::instance().window();
+    auto* vulkan_instance = RendService::vulkan_instance();
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, window->get_vk_surface(), &caps);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, vulkan_instance->surface(), &caps);
 
     return caps;
 }

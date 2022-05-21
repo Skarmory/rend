@@ -22,9 +22,8 @@ public:
     PhysicalDevice& operator=(const PhysicalDevice&) = delete;
     PhysicalDevice& operator=(PhysicalDevice&&)      = delete;
 
-    bool create_logical_device(const VkQueueFlags queue_flags);
+    LogicalDevice* create_logical_device(const VkQueueFlags queue_flags);
 
-    LogicalDevice*                          get_logical_device(void) const;
     uint32_t                                get_index(void) const;
     VkPhysicalDevice                        get_handle(void) const;
     const std::vector<VkSurfaceFormatKHR>&  get_surface_formats(void) const;
@@ -41,8 +40,6 @@ private:
     bool _find_surface_present_modes(VkSurfaceKHR surface);
 
 private:
-    LogicalDevice*                   _logical_device{ nullptr };
-
     int32_t                          _physical_device_index{ -1 };
     VkPhysicalDevice                 _vk_physical_device{ VK_NULL_HANDLE };
     VkPhysicalDeviceProperties       _vk_physical_device_properties{};
