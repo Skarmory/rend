@@ -1,21 +1,19 @@
 #include "api/vulkan/vulkan_instance.h"
 
+#include "core/window.h"
+
+#include <GLFW/glfw3.h>
+
 #include <cassert>
 #include <iostream>
 
+#include <string>
+#include <sstream>
+
 using namespace rend;
 
-VulkanInstance& VulkanInstance::instance(void)
+VulkanInstance::VulkanInstance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)
 {
-    static VulkanInstance s_instance;
-
-    return s_instance;
-}
-
-StatusCode VulkanInstance::create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)
-{
-    assert(_vk_instance == VK_NULL_HANDLE && "Attempt to create a VulkanInstance that has already been created.");
-
     VkApplicationInfo app_info =
     {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -41,17 +39,16 @@ StatusCode VulkanInstance::create(const char** extensions, uint32_t extension_co
 
     if (auto code = vkCreateInstance(&instance_create_info, nullptr, &_vk_instance); code != VK_SUCCESS)
     {
-        std::cerr << code << std::endl;
-        return StatusCode::FAILURE;
+        std::stringstream error_string;
+        error_string << "Failed to create Vulkan instance: " << code;
+        throw std::runtime_error(error_string.str());
     }
-
-    return StatusCode::SUCCESS;
 }
 
-void VulkanInstance::destroy(void)
+VulkanInstance::~VulkanInstance(void)
 {
+    vkDestroySurfaceKHR(_vk_instance, _vk_surface, nullptr);
     vkDestroyInstance(_vk_instance, nullptr);
-    _vk_instance = VK_NULL_HANDLE;
 }
 
 void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices)
@@ -63,12 +60,17 @@ void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& d
     vkEnumeratePhysicalDevices(_vk_instance, &device_count, devices.data());
 }
 
-void VulkanInstance::destroy_surface(VkSurfaceKHR surface)
+void VulkanInstance::create_surface(const Window& window)
 {
-    vkDestroySurfaceKHR(_vk_instance, surface, nullptr);
+    glfwCreateWindowSurface(_vk_instance, window.get_handle(), nullptr, &_vk_surface);
 }
 
 VkInstance VulkanInstance::get_handle(void) const
 {
     return _vk_instance;
+}
+
+VkSurfaceKHR VulkanInstance::surface(void) const
+{
+    return _vk_surface;
 }

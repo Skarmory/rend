@@ -9,29 +9,27 @@
 namespace rend
 {
 
+class Window;
+
 class VulkanInstance
 {
 public:
+    VulkanInstance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
+    ~VulkanInstance(void);
     VulkanInstance(const VulkanInstance&)           = delete;
     VulkanInstance(VulkanInstance&&)                = delete;
     VulkanInstance operator=(const VulkanInstance&) = delete;
     VulkanInstance operator=(VulkanInstance&&)      = delete;
 
-    static VulkanInstance& instance(void);
-
-    StatusCode create(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
-    void       destroy(void);
-
     void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
-    void destroy_surface(VkSurfaceKHR surface);
+    void create_surface(const Window& window);
 
     VkInstance get_handle(void) const;
+    VkSurfaceKHR surface(void) const;
 
 private:
-    VulkanInstance(void) = default;
-    ~VulkanInstance(void) = default;
-
-    VkInstance _vk_instance{ VK_NULL_HANDLE };
+    VkInstance   _vk_instance{ VK_NULL_HANDLE };
+    VkSurfaceKHR _vk_surface{ VK_NULL_HANDLE };
 };
 
 }
