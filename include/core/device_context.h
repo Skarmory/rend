@@ -16,8 +16,6 @@ class DescriptorSet;
 class DeviceContext
 {
 public:
-    static DeviceContext& instance(void);
-
     virtual ~DeviceContext(void) = default;
 
     [[nodiscard]] virtual VertexBufferHandle        create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) = 0;
@@ -68,9 +66,6 @@ public:
     virtual void end_render_pass(const CommandBufferHandle command_buffer_handle) = 0;
 
     virtual void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) = 0;
-
-protected:
-    static DeviceContext* _service;
 };
 
 }

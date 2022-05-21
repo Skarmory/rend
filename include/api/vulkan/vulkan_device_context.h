@@ -19,7 +19,7 @@ class LogicalDevice;
 class VulkanDeviceContext : public DeviceContext
 {
 public:
-    VulkanDeviceContext(void);
+    VulkanDeviceContext(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
     ~VulkanDeviceContext(void);
     VulkanDeviceContext(const VulkanDeviceContext&)            = delete;
     VulkanDeviceContext(VulkanDeviceContext&&)                 = delete;
@@ -28,9 +28,6 @@ public:
 
     PhysicalDevice*                         gpu(void) const;
     LogicalDevice*                          get_device(void) const;
-
-    StatusCode choose_gpu(const VkPhysicalDeviceFeatures& desired_features);
-    StatusCode create_device(const VkQueueFlags desired_queues);
 
     // Common creation
     [[nodiscard]] VertexBufferHandle        create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;

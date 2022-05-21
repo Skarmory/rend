@@ -4,6 +4,7 @@
 #include "core/descriptor_set.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
+#include "core/rend_service.h"
 #include "core/window.h"
 
 #include "api/vulkan/logical_device.h"
@@ -17,15 +18,13 @@
 
 using namespace rend;
 
-VulkanDeviceContext::VulkanDeviceContext(void)
+VulkanDeviceContext::VulkanDeviceContext(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
 {
-    assert(_service == nullptr);
-
-    assert(_chosen_gpu == nullptr && _logical_device == nullptr && "Attempt to create a VulkanDeviceContext that has already been created.");
+    auto& vulkan_instance = *rend::RendService::vulkan_instance();
 
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
-    VulkanInstance::instance().enumerate_physical_devices(physical_devices);
+    vulkan_instance.enumerate_physical_devices(physical_devices);
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
@@ -33,37 +32,29 @@ VulkanDeviceContext::VulkanDeviceContext(void)
         _physical_devices.push_back(pdev);
     }
 
-    _service = this;
+    // Choose GPU
+    if((_chosen_gpu = _find_physical_device(desired_features)) == nullptr)
+    {
+        std::string error_string = "GPU with desired features not found";
+        throw std::runtime_error(error_string);
+    }
+
+    // Create logical device
+    if((_logical_device = _chosen_gpu->create_logical_device(desired_queues)) == nullptr)
+    {
+        std::string error_string = "Failed to create logical device";
+        throw std::runtime_error(error_string);
+    }
 }
 
 VulkanDeviceContext::~VulkanDeviceContext(void)
 {
-    for (auto& vk_memory : _vk_memorys)
-    {
-        _logical_device->free_memory(vk_memory);
-    }
-
-    for (auto& vk_sampler : _vk_samplers)
-    {
-        _logical_device->destroy_sampler(vk_sampler);
-    }
-
-    for (auto& vk_image_view : _vk_image_views)
-    {
-        _logical_device->destroy_image_view(vk_image_view);
-    }
-
-    for(auto& vk_shader : _vk_shaders)
-    {
-        _logical_device->destroy_shader_module(vk_shader);
-    }
+    delete _logical_device;
 
     for(auto physical_device : _physical_devices)
     {
         delete physical_device;
     }
-
-    _service = nullptr;
 }
 
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
@@ -74,45 +65,6 @@ PhysicalDevice* VulkanDeviceContext::gpu(void) const
 LogicalDevice* VulkanDeviceContext::get_device(void) const
 {
     return _logical_device;
-}
-
-StatusCode VulkanDeviceContext::choose_gpu(const VkPhysicalDeviceFeatures& desired_features)
-{
-    if(_chosen_gpu)
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
-
-    _chosen_gpu = _find_physical_device(desired_features);
-
-    if(!_chosen_gpu)
-    {
-        return StatusCode::CONTEXT_GPU_WITH_DESIRED_FEATURES_NOT_FOUND;
-    }
-
-    return StatusCode::SUCCESS;
-}
-
-StatusCode VulkanDeviceContext::create_device(const VkQueueFlags desired_queues)
-{
-    if(_logical_device)
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
-
-    if(!_chosen_gpu)
-    {
-        return StatusCode::CONTEXT_GPU_NOT_CHOSEN;
-    }
-
-    if(!_chosen_gpu->create_logical_device(desired_queues))
-    {
-        return StatusCode::CONTEXT_DEVICE_CREATE_FAILURE;
-    }
-
-    _logical_device = _chosen_gpu->get_logical_device();
-
-    return StatusCode::SUCCESS;
 }
 
 VertexBufferHandle VulkanDeviceContext::create_vertex_buffer(uint32_t vertices_count, size_t vertex_size)
