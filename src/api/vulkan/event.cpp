@@ -1,6 +1,7 @@
 #include "api/vulkan/event.h"
 
 #include "core/device_context.h"
+#include "core/rend_service.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/vulkan_helper_funcs.h"
 #include "api/vulkan/vulkan_device_context.h"
@@ -11,13 +12,13 @@ Event::Event(void)
 {
     VkEventCreateInfo create_info = vulkan_helpers::gen_event_create_info();
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     _vk_event = ctx.create_event(create_info);
 }
 
 Event::~Event(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     ctx.destroy_event(_vk_event);
 }
 

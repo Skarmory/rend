@@ -1,13 +1,14 @@
 #include "core/gpu_buffer.h"
 
 #include "core/device_context.h"
+#include "core/rend_service.h"
 
 using namespace rend;
 
 GPUBuffer::GPUBuffer(const BufferInfo& info)
     : _info(info)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     //TODO: This seems weird. Pushback GPUBuffer and GPUTexture creation and storage to the device contexts?
     if((info.usage & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE)
@@ -28,7 +29,7 @@ GPUBuffer::GPUBuffer(const BufferInfo& info)
 
 GPUBuffer::~GPUBuffer(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     ctx.destroy_buffer(_handle);
 }

@@ -1,12 +1,14 @@
 #include "api/vulkan/swapchain.h"
 
 #include "core/device_context.h"
+#include "core/rend_service.h"
 #include "core/window.h"
 #include "core/window_context.h"
 
 #include "api/vulkan/fence.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/logical_device.h"
+#include "api/vulkan/vulkan_instance.h"
 #include "api/vulkan/vulkan_semaphore.h"
 #include "api/vulkan/vulkan_helper_funcs.h"
 #include "api/vulkan/vulkan_device_context.h"
@@ -25,7 +27,7 @@ Swapchain::~Swapchain(void)
 {
     _clean_up_images();
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     ctx.get_device()->destroy_swapchain(_vk_swapchain);
     _image_count = 0;
     _current_image_idx = 0;
@@ -38,7 +40,7 @@ Swapchain::~Swapchain(void)
 
 StatusCode Swapchain::recreate(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     ctx.get_device()->wait_idle();
 
     _clean_up_images();
@@ -77,7 +79,7 @@ uint32_t Swapchain::get_current_image_index(void) const
 
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
 
     VkResult result = ctx.get_device()->acquire_next_image(
         this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
@@ -102,7 +104,7 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
 {
     std::vector<VkResult> results(1);
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     if(ctx.get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
     {
         return StatusCode::FAILURE;
@@ -118,7 +120,7 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
 
 StatusCode Swapchain::_create(uint32_t desired_images)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     const PhysicalDevice& physical_device = ctx.get_device()->get_physical_device();
 
     VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
@@ -142,7 +144,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
-    create_info.surface               = WindowContext::instance().window()->get_vk_surface();
+    create_info.surface               = RendService::vulkan_instance()->surface();
     create_info.minImageCount         = _image_count;
     create_info.imageFormat           = _surface_format.format;
     create_info.imageColorSpace       = _surface_format.colorSpace;
@@ -171,7 +173,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
 
 void Swapchain::_clean_up_images(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
 
     for(auto handle : _swapchain_image_handles)
     {
@@ -183,7 +185,7 @@ void Swapchain::_clean_up_images(void)
 
 StatusCode Swapchain::_get_images(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
 
     std::vector<VkImage> tmp_swapchain_images;
     ctx.get_device()->get_swapchain_images(this, tmp_swapchain_images);

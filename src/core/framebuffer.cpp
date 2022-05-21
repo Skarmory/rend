@@ -3,6 +3,7 @@
 #include "core/device_context.h"
 #include "core/gpu_texture.h"
 #include "core/render_pass.h"
+#include "core/rend_service.h"
 
 #include <cassert>
 
@@ -10,14 +11,14 @@ using namespace rend;
 
 Framebuffer::Framebuffer(const FramebufferInfo& info)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     _handle = ctx.create_framebuffer(info);
     _framebuffer_info = info;
 }
 
 Framebuffer::~Framebuffer(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.destroy_framebuffer(_handle);
 }
 

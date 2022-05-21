@@ -7,6 +7,7 @@
 #include "core/pipeline.h"
 #include "core/pipeline_layout.h"
 #include "core/rend_defs.h"
+#include "core/rend_service.h"
 #include "core/render_pass.h"
 
 #include <iostream>
@@ -35,28 +36,28 @@ CommandBufferHandle CommandBuffer::handle(void) const
 
 void CommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, DescriptorSet* descriptor_sets, size_t descriptor_sets_count)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.bind_descriptor_sets(_handle, bind_point, pipeline_layout.handle(), descriptor_sets, descriptor_sets_count);
     _recorded = true;
 }
 
 void CommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.bind_pipeline(_handle, bind_point, pipeline.handle());
     _recorded = true;
 }
 
 void CommandBuffer::bind_vertex_buffer(const GPUBuffer& vertex_buffer)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.bind_vertex_buffer(_handle, vertex_buffer.handle());
     _recorded = true;
 }
 
 void CommandBuffer::bind_index_buffer(const GPUBuffer& index_buffer)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.bind_index_buffer(_handle, index_buffer.handle());
     _recorded = true;
 }
@@ -72,7 +73,7 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst)
     info.src_offset = 0;
     info.dst_offset = 0;
 
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.copy_buffer_to_buffer(_handle, src.handle(), dst.handle(), info);
 }
 
@@ -88,27 +89,27 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     info.image_layout = dst.layout();
     info.layer_count = dst.layers();
 
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.copy_buffer_to_image(_handle, src.handle(), dst.handle(), info);
 }
 
 void CommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.draw(_handle, vertex_count, instance_count, first_vertex, first_instance);
     _recorded = true;
 }
 
 void CommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.draw_indexed(_handle, index_count, instance_count, first_index, vertex_offset, first_instance);
     _recorded = true;
 }
 
 void CommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.push_constant(_handle, layout.handle(), stages, offset, size, data);
     _recorded = true;
 }
@@ -172,7 +173,7 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
             return;
     }
 
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.pipeline_barrier(_handle, barrier_info);
 
     texture.layout(new_layout);
@@ -180,48 +181,48 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
 
 void CommandBuffer::reset(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.command_buffer_reset(_handle);
 }
 
 void CommandBuffer::set_viewport(const ViewportInfo* viewport_infos, size_t viewport_infos_count)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.set_viewport(_handle, viewport_infos, viewport_infos_count);
     _recorded = true;
 }
 
 void CommandBuffer::set_scissor(const ViewportInfo* scissor_infos, size_t scissor_infos_count)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.set_scissor(_handle, scissor_infos, scissor_infos_count);
     _recorded = true;
 }
 
 void CommandBuffer::begin(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.command_buffer_begin(_handle);
     _recorded = true;
 }
 
 void CommandBuffer::end(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.command_buffer_end(_handle);
     _recorded = true;
 }
 
 void CommandBuffer::begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.begin_render_pass(_handle, render_pass.handle(), framebuffer.handle(), render_area, clear_colour, clear_depth_stencil);
     _recorded = true;
 }
 
 void CommandBuffer::end_render_pass(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
     ctx.end_render_pass(_handle);
     _recorded = true;
 }

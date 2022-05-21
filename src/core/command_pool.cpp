@@ -1,6 +1,7 @@
 #include "core/command_pool.h"
 
 #include "core/device_context.h"
+#include "core/rend_service.h"
 
 #include <new>
 #include <iostream>
@@ -9,14 +10,14 @@ using namespace rend;
 
 CommandPool::CommandPool(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     _handle = ctx.create_command_pool();
 }
 
 CommandPool::~CommandPool(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     for(auto& command_buffer : _command_buffers)
     {
@@ -29,7 +30,7 @@ CommandPool::~CommandPool(void)
 
 CommandBuffer* CommandPool::create_command_buffer(void)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     CommandBufferHandle command_buffer_handle = ctx.create_command_buffer(_handle);
 
@@ -42,7 +43,7 @@ CommandBuffer* CommandPool::create_command_buffer(void)
 
 void CommandPool::destroy_command_buffer(CommandBuffer* command_buffer)
 {
-    auto& ctx = DeviceContext::instance();
+    auto& ctx = *RendService::device_context();
 
     ctx.destroy_command_buffer(command_buffer->_handle, _handle);
 

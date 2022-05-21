@@ -8,6 +8,7 @@
 #include "core/gpu_buffer.h"
 #include "core/rend_defs.h"
 #include "core/render_pass.h"
+#include "core/rend_service.h"
 
 #include "api/vulkan/fence.h"
 #include "api/vulkan/logical_device.h"
@@ -48,7 +49,7 @@ Renderer::Renderer(void)
 
 Renderer::~Renderer(void)
 {
-    static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
+    static_cast<VulkanDeviceContext&>(*RendService::device_context()).get_device()->wait_idle();
 
     while(!_task_queue.empty())
     {
@@ -139,7 +140,7 @@ FrameResources& Renderer::start_frame(void)
 
 void Renderer::end_frame(FrameResources& frame_res)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
 
     frame_res.submit_fen->reset();
     VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(frame_res.command_buffer->handle());
@@ -159,7 +160,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
     if(_task_queue.empty())
         return;
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     Fence load_fence(false);
 
     resources.command_buffer->begin();
@@ -193,7 +194,7 @@ void Renderer::_process_task_queue(FrameResources& resources)
 
 void ImageLoadTask::execute(FrameResources& resources)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     void* mapped = NULL;
 
     BufferInfo info{ 1, size_bytes, BufferUsage::UNIFORM_BUFFER };
@@ -223,7 +224,7 @@ void BufferLoadTask::execute(FrameResources& resources)
         is_device_local = true;
     }
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
+    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     void* mapped = NULL;
 
     if(is_device_local)
