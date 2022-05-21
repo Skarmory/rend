@@ -24,28 +24,8 @@
 
 using namespace rend;
 
-Renderer::~Renderer(void)
+Renderer::Renderer(void)
 {
-    destroy();
-}
-
-Renderer& Renderer::instance(void)
-{
-    static Renderer s_renderer;
-    return s_renderer;
-}
-
-StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
-{
-    if(initialised())
-    {
-        return StatusCode::ALREADY_CREATED;
-    }
-
-    auto& context = static_cast<VulkanDeviceContext&>(DeviceContext::instance());
-    context.choose_gpu(desired_features);
-    context.create_device(desired_queues);
-
     _swapchain = new Swapchain(3);
     _command_pool = new CommandPool;
 
@@ -64,17 +44,10 @@ StatusCode Renderer::create(const VkPhysicalDeviceFeatures& desired_features, co
     }
 
     create_resource();
-
-    return StatusCode::SUCCESS;
 }
 
-StatusCode Renderer::destroy(void)
+Renderer::~Renderer(void)
 {
-    if(!initialised())
-    {
-        return StatusCode::RESOURCE_NOT_CREATED;
-    }
-
     static_cast<VulkanDeviceContext&>(DeviceContext::instance()).get_device()->wait_idle();
 
     while(!_task_queue.empty())
@@ -82,15 +55,6 @@ StatusCode Renderer::destroy(void)
         delete _task_queue.front();
         _task_queue.pop();
     }
-
-    delete _default_depth_buffer;
-
-    for(Framebuffer* framebuffer : _default_framebuffers)
-    {
-        delete framebuffer;
-    }
-
-    delete _default_render_pass;
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
@@ -101,12 +65,18 @@ StatusCode Renderer::destroy(void)
         _command_pool->destroy_command_buffer(_frame_resources[idx].command_buffer);
     }
 
+
+    for(Framebuffer* framebuffer : _default_framebuffers)
+    {
+        delete framebuffer;
+    }
+
+    delete _default_render_pass;
+    delete _default_depth_buffer;
     delete _command_pool;
     delete _swapchain;
 
     destroy_resource();
-
-    return StatusCode::SUCCESS;
 }
 
 Swapchain* Renderer::get_swapchain(void) const

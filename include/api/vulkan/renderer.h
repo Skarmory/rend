@@ -86,14 +86,12 @@ struct ImageTransitionTask : public Task
 class Renderer : public rend::Resource
 {
 public:
+    Renderer(void);
+    ~Renderer(void);
     Renderer(const Renderer&)            = delete;
     Renderer(Renderer&&)                 = delete;
     Renderer& operator=(const Renderer&) = delete;
     Renderer& operator=(Renderer&&)      = delete;
-
-    static Renderer& instance(void);
-    StatusCode create(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
-    StatusCode destroy(void);
 
     Swapchain*  get_swapchain(void) const;
     RenderPass* get_default_render_pass(void) const;
@@ -109,9 +107,6 @@ public:
     void resize_resources(void);
 
 private:
-    Renderer(void) = default;
-    ~Renderer(void);
-
     // Tasking
     void _process_task_queue(FrameResources& resources);
 
