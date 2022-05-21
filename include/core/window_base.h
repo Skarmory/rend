@@ -11,7 +11,7 @@ class WindowBase
 {
 public:
     WindowBase(void)                         = default;
-    ~WindowBase(void)                        = default;
+    virtual ~WindowBase(void)                        = default;
     WindowBase(const WindowBase&)            = delete;
     WindowBase(WindowBase&&)                 = delete;
     WindowBase& operator=(const WindowBase&) = delete;

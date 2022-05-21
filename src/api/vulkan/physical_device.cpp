@@ -2,7 +2,6 @@
 
 #include "core/device_context.h"
 #include "core/window.h"
-#include "core/window_context.h"
 
 #include "api/vulkan/logical_device.h"
 
@@ -12,11 +11,6 @@ using namespace rend;
 
 PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
-    assert(_vk_physical_device == VK_NULL_HANDLE && "Attempt to create a PhysicalDevice that has already been created.");
-
-    auto* window = WindowContext::instance().window();
-    assert(window && "Attempt to create PhysicalDevice before a Window");
-
     _physical_device_index = physical_device_index;
     _vk_physical_device = physical_device;
 

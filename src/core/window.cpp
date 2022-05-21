@@ -1,34 +1,33 @@
 #include "core/window.h"
 
+#include <GLFW/glfw3.h>
+
 #include <cstdio>
-#include <cstring>
+#include <stdexcept>
+#include <string>
 
 using namespace rend;
 
-bool Window::create_window(uint32_t width, uint32_t height, const char* title)
+Window::Window(uint32_t width, uint32_t height, const char* title)
 {
-    if(create_window_api(width, height, title) != StatusCode::SUCCESS)
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+    if (_glfw_window = glfwCreateWindow(width, height, title, nullptr, nullptr); !_glfw_window)
     {
-        return false;
+        std::string error_string = "Failed to create GLFW window";
+        throw std::runtime_error(error_string);
     }
 
     resize(width, height);
     set_title(_title);
-
-    return true;
 }
 
-bool Window::create_window(void)
+Window::~Window(void)
 {
-    return create_window(_width, _height, _title);
+    glfwDestroyWindow(_glfw_window);
 }
 
-void Window::destroy_window(void)
+GLFWwindow* Window::get_handle(void) const
 {
-    destroy_window_api();
-}
-
-void* Window::get_handle(void)
-{
-    return get_handle_api();
+    return _glfw_window;
 }
