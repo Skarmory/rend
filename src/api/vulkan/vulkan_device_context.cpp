@@ -708,9 +708,12 @@ DescriptorSetHandle VulkanDeviceContext::create_descriptor_set(const DescriptorS
         return NULL_HANDLE;
     }
 
-    DescriptorSetHandle handle = _vk_descriptor_sets.allocate(vk_descriptor_sets[0]);
+    VulkanDescriptorSetInfo descriptor_set_info{};
+    descriptor_set_info.set           = vk_descriptor_sets[0];
+    descriptor_set_info.pool_handle   = info.pool_handle;
+    descriptor_set_info.layout_handle = info.layout_handle;
 
-    _descriptor_set_handle_to_descriptor_pool_handle[handle] = info.pool_handle;
+    DescriptorSetHandle handle = _vk_descriptor_set_infos.allocate(descriptor_set_info);
     
     return handle;
 }
@@ -763,20 +766,13 @@ void VulkanDeviceContext::destroy_descriptor_set_layout(DescriptorSetLayoutHandl
 //TODO: Update to handle multiple
 void VulkanDeviceContext::destroy_descriptor_set(DescriptorSetHandle descriptor_set_handle)
 {
-    auto it = _descriptor_set_handle_to_descriptor_pool_handle.find(descriptor_set_handle);
-    if(it == _descriptor_set_handle_to_descriptor_pool_handle.end())
-    {
-        return;
-    }
+    VulkanDescriptorSetInfo& descriptor_set_info = *_vk_descriptor_set_infos.get(descriptor_set_handle);
 
-    DescriptorPoolHandle pool_handle = _descriptor_set_handle_to_descriptor_pool_handle.at(descriptor_set_handle);
-
-    VkDescriptorSet  vk_descriptor_set = get_descriptor_set(descriptor_set_handle);
-    VkDescriptorPool vk_pool = get_descriptor_pool(pool_handle);
+    VkDescriptorSet  vk_descriptor_set = descriptor_set_info.set;
+    VkDescriptorPool vk_pool = get_descriptor_pool(descriptor_set_info.pool_handle);
 
     _logical_device->free_descriptor_sets(&vk_descriptor_set, 1, vk_pool);
 
-    _descriptor_set_handle_to_descriptor_pool_handle.erase(descriptor_set_handle);
 }
 
 Texture2DHandle VulkanDeviceContext::register_swapchain_image(VkImage swapchain_image, VkFormat format)
@@ -816,7 +812,7 @@ void VulkanDeviceContext::destroy_texture(Texture2DHandle texture_handle)
 
     destroy_image_view(image_info.view_handle);
 
-    VkImage image = image_info.image;//_vk_images.get(texture_handle);
+    VkImage image = image_info.image;
     VkDeviceMemory memory = *_vk_memorys.get(image_info.memory_handle);
 
     _logical_device->destroy_image(image);
@@ -1292,7 +1288,9 @@ VkDescriptorSetLayout VulkanDeviceContext::get_descriptor_set_layout(const Descr
 
 VkDescriptorSet VulkanDeviceContext::get_descriptor_set(const DescriptorSetHandle handle) const
 {
-    return *_vk_descriptor_sets.get(handle);
+    VulkanDescriptorSetInfo* info = _vk_descriptor_set_infos.get(handle);
+
+    return info->set;
 }
 
 VkDescriptorPool VulkanDeviceContext::get_descriptor_pool(const DescriptorPoolHandle handle) const

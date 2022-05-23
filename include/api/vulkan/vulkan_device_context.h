@@ -5,7 +5,6 @@
 #include "core/rend_defs.h"
 #include "core/data_structures/data_array.h"
 
-#include <unordered_map>
 #include <vulkan.h>
 #include <vector>
 
@@ -138,6 +137,13 @@ private:
         DataArrayHandle memory_handle{ NULL_HANDLE };
     };
 
+    struct VulkanDescriptorSetInfo
+    {
+        VkDescriptorSet           set{ VK_NULL_HANDLE };
+        DescriptorPoolHandle      pool_handle{ NULL_HANDLE };
+        DescriptorSetLayoutHandle layout_handle{ NULL_HANDLE };
+    };
+
     DataArray<VkImageView>           _vk_image_views;
     DataArray<VkSampler>             _vk_samplers;
     DataArray<VkDeviceMemory>        _vk_memorys;
@@ -147,15 +153,13 @@ private:
     DataArray<VkPipeline>            _vk_pipelines;
     DataArray<VkPipelineLayout>      _vk_pipeline_layouts;
     DataArray<VkDescriptorSetLayout> _vk_descriptor_set_layouts;
-    DataArray<VkDescriptorSet>       _vk_descriptor_sets;
     DataArray<VkDescriptorPool>      _vk_descriptor_pools;
     DataArray<VkCommandBuffer>       _vk_command_buffers;
     DataArray<VkCommandPool>         _vk_command_pools;
 
-    DataArray<VulkanImageInfo> _vk_image_infos;
-    DataArray<VulkanBufferInfo> _vk_buffer_infos;
-
-    std::unordered_map<DescriptorSetHandle, DescriptorPoolHandle> _descriptor_set_handle_to_descriptor_pool_handle;
+    DataArray<VulkanImageInfo>         _vk_image_infos;
+    DataArray<VulkanBufferInfo>        _vk_buffer_infos;
+    DataArray<VulkanDescriptorSetInfo> _vk_descriptor_set_infos;
 };
 
 }

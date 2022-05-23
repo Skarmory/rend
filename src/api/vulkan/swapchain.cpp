@@ -3,7 +3,6 @@
 #include "core/device_context.h"
 #include "core/rend_service.h"
 #include "core/window.h"
-#include "core/window_context.h"
 
 #include "api/vulkan/fence.h"
 #include "api/vulkan/physical_device.h"
