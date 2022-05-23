@@ -11,7 +11,7 @@
 
 using namespace rend;
 
-PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device)
+PhysicalDevice::PhysicalDevice(const VulkanInstance& vk_instance, uint32_t physical_device_index, VkPhysicalDevice physical_device)
 {
     _physical_device_index = physical_device_index;
     _vk_physical_device = physical_device;
@@ -20,7 +20,7 @@ PhysicalDevice::PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice 
     vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
-    VkSurfaceKHR surface = RendService::vulkan_instance()->surface();
+    VkSurfaceKHR surface = vk_instance.surface();
     _find_queue_families(surface);
     _find_surface_formats(surface);
     _find_surface_present_modes(surface);
@@ -71,13 +71,11 @@ const std::vector<VkPresentModeKHR>& PhysicalDevice::get_surface_present_modes(v
     return _vk_present_modes;
 }
 
-VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(void) const
+VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(const VulkanInstance& vk_instance) const
 {
     VkSurfaceCapabilitiesKHR caps{};
 
-    auto* vulkan_instance = RendService::vulkan_instance();
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, vulkan_instance->surface(), &caps);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_vk_physical_device, vk_instance.surface(), &caps);
 
     return caps;
 }

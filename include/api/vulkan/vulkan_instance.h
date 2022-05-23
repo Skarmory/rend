@@ -22,7 +22,7 @@ public:
     VulkanInstance operator=(VulkanInstance&&)      = delete;
 
     void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
-    void create_surface(const Window& window);
+    void create_surface();
 
     VkInstance get_handle(void) const;
     VkSurfaceKHR surface(void) const;

@@ -14,11 +14,6 @@ void RendService::provide(Renderer* renderer)
     _renderer = renderer;
 }
 
-void RendService::provide(VulkanInstance* vulkan_instance)
-{
-    _vulkan_instance = vulkan_instance;
-}
-
 void RendService::provide(Window* window)
 {
     _window = window;
@@ -39,12 +34,6 @@ Window* RendService::window(void)
     return _window;
 }
 
-VulkanInstance* RendService::vulkan_instance(void)
-{
-    return _vulkan_instance;
-}
-
 DeviceContext* RendService::_context = nullptr;
 Renderer* RendService::_renderer = nullptr;
-VulkanInstance* RendService::_vulkan_instance = nullptr;
 Window* RendService::_window = nullptr;

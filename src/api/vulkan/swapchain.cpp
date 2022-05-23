@@ -122,7 +122,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
     auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     const PhysicalDevice& physical_device = ctx.get_device()->get_physical_device();
 
-    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities();
+    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities(ctx.vulkan_instance());
 
     if(physical_device.get_surface_formats().empty())
     {
@@ -143,7 +143,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
-    create_info.surface               = RendService::vulkan_instance()->surface();
+    create_info.surface               = ctx.vulkan_instance().surface();
     create_info.minImageCount         = _image_count;
     create_info.imageFormat           = _surface_format.format;
     create_info.imageColorSpace       = _surface_format.colorSpace;

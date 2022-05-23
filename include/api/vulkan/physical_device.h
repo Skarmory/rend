@@ -10,12 +10,13 @@ namespace rend
 {
 
 class LogicalDevice;
+class VulkanInstance;
 class Window;
 
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(uint32_t physical_device_index, VkPhysicalDevice physical_device);
+    PhysicalDevice(const VulkanInstance& vk_instance, uint32_t physical_device_index, VkPhysicalDevice physical_device);
     ~PhysicalDevice(void);
     PhysicalDevice(const PhysicalDevice&)            = delete;
     PhysicalDevice(PhysicalDevice&&)                 = delete;
@@ -28,7 +29,7 @@ public:
     VkPhysicalDevice                        get_handle(void) const;
     const std::vector<VkSurfaceFormatKHR>&  get_surface_formats(void) const;
     const std::vector<VkPresentModeKHR>&    get_surface_present_modes(void) const;
-    VkSurfaceCapabilitiesKHR                get_surface_capabilities(void) const;
+    VkSurfaceCapabilitiesKHR                get_surface_capabilities(const VulkanInstance& vk_instance) const;
     const VkPhysicalDeviceMemoryProperties& get_memory_properties(void) const;
 
     bool has_features(const VkPhysicalDeviceFeatures& features) const;

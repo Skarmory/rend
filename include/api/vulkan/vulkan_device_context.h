@@ -14,11 +14,14 @@ namespace rend
 class CommandPool;
 class PhysicalDevice;
 class LogicalDevice;
+class VulkanInstance;
+
+struct RendInitInfo;
 
 class VulkanDeviceContext : public DeviceContext
 {
 public:
-    VulkanDeviceContext(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues);
+    VulkanDeviceContext( const RendInitInfo& rend_info );
     ~VulkanDeviceContext(void);
     VulkanDeviceContext(const VulkanDeviceContext&)            = delete;
     VulkanDeviceContext(VulkanDeviceContext&&)                 = delete;
@@ -27,6 +30,7 @@ public:
 
     PhysicalDevice*                         gpu(void) const;
     LogicalDevice*                          get_device(void) const;
+    const VulkanInstance&                   vulkan_instance(void) const;
 
     // Common creation
     [[nodiscard]] VertexBufferHandle        create_vertex_buffer(uint32_t vertices_count, size_t vertex_size) override;
@@ -120,8 +124,9 @@ private:
 
 private:
     std::vector<PhysicalDevice*> _physical_devices;
-    LogicalDevice*               _logical_device    { nullptr };
-    PhysicalDevice*              _chosen_gpu        { nullptr };
+    VulkanInstance*              _vulkan_instance{ nullptr };
+    LogicalDevice*               _logical_device{ nullptr };
+    PhysicalDevice*              _chosen_gpu{ nullptr };
 
     struct VulkanImageInfo
     {

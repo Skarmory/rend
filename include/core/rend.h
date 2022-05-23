@@ -14,7 +14,7 @@ enum class API
     API_VULKAN
 };
 
-struct VulkanInfo
+struct VulkanInitInfo
 {
     const char** extensions{ nullptr };
     uint32_t     extensions_count{ 0 };
@@ -24,13 +24,14 @@ struct VulkanInfo
     VkQueueFlags queues{};
 };
 
-struct RendInfo
+struct RendInitInfo
 {
-    API   api{ API::API_VULKAN };
-    void* api_info{ nullptr };
+    API         api{ API::API_VULKAN };
+    void*       api_init_info{ nullptr };
+    const char* app_name{ nullptr };
 };
 
-void init_rend(const RendInfo& info);
+void init_rend(const RendInitInfo& info);
 void destroy_rend(void);
 
 }

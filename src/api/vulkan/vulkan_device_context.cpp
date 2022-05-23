@@ -4,6 +4,7 @@
 #include "core/descriptor_set.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
+#include "core/rend.h"
 #include "core/rend_service.h"
 #include "core/window.h"
 
@@ -18,29 +19,35 @@
 
 using namespace rend;
 
-VulkanDeviceContext::VulkanDeviceContext(const VkPhysicalDeviceFeatures& desired_features, const VkQueueFlags desired_queues)
+VulkanDeviceContext::VulkanDeviceContext( const RendInitInfo& rend_info )
 {
-    auto& vulkan_instance = *rend::RendService::vulkan_instance();
+    VulkanInitInfo* vk_init_info = static_cast<VulkanInitInfo*>(rend_info.api_init_info);
+
+    // Create Vulkan instance
+    _vulkan_instance = new VulkanInstance(vk_init_info->extensions, vk_init_info->extensions_count, vk_init_info->layers, vk_init_info->layers_count);
+
+    // Create surface
+    _vulkan_instance->create_surface();
 
     // Create physical devices
     std::vector<VkPhysicalDevice> physical_devices;
-    vulkan_instance.enumerate_physical_devices(physical_devices);
+    _vulkan_instance->enumerate_physical_devices(physical_devices);
 
     for(size_t physical_device_index = 0; physical_device_index < physical_devices.size(); physical_device_index++)
     {
-        PhysicalDevice* pdev = new PhysicalDevice(physical_device_index, physical_devices[physical_device_index]);
+        PhysicalDevice* pdev = new PhysicalDevice(*_vulkan_instance, physical_device_index, physical_devices[physical_device_index]);
         _physical_devices.push_back(pdev);
     }
 
     // Choose GPU
-    if((_chosen_gpu = _find_physical_device(desired_features)) == nullptr)
+    if((_chosen_gpu = _find_physical_device(vk_init_info->features)) == nullptr)
     {
         std::string error_string = "GPU with desired features not found";
         throw std::runtime_error(error_string);
     }
 
     // Create logical device
-    if((_logical_device = _chosen_gpu->create_logical_device(desired_queues)) == nullptr)
+    if((_logical_device = _chosen_gpu->create_logical_device(vk_init_info->queues)) == nullptr)
     {
         std::string error_string = "Failed to create logical device";
         throw std::runtime_error(error_string);
@@ -55,6 +62,8 @@ VulkanDeviceContext::~VulkanDeviceContext(void)
     {
         delete physical_device;
     }
+
+    delete _vulkan_instance;
 }
 
 PhysicalDevice* VulkanDeviceContext::gpu(void) const
@@ -65,6 +74,11 @@ PhysicalDevice* VulkanDeviceContext::gpu(void) const
 LogicalDevice* VulkanDeviceContext::get_device(void) const
 {
     return _logical_device;
+}
+
+const VulkanInstance& VulkanDeviceContext::vulkan_instance(void) const
+{
+    return *_vulkan_instance;
 }
 
 VertexBufferHandle VulkanDeviceContext::create_vertex_buffer(uint32_t vertices_count, size_t vertex_size)
