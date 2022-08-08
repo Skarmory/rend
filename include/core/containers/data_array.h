@@ -10,7 +10,8 @@
 #include <utility>
 #include <new>
 
-#include "core/data_structures/data_array_base.h"
+#include "core/alloc/allocator.h"
+#include "core/containers/data_array_base.h"
 
 namespace rend
 {
@@ -70,7 +71,7 @@ private:
 };
 
 
-template<class DataItemType>
+template<class DataItemType, class AllocatorType = Allocator<DataItemType>>
 class DataArray : public DataArrayBase
 {
 public:
@@ -91,11 +92,12 @@ public:
 
     // Constructs an object in place and returns a handle reference to it.
     template<typename... Args>
+    [[nodiscard]]
     DataArrayHandle allocate(Args&&... args)
     {
         DataArrayHandle handle = _allocate();
 
-        new (&static_cast<DataItemType*>(_data)[_get_idx(handle)]) DataItemType(std::forward<Args>(args)...);
+        _allocator.construct(&static_cast<DataItemType*>(_data)[_get_idx(handle)], std::forward<Args>(args)...);
 
         return handle;
     }
@@ -106,7 +108,7 @@ public:
         uint64_t idx = _get_idx(handle);
         uint64_t gen = _get_gen(handle);
 
-        static_cast<DataItemType*>(_data)[idx].~DataItemType();
+        _allocator.destruct(&static_cast<DataItemType*>(_data)[idx]);
 
         _deallocate(idx, gen);
     }
@@ -137,105 +139,10 @@ public:
 
     DataArrayIterator<DataItemType> begin(void) { return DataArrayIterator<DataItemType>(*this, 0); }
     DataArrayIterator<DataItemType> end(void)   { return DataArrayIterator<DataItemType>(*this, _count); }
+
+private:
+    AllocatorType _allocator;
 };
-
-template<class DataItemType>
-class DataArrayExternal : public DataArrayBase
-{
-public:
-    DataArrayExternal(size_t capacity)
-        : DataArrayBase(sizeof(DataItemType), capacity)
-    {
-    }
-
-    DataArrayExternal(void)
-        : DataArrayExternal(c_default_capacity)
-    {
-    }
-
-    ~DataArrayExternal(void)
-    {
-    }
-
-    // Returns a handle and the item for external construction/destruction
-    std::pair<DataArrayHandle, DataItemType*> allocate(void)
-    {
-        //uint32_t idx = _next_idx();
-        //if (idx == invalid_handle)
-        //{
-        //    return { invalid_handle, nullptr };
-        //}
-
-        //uint32_t gen = _get_gen(_handles[idx]);
-
-        //_handles[idx] = _make_handle(++gen, idx);
-
-        //++_count;
-
-        //return { _handles[idx], &static_cast<DataItemType*>(_data)[idx] };
-        //
-        DataArrayHandle handle = _allocate();
-        return { handle, &static_cast<DataItemType*>(_data)[_get_idx(handle)] };
-    }
-
-    // Unallocated the item from the DataArray, and returns the item for external construction/destruction
-    DataItemType& deallocate(DataArrayHandle handle)
-    {
-        uint64_t idx = _get_idx(handle);
-        uint64_t gen = _get_gen(handle);
-
-        DataItemType& value = static_cast<DataItemType*>(_data)[idx];
-
-        _deallocate(idx, gen);
-
-        //if( _free_head != invalid_handle )
-        //{
-        //    // There are some open nodes on the free list
-        //    uint32_t free_head_idx = _get_idx(_free_head);
-        //    uint32_t free_head_gen = _get_gen(_free_head);
-
-        //    _handles[idx] = _make_invalid_handle(free_head_gen, free_head_idx);
-        //    _free_head = _make_invalid_handle(gen, idx);
-        //}
-        //else
-        //{
-        //    // There are no open nodes on the free list
-        //    _handles[idx] = _make_invalid_handle(gen, idx);
-        //    _free_head = _handles[idx];
-        //}
-
-        //`--_count;
-        return value;
-    }
-
-    void clear(void)
-    {
-        for(uint32_t i{ 0 }; i < _count; ++i)
-        {
-            if (!check_valid(_handles[i]))
-            {
-                continue;
-            }
-
-            deallocate(_handles[i]);
-        }
-    }
-
-    DataItemType* get(DataArrayHandle handle) const
-    {
-        if (!check_valid(handle))
-        {
-            return nullptr;
-        }
-
-        uint64_t idx = _get_idx(handle);
-        return &static_cast<DataItemType*>(_data)[idx];
-    }
-
-    DataArrayIterator<DataItemType> begin(void) { return DataArrayIterator<DataItemType>(*this, 0); }
-    DataArrayIterator<DataItemType> end(void)   { return DataArrayIterator<DataItemType>(*this, _count); }
-};
-
 
 }
 

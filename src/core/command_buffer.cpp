@@ -14,9 +14,7 @@
 
 using namespace rend;
 
-CommandBuffer::CommandBuffer(CommandBufferHandle command_buffer_handle, CommandBufferHandle pool_reference_handle)
-    : _handle(command_buffer_handle),
-      _pool_reference_handle(pool_reference_handle)
+CommandBuffer::CommandBuffer(void)
 {
 }
 

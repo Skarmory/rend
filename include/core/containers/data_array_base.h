@@ -52,6 +52,7 @@ protected:
     uint32_t         _max_used{ 0 };
     uint32_t         _count{ 0 };
     DataArrayHandle  _free_head { invalid_handle };
+
 };
 
 }

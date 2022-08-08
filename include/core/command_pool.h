@@ -2,7 +2,7 @@
 #define REND_COMMAND_POOL_H
 
 #include "core/command_buffer.h"
-#include "core/data_structures/data_array.h"
+#include "core/containers/data_array.h"
 
 namespace rend
 {
@@ -23,8 +23,9 @@ class CommandPool
         void           destroy_command_buffer(CommandBuffer* command_buffer);
 
     private:
-        CommandPoolHandle                _handle{ NULL_HANDLE };
-        DataArrayExternal<CommandBuffer> _command_buffers;
+        CommandPoolHandle        _handle{ NULL_HANDLE };
+        DataArray<CommandBuffer> _command_buffers;
+        //DataArrayExternal<CommandBuffer> _command_buffers;
 };
 
 }

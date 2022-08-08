@@ -3,7 +3,7 @@
 
 #include "core/device_context.h"
 #include "core/rend_defs.h"
-#include "core/data_structures/data_array.h"
+#include "core/containers/data_array.h"
 
 #include <vulkan.h>
 #include <vector>

@@ -32,13 +32,13 @@ CommandBuffer* CommandPool::create_command_buffer(void)
 {
     auto& ctx = *RendService::device_context();
 
-    CommandBufferHandle command_buffer_handle = ctx.create_command_buffer(_handle);
+    CommandBufferHandle pool_ref_handle = _command_buffers.allocate();
 
-    auto [pool_reference_handle, command_buffer] = _command_buffers.allocate();
+    CommandBuffer* new_buffer = _command_buffers.get(pool_ref_handle);
+    new_buffer->_handle = ctx.create_command_buffer(_handle);
+    new_buffer->_pool_reference_handle = pool_ref_handle;
 
-    new (command_buffer) CommandBuffer(command_buffer_handle, pool_reference_handle);
-
-    return command_buffer;
+    return new_buffer;
 }
 
 void CommandPool::destroy_command_buffer(CommandBuffer* command_buffer)
@@ -48,6 +48,4 @@ void CommandPool::destroy_command_buffer(CommandBuffer* command_buffer)
     ctx.destroy_command_buffer(command_buffer->_handle, _handle);
 
     _command_buffers.deallocate(command_buffer->_pool_reference_handle);
-
-    command_buffer->~CommandBuffer();
 }

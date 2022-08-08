@@ -1,11 +1,12 @@
 CC=g++
-CPPFLAGS=-std=c++2a -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -Iinclude/core/data_structures -isystem /usr/include/vulkan -DGLFW_WINDOW
+CPPFLAGS=-std=c++2a -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
 LDFLAGS=-lglfw -lvulkan -DGLFW_WINDOW
 NAME=librend.so
 
 SRCS=$(wildcard src/*.cpp)
 SRCS+=$(wildcard src/core/*.cpp)
-SRCS+=$(wildcard src/core/data_structures/*.cpp)
+SRCS+=$(wildcard src/core/containers/*.cpp)
+SRCS+=$(wildcard src/core/alloc/*.cpp)
 SRCS+=$(wildcard src/api/vulkan/*.cpp)
 SRCS+=$(wildcard src/lights/*.cpp)
 
