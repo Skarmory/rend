@@ -75,6 +75,12 @@ enum class StatusCode
     WINDOW_NOT_CREATED
 };
 
+enum class SizeRatio
+{
+    FULL,
+    HALF
+};
+
 enum class Format
 {
     R8G8B8A8,
