@@ -514,7 +514,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     VkVertexInputAttributeDescription vk_attribute_descs[constants::max_vertex_attributes];
     for(size_t vertex_attribute_idx{ 0 }; vertex_attribute_idx < info.vertex_attribute_info_count; ++vertex_attribute_idx)
     {
-        vk_attribute_descs[vertex_attribute_idx].location = info.vertex_attribute_infos[vertex_attribute_idx].shader_location;
+        vk_attribute_descs[vertex_attribute_idx].location = info.vertex_attribute_infos[vertex_attribute_idx].location;
         vk_attribute_descs[vertex_attribute_idx].binding = info.vertex_attribute_infos[vertex_attribute_idx].binding->index;
         vk_attribute_descs[vertex_attribute_idx].format = vulkan_helpers::convert_format(info.vertex_attribute_infos[vertex_attribute_idx].format);
         vk_attribute_descs[vertex_attribute_idx].offset = info.vertex_attribute_infos[vertex_attribute_idx].offset;
@@ -1040,6 +1040,24 @@ void VulkanDeviceContext::copy_buffer_to_image(CommandBufferHandle command_buffe
         buffer_info.buffer,
         image_info.image,
         vulkan_helpers::convert_image_layout(info.image_layout),
+        1,
+        &copy
+    );
+}
+
+void VulkanDeviceContext::copy_image_to_image(CommandBufferHandle command_buffer_handle, TextureHandle src_texture_handle, TextureHandle dst_texture_handle, const ImageImageCopyInfo& info)
+{
+    VkCommandBuffer vk_command_buffer = get_command_buffer(command_buffer_handle);
+    VulkanImageInfo* src_info = _vk_image_infos.get(src_texture_handle);
+    VulkanImageInfo* dst_info = _vk_image_infos.get(dst_texture_handle);
+    VkImageCopy copy = vulkan_helpers::convert_image_copy(info);
+
+    vkCmdCopyImage(
+        vk_command_buffer,
+        src_info->image,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst_info->image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         1,
         &copy
     );

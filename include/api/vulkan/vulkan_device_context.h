@@ -83,6 +83,7 @@ public:
     void command_buffer_reset(CommandBufferHandle command_buffer_handle) override;
     void copy_buffer_to_buffer(CommandBufferHandle command_buffer_handle, BufferHandle src_handle, BufferHandle dst_handle, const BufferBufferCopyInfo& info) override;
     void copy_buffer_to_image(CommandBufferHandle command_buffer_handle, BufferHandle src_buffer_handle, TextureHandle dst_texture_handle, const BufferImageCopyInfo& info) override;
+    void copy_image_to_image(CommandBufferHandle command_buffer_handle, TextureHandle src_texture_handle, TextureHandle dst_texture_handle, const ImageImageCopyInfo& info) override;
     void draw(CommandBufferHandle command_buffer_handle, uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) override;
     void draw_indexed(CommandBufferHandle command_buffer_handle, uint32_t index_count, uint32_t instance_count, uint32_t first_index, uint32_t vertex_offset, uint32_t first_instance) override;
     void pipeline_barrier(const CommandBufferHandle command_buffer_handle, const PipelineBarrierInfo& info) override;

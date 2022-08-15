@@ -91,6 +91,27 @@ void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
     ctx.copy_buffer_to_image(_handle, src.handle(), dst.handle(), info);
 }
 
+void CommandBuffer::copy(const GPUTexture& src, const GPUTexture& dst)
+{
+    ImageImageCopyInfo info{};
+    info.src_offset_x = 0;
+    info.src_offset_y = 0;
+    info.src_offset_z = 0;
+    info.dst_offset_x = 0;
+    info.dst_offset_y = 0;
+    info.dst_offset_z = 0;
+    info.extent_x = src.width();
+    info.extent_y = src.height();
+    info.extent_z = src.depth();
+    info.mip_level = 0;
+    info.base_layer = 1;
+    info.layer_count = 1;
+
+    auto& ctx = *RendService::device_context();
+    ctx.copy_image_to_image(_handle, src.handle(), dst.handle(), info);
+    _recorded = true;
+}
+
 void CommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
 {
     auto& ctx = *RendService::device_context();

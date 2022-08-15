@@ -712,6 +712,22 @@ struct BufferImageCopyInfo
     uint32_t    layer_count{ 0 };
 };
 
+struct ImageImageCopyInfo
+{
+    uint32_t src_offset_x{ 0 };
+    uint32_t src_offset_y{ 0 };
+    uint32_t src_offset_z{ 0 };
+    uint32_t dst_offset_x{ 0 };
+    uint32_t dst_offset_y{ 0 };
+    uint32_t dst_offset_z{ 0 };
+    uint32_t extent_x{ 0 };
+    uint32_t extent_y{ 0 };
+    uint32_t extent_z{ 0 };
+    uint32_t mip_level{ 0 };
+    uint32_t base_layer{ 0 };
+    uint32_t layer_count{ 0 };
+};
+
 struct ImageMemoryBarrier
 {
     MemoryAccesses src_accesses{ MemoryAccess::NO_ACCESS };

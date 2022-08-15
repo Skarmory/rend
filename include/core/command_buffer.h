@@ -35,6 +35,7 @@ public:
     void bind_index_buffer(const GPUBuffer& index_buffer);
     void copy(const GPUBuffer& src, const GPUBuffer& dst);
     void copy(const GPUBuffer& src, const GPUTexture& dst);
+    void copy(const GPUTexture& src, const GPUTexture& dst);
     void draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance);
     void draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance);
     void push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data);
