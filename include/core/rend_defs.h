@@ -567,10 +567,10 @@ struct VertexBindingInfo
 
 struct VertexAttributeInfo
 {
-    uint32_t           shader_location{ 0 };
-    uint32_t           offset{ 0 };
-    VertexBindingInfo* binding{ nullptr };
-    rend::Format       format{ rend::Format::R32G32B32_SFLOAT };
+    uint32_t            location{ 0 };
+    uint32_t            offset{ 0 };
+    VertexBindingInfo*  binding{ nullptr };
+    rend::Format        format{ rend::Format::R32G32B32_SFLOAT };
 };
 
 struct ViewportInfo
