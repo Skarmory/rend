@@ -428,7 +428,7 @@ PipelineHandle VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     pipeline_create_info.basePipelineIndex  = 0;
 
     // Shader stages
-    VkPipelineShaderStageCreateInfo shader_create_infos[static_cast<uint32_t>(ShaderStage::SHADER_STAGE_COUNT)];
+    VkPipelineShaderStageCreateInfo shader_create_infos[SHADER_STAGE_COUNT];
     int create_info_idx{ 0 };
 
     ShaderHandle vertex_shader_handle = info.shaders[c_vertex_stage];

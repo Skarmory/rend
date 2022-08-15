@@ -112,9 +112,11 @@ enum ShaderStage
     SHADER_STAGE_GEOMETRY                = BIT(3),
     SHADER_STAGE_FRAGMENT                = BIT(4),
     SHADER_STAGE_COMPUTE                 = BIT(5),
-    SHADER_STAGE_COUNT                   = 6
 };
 typedef uint32_t ShaderStages;
+
+const uint32_t SHADER_STAGE_BEGIN = 0;
+const uint32_t SHADER_STAGE_COUNT = 6;
 
 enum class LoadOp
 {
@@ -655,7 +657,7 @@ struct ColourBlendingInfo
 struct PipelineInfo
 {
     // Shader State
-    ShaderHandle        shaders[(uint32_t)ShaderStage::SHADER_STAGE_COUNT];
+    ShaderHandle        shaders[SHADER_STAGE_COUNT];
 
     // Vertex Input State
     VertexBindingInfo   vertex_binding_info{};
