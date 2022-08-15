@@ -88,7 +88,8 @@ enum class Format
     R16G16B16A16_SFLOAT,
     R32G32B32_SFLOAT,
     R32G32_SFLOAT,
-    D24_S8
+    D24_S8,
+    SWAPCHAIN
 };
 
 enum class MSAASamples
