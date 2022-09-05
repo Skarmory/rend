@@ -70,6 +70,11 @@ bool DataArrayBase::check_valid(DataArrayHandle handle) const
     uint64_t key = _get_gen(handle);
     uint64_t idx = _get_idx(handle);
 
+    if(is_invalid_handle(handle))
+    {
+        return false;
+    }
+
     if (key == c_generation_mask || idx > _capacity)
     {
         return false;

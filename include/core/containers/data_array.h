@@ -192,13 +192,12 @@ public:
 
     DataItemType* get(DataArrayHandle handle) const
     {
-        if (!check_valid(handle))
+        if(!check_valid(handle))
         {
             return nullptr;
         }
 
-        uint64_t idx = _get_idx(handle);
-        return &static_cast<DataItemType*>(_data)[idx];
+        return &static_cast<DataItemType*>(_data)[_get_idx(handle)];
     }
 
     DataArrayIterator<DataItemType> begin(void) { return DataArrayIterator<DataItemType>(*this, 0); }
