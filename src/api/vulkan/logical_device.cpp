@@ -408,6 +408,11 @@ void LogicalDevice::destroy_command_pool(VkCommandPool pool) const
     vkDestroyCommandPool(_vk_device, pool, nullptr);
 }
 
+void LogicalDevice::reset_command_pool(VkCommandPool pool)
+{
+    vkResetCommandPool(_vk_device, pool, 0);
+}
+
 VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(VkDescriptorSetLayoutCreateInfo& create_info)
 {
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;

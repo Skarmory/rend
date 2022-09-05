@@ -80,6 +80,7 @@ public:
 
     VkCommandPool         create_command_pool(VkCommandPoolCreateInfo& create_info) const;
     void                  destroy_command_pool(VkCommandPool pool) const;
+    void                  reset_command_pool(VkCommandPool pool);
 
     VkImageView           create_image_view(VkImageViewCreateInfo& create_info);
     void                  destroy_image_view(VkImageView image_view);
