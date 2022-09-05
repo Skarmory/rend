@@ -1,5 +1,8 @@
 CC=g++
-CPPFLAGS=-std=c++2a -fPIC -shared -Wall -Wextra -Wpedantic -Iinclude -isystem /usr/include/vulkan -DGLFW_WINDOW
+CPPFLAGS=-std=c++2a -fPIC -shared -Wall -Wextra -Wpedantic -DGLFW_WINDOW
+CPPFLAGS+=-Iinclude
+CPPFLAGS+=-isystem /usr/include/vulkan
+CPPFLAGS+=-isystem /usr/include/glm
 LDFLAGS=-lglfw -lvulkan -DGLFW_WINDOW
 NAME=librend.so
 
