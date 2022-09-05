@@ -1,0 +1,47 @@
+---
+shaders:
+    - name: light.vert
+      stage: vertex
+
+    - name: light.frag
+      stage: fragment
+
+vertex attributes:
+    - name: in_pos
+      type: vec3
+      location: 0
+
+    - name: in_normal
+      type: vec3
+      location: 1
+
+    - name: in_uv
+      type: vec2
+      location: 2
+
+uniforms:
+    - name: u_camera_data
+      type: uniform buffer
+      binding: 0
+      stages: vertex
+
+    - name: u_diffuse
+      type: combined image sampler
+      binding: 1
+      stages: fragment
+
+    - name: u_materials
+      type: uniform buffer
+      binding: 2
+      stages: fragment
+
+    - name: u_lights
+      type: uniform buffer
+      binding: 3
+      stages: fragment
+
+push constants:
+    - name: mpushconst
+      offset: 0
+      size: 68
+      stages: vertex fragment
