@@ -5,8 +5,10 @@
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(const PipelineLayoutInfo& info)
-    : _info(info)
+PipelineLayout::PipelineLayout(const std::string& name, const PipelineLayoutInfo& info)
+    :
+        GPUResource(name),
+        _info(info)
 {
     auto& ctx = *RendService::device_context();
     _handle = ctx.create_pipeline_layout(info);

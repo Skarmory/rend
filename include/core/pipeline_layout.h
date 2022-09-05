@@ -1,15 +1,18 @@
 #ifndef REND_PIPELINE_LAYOUT_H
 #define REND_PIPELINE_LAYOUT_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
+#include "core/gpu_resource.h"
+
+#include <string>
 
 namespace rend
 {
 
-class PipelineLayout
+class PipelineLayout : public GPUResource
 {
 public:
-    explicit PipelineLayout(const PipelineLayoutInfo& info);
+    explicit PipelineLayout(const std::string& name, const PipelineLayoutInfo& info);
     ~PipelineLayout(void);
     PipelineLayout(const PipelineLayout&) = delete;
     PipelineLayout(PipelineLayout&&) = delete;
