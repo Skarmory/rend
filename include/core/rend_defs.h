@@ -20,6 +20,7 @@ typedef HandleType TextureHandle;
 typedef HandleType TextureViewHandle;
 typedef HandleType SamplerHandle;
 typedef HandleType ShaderHandle;
+typedef HandleType ShaderSetHandle;
 typedef HandleType FramebufferHandle;
 typedef HandleType RenderPassHandle;
 typedef HandleType PipelineHandle;
@@ -29,7 +30,9 @@ typedef HandleType DescriptorPoolHandle;
 typedef HandleType DescriptorSetHandle;
 typedef HandleType DescriptorSetLayoutHandle;
 typedef HandleType PipelineLayoutHandle;
-typedef HandleType PipelineHandle;
+typedef HandleType SubPassHandle;
+typedef HandleType MaterialHandle;
+typedef HandleType MeshHandle;
 typedef BufferHandle VertexBufferHandle;
 typedef BufferHandle IndexBufferHandle;
 typedef BufferHandle UniformBufferHandle;
@@ -117,6 +120,16 @@ typedef uint32_t ShaderStages;
 
 const uint32_t SHADER_STAGE_BEGIN = 0;
 const uint32_t SHADER_STAGE_COUNT = 6;
+
+enum ShaderIndex
+{
+    SHADER_INDEX_VERTEX = 0,
+    SHADER_INDEX_TESSELLATION_CONTROL,
+    SHADER_INDEX_TESSELLATION_EVALUATION,
+    SHADER_INDEX_GEOMETRY,
+    SHADER_INDEX_FRAGMENT,
+    SHADER_INDEX_COMPUTE
+};
 
 enum class LoadOp
 {
@@ -499,6 +512,7 @@ struct SubpassInfo
     uint32_t          input_attachment_infos_count{ 0 };
     uint32_t          resolve_attachment_infos_count{ 0 };
     uint32_t          preserve_attachments_count{ 0 };
+    ShaderSetHandle   shader_set_handle;
 };
 
 struct SubpassDependency
@@ -517,20 +531,6 @@ struct RenderPassInfo
     uint32_t          attachment_infos_count{ 0 };
     uint32_t          subpasses_count{ 0 };
     uint32_t          subpass_dependency_count{ 0 };
-};
-
-struct DescriptorSetLayoutBinding
-{
-    uint32_t       binding{ 0 };
-    DescriptorType descriptor_type;
-    uint32_t       descriptor_count{ 0 };
-    ShaderStages   shader_stages{ 0 };
-};
-
-struct DescriptorSetLayoutInfo
-{
-    const DescriptorSetLayoutBinding* layout_bindings{ nullptr };
-    uint32_t                          layout_bindings_count{ 0 };
 };
 
 struct PushConstantRange
@@ -564,8 +564,8 @@ struct VertexAttributeInfo
 
 struct ViewportInfo
 {
-    float x{ 0 };
-    float y{ 0 };
+    float x{ 0.0f };
+    float y{ 0.0f };
     float width{ 0.0f };
     float height{ 0.0f };
     float min_depth{ 0.0f };
@@ -749,21 +749,6 @@ struct DescriptorPoolInfo
     DescriptorPoolSize* pool_sizes{ nullptr };
     uint32_t            pool_sizes_count{ 0 };
     uint32_t            max_sets{ 0 };
-};
-
-struct DescriptorSetBinding
-{
-    uint32_t             slot;
-    rend::DescriptorType type;
-    void*                resource;
-};
-
-struct DescriptorSetInfo
-{
-    DescriptorPoolHandle         pool_handle{ NULL_HANDLE };
-    DescriptorSetLayoutHandle    layout_handle{ NULL_HANDLE };
-    rend::DescriptorSetBinding*  bindings{ nullptr };
-    uint32_t                     bindings_count{ 0 };
 };
 
 }
