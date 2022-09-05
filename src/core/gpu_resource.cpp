@@ -1,27 +1,39 @@
 #include "core/gpu_resource.h"
 
+#include <functional>
+
+using namespace rend;
+
+namespace
+{
+    static uint32_t _unnamed_resource_count = 0;
+}
+
+GPUResource::GPUResource(const std::string& name)
+    :
+        _name(name),
+        _id(std::hash<std::string>{}(name))
+{
+}
+
 GPUResource::GPUResource(void)
-    : _bytes(0)
+    :
+        GPUResource("Unnamed buffer " + std::to_string(::_unnamed_resource_count++))
 {
 }
 
-GPUResource::~GPUResource(void)
+const std::string& GPUResource::name(void) const
 {
+    return _name;
 }
 
-size_t GPUResource::bytes(void) const
+void GPUResource::name(const std::string& name)
 {
-    return _bytes;
+    _name = name;
+    _id = std::hash<std::string>{}(name);
 }
 
-#ifdef DEBUG
-const std::string& GPUResource::dbg_name(void) const
+size_t GPUResource::id(void) const
 {
-    return _dbg_name;
+    return _id;
 }
-
-void GPUResource::dbg_name(const std::string& name)
-{
-    _dbg_name = name;
-}
-#endif

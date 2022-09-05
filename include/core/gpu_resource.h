@@ -4,25 +4,26 @@
 #include <cstddef>
 #include <string>
 
+namespace rend
+{
+
 class GPUResource
 {
 public:
+    explicit GPUResource(const std::string& name);
     GPUResource(void);
-    ~GPUResource(void);
+    virtual ~GPUResource(void) = default;
 
-    size_t             bytes(void) const;
+    const std::string& name(void) const;
+    void               name(const std::string& name);
 
-#ifdef DEBUG
-    const std::string& dbg_name(void) const;
-    void               dbg_name(const std::string& name);
-#endif
+    size_t id(void) const;
 
-protected:
-    size_t      _bytes{ 0 };
-
-#ifdef DEBUG
-    std::string _dbg_name{ "unnamed" };
-#endif
+private:
+    std::string _name;
+    std::size_t _id;
 };
+
+}
 
 #endif
