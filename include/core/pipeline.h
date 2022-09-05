@@ -1,15 +1,18 @@
 #ifndef REND_PIPELINE_H
 #define REND_PIPELINE_H
 
-#include "rend_defs.h"
+#include "core/rend_defs.h"
+#include "core/gpu_resource.h"
+
+#include <string>
 
 namespace rend
 {
 
-class Pipeline
+class Pipeline : public GPUResource
 {
 public:
-    explicit Pipeline(const PipelineInfo& info);
+    explicit Pipeline(const std::string& name, const PipelineInfo& info);
     ~Pipeline(void);
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;
