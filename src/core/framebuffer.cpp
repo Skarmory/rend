@@ -6,14 +6,16 @@
 #include "core/rend_service.h"
 
 #include <cassert>
+#include <functional>
 
 using namespace rend;
 
-Framebuffer::Framebuffer(const FramebufferInfo& info)
+Framebuffer::Framebuffer(const std::string& name, const FramebufferInfo& info, const FramebufferInfo& api_info)
+    : GPUResource(name),
+      _info(info)
 {
     auto& ctx = *RendService::device_context();
-    _handle = ctx.create_framebuffer(info);
-    _framebuffer_info = info;
+    _handle = ctx.create_framebuffer(api_info);
 }
 
 Framebuffer::~Framebuffer(void)
@@ -25,4 +27,14 @@ Framebuffer::~Framebuffer(void)
 FramebufferHandle Framebuffer::handle(void) const
 {
     return _handle;
+}
+
+const std::vector<TextureHandle>& Framebuffer::get_colour_attachments(void) const
+{
+    return _info.render_targets;
+}
+
+TextureHandle Framebuffer::get_depth_stencil_attachment(void) const
+{
+    return _info.depth_target;
 }

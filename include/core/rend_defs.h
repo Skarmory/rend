@@ -519,17 +519,6 @@ struct RenderPassInfo
     uint32_t          subpass_dependency_count{ 0 };
 };
 
-struct FramebufferInfo
-{
-    uint32_t         width{ 0 };
-    uint32_t         height{ 0 };
-    uint32_t         depth{ 0 };
-    RenderPassHandle render_pass_handle{ NULL_HANDLE };
-    Texture2DHandle  depth_buffer_handle{ NULL_HANDLE };
-    Texture2DHandle  render_target_handles[rend::constants::max_framebuffer_attachments]{ NULL_HANDLE };
-    uint32_t         render_target_handles_count{ 0 };
-};
-
 struct DescriptorSetLayoutBinding
 {
     uint32_t       binding{ 0 };
