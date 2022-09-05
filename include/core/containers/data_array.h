@@ -65,6 +65,11 @@ public:
         return static_cast<T*>(_container.data())[_current];
     }
 
+    DataArrayHandle handle(void) const
+    {
+        return _container.handles()[_current];
+    }
+
 private:
     DataArrayBase& _container;
     size_t         _current{ 0 };
