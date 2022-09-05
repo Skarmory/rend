@@ -5,6 +5,7 @@
 #include "core/rend_defs.h"
 
 #include <cstdint>
+#include <string>
 
 namespace rend
 {
@@ -14,6 +15,7 @@ struct TextureInfo
     uint32_t width{ 0 };
     uint32_t height{ 0 };
     uint32_t depth{ 0 };
+    SizeRatio size_ratio{}; // Overrides width, height, sets to some ratio of the full screen
     uint32_t mips{ 0 };
     uint32_t layers{ 0 };
     Format format{ Format::R8G8B8A8 };
@@ -26,6 +28,8 @@ class GPUTexture : public GPUResource
 {
 public:
     GPUTexture(const TextureInfo& info);
+    GPUTexture(const std::string& name, const TextureInfo& info);
+    GPUTexture(const std::string& name, const TextureInfo& info, TextureHandle handle);
     ~GPUTexture(void);
 
     GPUTexture(const GPUTexture&)            = delete;
