@@ -190,6 +190,20 @@ public:
         }
     }
 
+    template<typename Func>
+    DataArrayHandle find(Func f) const
+    {
+        for(auto it = cbegin(); it != cend(); ++it)
+        {
+            if(f(*it))
+            {
+                return it.handle();
+            }
+        }
+
+        return invalid_handle;
+    }
+
     DataItemType* get(DataArrayHandle handle) const
     {
         if(!check_valid(handle))
