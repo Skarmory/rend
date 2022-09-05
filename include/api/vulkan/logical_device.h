@@ -53,7 +53,7 @@ public:
 
     std::vector<VkDescriptorSet> allocate_descriptor_sets(VkDescriptorSetLayout* layouts, uint32_t layouts_count, VkDescriptorPool pool);
     void                         free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool);
-    void                         update_descriptor_sets(VkWriteDescriptorSet* write_sets, uint32_t write_sets_count);
+    void                         update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets);
 
     std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool) const;
     void                         free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool) const;

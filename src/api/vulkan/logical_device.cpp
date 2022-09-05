@@ -290,9 +290,9 @@ std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(VkDescripto
     return sets;
 }
 
-void LogicalDevice::update_descriptor_sets(VkWriteDescriptorSet* write_sets, uint32_t write_sets_count)
+void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets)
 {
-    vkUpdateDescriptorSets(_vk_device, write_sets_count, write_sets, 0, nullptr);
+    vkUpdateDescriptorSets(_vk_device, write_sets.size(), write_sets.data(), 0, nullptr);
 }
 
 void LogicalDevice::free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool)
