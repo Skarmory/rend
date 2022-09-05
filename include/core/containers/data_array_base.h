@@ -43,6 +43,7 @@ protected:
     DataArrayHandle _make_invalid_handle(uint64_t generation, uint64_t idx) const;
     DataArrayHandle _allocate(void);
     void            _deallocate(uint64_t idx, uint64_t gen);
+    bool            _has_free_items(void) const;
 
 /* Data */
 protected:

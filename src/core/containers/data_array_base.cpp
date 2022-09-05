@@ -134,7 +134,7 @@ DataArrayHandle DataArrayBase::_allocate(void)
 {
     DataArrayHandle handle = invalid_handle;
 
-    if(_free_head == invalid_handle) // No free list to pick from
+    if(!_has_free_items()) // No free list to pick from
     {
         handle = _make_handle(0, _max_used);
         _handles[_max_used] = handle;
@@ -160,7 +160,7 @@ DataArrayHandle DataArrayBase::_allocate(void)
 
 void DataArrayBase::_deallocate(uint64_t idx, uint64_t gen)
 {
-    if(_free_head != invalid_handle)
+    if(_has_free_items())
     {
         // Free head not empty
         _handles[idx] = _free_head;
@@ -173,4 +173,9 @@ void DataArrayBase::_deallocate(uint64_t idx, uint64_t gen)
     }
 
     --_count;
+}
+
+bool DataArrayBase::_has_free_items(void) const
+{
+    return _free_head != invalid_handle;
 }
