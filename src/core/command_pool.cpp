@@ -22,7 +22,6 @@ CommandPool::~CommandPool(void)
     for(auto& command_buffer : _command_buffers)
     {
         ctx.destroy_command_buffer(command_buffer.handle(), _handle);
-        delete &command_buffer;
     }
 
     ctx.destroy_command_pool(_handle);
@@ -48,4 +47,10 @@ void CommandPool::destroy_command_buffer(CommandBuffer* command_buffer)
     ctx.destroy_command_buffer(command_buffer->_handle, _handle);
 
     _command_buffers.deallocate(command_buffer->_pool_reference_handle);
+}
+
+void CommandPool::reset(void)
+{
+    auto& ctx = *RendService::device_context();
+    ctx.reset_command_pool(_handle);
 }

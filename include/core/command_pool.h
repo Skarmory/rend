@@ -21,11 +21,11 @@ class CommandPool
 
         CommandBuffer* create_command_buffer(void);
         void           destroy_command_buffer(CommandBuffer* command_buffer);
+        void           reset(void);
 
     private:
         CommandPoolHandle        _handle{ NULL_HANDLE };
         DataArray<CommandBuffer> _command_buffers;
-        //DataArrayExternal<CommandBuffer> _command_buffers;
 };
 
 }
