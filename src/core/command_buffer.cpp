@@ -32,10 +32,10 @@ CommandBufferHandle CommandBuffer::handle(void) const
     return _handle;
 }
 
-void CommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, DescriptorSet* descriptor_sets, size_t descriptor_sets_count)
+void CommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, const std::vector<DescriptorSet*> descriptor_sets)
 {
     auto& ctx = *RendService::device_context();
-    ctx.bind_descriptor_sets(_handle, bind_point, pipeline_layout.handle(), descriptor_sets, descriptor_sets_count);
+    ctx.bind_descriptor_sets(_handle, bind_point, pipeline_layout.handle(), descriptor_sets);
     _recorded = true;
 }
 
@@ -60,53 +60,44 @@ void CommandBuffer::bind_index_buffer(const GPUBuffer& index_buffer)
     _recorded = true;
 }
 
-void CommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst)
+void CommandBuffer::blit(const GPUTexture& src, const GPUTexture& dst)
+{
+    auto& ctx = *RendService::device_context();
+    uint32_t off[8] =
+    {
+        0, 0, src.width(), dst.height(),
+        0, 0, dst.width(), dst.height()
+    };
+
+    ctx.blit(
+        _handle,
+        src.handle(),
+        dst.handle(),
+        ImageLayout::TRANSFER_SRC,
+        ImageLayout::TRANSFER_DST,
+        off
+    );
+    _recorded = true;
+}
+
+void CommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst, const BufferBufferCopyInfo& info)
 {
 #ifdef DEBUG
-    std::cout << "copy_buffer_to_buffer(). src: " << src.dbg_name() << ". dst: " << dst.dbg_name() << std::endl;
+    std::cout << "copy_buffer_to_buffer(). src: " << src.name() << ". dst: " << dst.name() << std::endl;
 #endif
-
-    BufferBufferCopyInfo info{};
-    info.size_bytes = src.bytes();
-    info.src_offset = 0;
-    info.dst_offset = 0;
 
     auto& ctx = *RendService::device_context();
     ctx.copy_buffer_to_buffer(_handle, src.handle(), dst.handle(), info);
 }
 
-void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst)
+void CommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst, const BufferImageCopyInfo& info)
 {
-    BufferImageCopyInfo info{};
-    info.buffer_offset = 0;
-    info.buffer_width = dst.width();
-    info.buffer_height = dst.height();
-    info.image_width = dst.width();
-    info.image_height = dst.height();
-    info.image_depth = dst.depth();
-    info.image_layout = dst.layout();
-    info.layer_count = dst.layers();
-
     auto& ctx = *RendService::device_context();
     ctx.copy_buffer_to_image(_handle, src.handle(), dst.handle(), info);
 }
 
-void CommandBuffer::copy(const GPUTexture& src, const GPUTexture& dst)
+void CommandBuffer::copy(const GPUTexture& src, const GPUTexture& dst, const ImageImageCopyInfo& info)
 {
-    ImageImageCopyInfo info{};
-    info.src_offset_x = 0;
-    info.src_offset_y = 0;
-    info.src_offset_z = 0;
-    info.dst_offset_x = 0;
-    info.dst_offset_y = 0;
-    info.dst_offset_z = 0;
-    info.extent_x = src.width();
-    info.extent_y = src.height();
-    info.extent_z = src.depth();
-    info.mip_level = 0;
-    info.base_layer = 1;
-    info.layer_count = 1;
-
     auto& ctx = *RendService::device_context();
     ctx.copy_image_to_image(_handle, src.handle(), dst.handle(), info);
     _recorded = true;
@@ -135,12 +126,25 @@ void CommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages sta
 
 void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout)
 {
+    transition_image(texture.handle(), texture.layout(), texture.mips(), texture.layers(), src_stages, dst_stages, new_layout);
+    texture.layout(new_layout);
+}
+
+void CommandBuffer::transition_image(
+    TextureHandle handle,
+    ImageLayout layout,
+    uint32_t mips,
+    uint32_t layers,
+    PipelineStages src_stages,
+    PipelineStages dst_stages,
+    ImageLayout new_layout)
+{
     ImageMemoryBarrier image_memory_barrier{};
-    image_memory_barrier.old_layout = texture.layout();
+    image_memory_barrier.old_layout = layout;
     image_memory_barrier.new_layout = new_layout;
-    image_memory_barrier.image_handle = texture.handle();
-    image_memory_barrier.mip_level_count = texture.mips();
-    image_memory_barrier.layers_count = texture.layers();
+    image_memory_barrier.image_handle = handle;
+    image_memory_barrier.mip_level_count = mips;
+    image_memory_barrier.layers_count = layers;
 
     PipelineBarrierInfo barrier_info{};
     barrier_info.src_stages = src_stages;
@@ -148,7 +152,7 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
     barrier_info.image_memory_barriers = &image_memory_barrier;
     barrier_info.image_memory_barrier_count = 1;
 
-    switch(texture.layout())
+    switch(layout)
     {
         case ImageLayout::UNDEFINED:
             image_memory_barrier.src_accesses = MemoryAccess::NO_ACCESS; break;
@@ -194,14 +198,14 @@ void CommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_sta
 
     auto& ctx = *RendService::device_context();
     ctx.pipeline_barrier(_handle, barrier_info);
-
-    texture.layout(new_layout);
+    _recorded = true;
 }
 
 void CommandBuffer::reset(void)
 {
     auto& ctx = *RendService::device_context();
     ctx.command_buffer_reset(_handle);
+    _recorded = false;
 }
 
 void CommandBuffer::set_viewport(const ViewportInfo* viewport_infos, size_t viewport_infos_count)
@@ -232,7 +236,7 @@ void CommandBuffer::end(void)
     _recorded = true;
 }
 
-void CommandBuffer::begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil)
+void CommandBuffer::begin_render_pass(RenderPass& render_pass, Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil)
 {
     auto& ctx = *RendService::device_context();
     ctx.begin_render_pass(_handle, render_pass.handle(), framebuffer.handle(), render_area, clear_colour, clear_depth_stencil);
@@ -243,5 +247,12 @@ void CommandBuffer::end_render_pass(void)
 {
     auto& ctx = *RendService::device_context();
     ctx.end_render_pass(_handle);
+    _recorded = true;
+}
+
+void CommandBuffer::next_subpass(void)
+{
+    auto& ctx = *RendService::device_context();
+    ctx.next_subpass(_handle);
     _recorded = true;
 }
