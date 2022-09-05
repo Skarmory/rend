@@ -55,12 +55,12 @@ public:
         return *this;
     }
 
-    bool operator!=(const DataArrayIterator& other)
+    bool operator!=(const DataArrayIterator& other) const
     {
         return _current != other._current;
     }
 
-    const T& operator*(void)
+    T& operator*(void) const
     {
         return static_cast<T*>(_container.data())[_current];
     }
