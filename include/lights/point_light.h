@@ -1,8 +1,12 @@
-#ifndef POINT_LIGHT_H
-#define POInt_LIGHT_H
+#ifndef REND_LIGHTS_POINT_LIGHT_H
+#define REND_LIGHTS_POINT_LIGHT_H
+
+#include <cstdint>
 
 namespace rend
 {
+
+static constexpr uint32_t POINT_LIGHT_MAX = 256;
 
 struct alignas(16) PointLight
 {
