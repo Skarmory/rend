@@ -7,9 +7,11 @@
 
 using namespace rend;
 
-Shader::Shader(const void* code, uint32_t size_bytes, ShaderStage type)
-    : _bytes(size_bytes),
-      _type(type)
+Shader::Shader(const std::string& name, const void* code, uint32_t size_bytes, ShaderStage type)
+    :
+        GPUResource(name),
+        _bytes(size_bytes),
+        _type(type)
 {
     auto& ctx = *RendService::device_context();
     _handle = ctx.create_shader(type, code, size_bytes);

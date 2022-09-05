@@ -2,6 +2,7 @@
 #define REND_SHADER_H
 
 #include "core/rend_defs.h"
+#include "core/gpu_resource.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -9,10 +10,10 @@
 namespace rend
 {
 
-class Shader
+class Shader : public GPUResource
 {
 public:
-    Shader(const void* code, uint32_t size_bytes, ShaderStage type);
+    Shader(const std::string& name, const void* code, uint32_t size_bytes, ShaderStage type);
     ~Shader(void);
     Shader(const Shader&)            = delete;
     Shader(Shader&&)                 = delete;
