@@ -13,6 +13,9 @@ DescriptorPool::DescriptorPool(const DescriptorPoolInfo& info)
 
 DescriptorPool::~DescriptorPool(void)
 {
+    // Destroy descriptor sets now, before we destroy the VkDescriptorPool
+    _descriptor_sets.clear();
+
     auto& ctx = *RendService::device_context();
     ctx.destroy_descriptor_pool(_handle);
 }
@@ -20,4 +23,19 @@ DescriptorPool::~DescriptorPool(void)
 DescriptorPoolHandle DescriptorPool::handle(void) const
 {
     return _handle;
+}
+
+DescriptorSetHandle DescriptorPool::allocate_descriptor_set(const DescriptorSetInfo& info)
+{
+    return _descriptor_sets.allocate(_handle, info);
+}
+
+void DescriptorPool::dealloacte_descriptor_set(DescriptorSetHandle handle)
+{
+    _descriptor_sets.deallocate(handle);
+}
+
+DescriptorSet* DescriptorPool::get_descriptor_set(DescriptorSetHandle handle) const
+{
+    return _descriptor_sets.get(handle);
 }
