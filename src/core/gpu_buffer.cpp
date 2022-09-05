@@ -5,8 +5,20 @@
 
 using namespace rend;
 
+namespace
+{
+    static uint32_t _unnamed_buffer_count = 0;
+}
+
 GPUBuffer::GPUBuffer(const BufferInfo& info)
-    : _info(info)
+    :
+        GPUBuffer("Unnamed buffer " + std::to_string(::_unnamed_buffer_count++), info)
+{
+}
+
+GPUBuffer::GPUBuffer(const std::string& name, const BufferInfo& info)
+    : GPUResource(name),
+      _info(info)
 {
     auto& ctx = *RendService::device_context();
 

@@ -4,6 +4,8 @@
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
 
+#include <string>
+
 namespace rend
 {
 
@@ -18,6 +20,7 @@ class GPUBuffer : public GPUResource
 {
 public:
     GPUBuffer(const BufferInfo& info);
+    GPUBuffer(const std::string& name, const BufferInfo& info);
     ~GPUBuffer(void);
 
     GPUBuffer(const GPUBuffer&)            = delete;
@@ -30,10 +33,12 @@ public:
     uint32_t elements_count(void) const { return _info.element_count; }
     size_t element_size(void) const { return _info.element_size; }
     BufferUsage usage(void) const { return _info.usage; }
+    size_t bytes(void) const { return _bytes; }
 
 private:
     BufferHandle _handle{ NULL_HANDLE };
     BufferInfo   _info{};
+    size_t       _bytes;
 };
 
 }
