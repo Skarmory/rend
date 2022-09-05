@@ -42,6 +42,7 @@ VkDynamicState          convert_dynamic_state(DynamicState state);
 VkBufferUsageFlags      convert_buffer_usage_flags(BufferUsage usage);
 VkImageUsageFlags       convert_image_usage_flags(ImageUsage usage);
 VkDescriptorType        convert_descriptor_type(DescriptorType type);
+VkImageCopy             convert_image_copy(const ImageImageCopyInfo& copy);
 
 ImageLayout             convert_image_layout(VkImageLayout layout);
 uint32_t                convert_sample_count(VkSampleCountFlagBits samples);

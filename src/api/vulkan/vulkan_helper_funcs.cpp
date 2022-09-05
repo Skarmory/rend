@@ -1,5 +1,9 @@
 #include "api/vulkan/vulkan_helper_funcs.h"
 
+#include "api/vulkan/renderer.h"
+#include "api/vulkan/swapchain.h"
+#include "core/rend_service.h"
+
 #include <cassert>
 #include <iostream>
 #include <unordered_set>
@@ -105,6 +109,12 @@ VkFormat vulkan_helpers::convert_format(Format format)
         case Format::R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
         case Format::R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
         case Format::D24_S8: return VK_FORMAT_D24_UNORM_S8_UINT;
+        case Format::SWAPCHAIN:
+        {
+            auto* rr = RendService::renderer();
+            auto* sc = rr->get_swapchain();
+            return convert_format(sc->get_format());
+        }
     }
 
     return VK_FORMAT_MAX_ENUM;
@@ -609,6 +619,20 @@ VkDescriptorType vulkan_helpers::convert_descriptor_type(DescriptorType type)
     }
 
     return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+}
+
+VkImageCopy vulkan_helpers::convert_image_copy(const ImageImageCopyInfo& copy)
+{
+    VkImageCopy vk_copy =
+    {
+        .srcSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = copy.mip_level, .baseArrayLayer = copy.base_layer, .layerCount = copy.layer_count  },
+        .srcOffset = { .x = copy.src_offset_x, .y = copy.src_offset_y, .z = copy.src_offset_z },
+        .dstSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = copy.mip_level, .baseArrayLayer = copy.base_layer, .layerCount = copy.layer_count  },
+        .dstOffset = { .x = copy.dst_offset_x, .y = copy.dst_offset_y, .z = copy.dst_offset_z },
+        .extent = { .width = copy.extent_x, .height = copy.extent_y, .depth = copy.extent_z }
+    };
+
+    return vk_copy;
 }
 
 VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
