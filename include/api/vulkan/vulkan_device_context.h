@@ -16,6 +16,8 @@ class PhysicalDevice;
 class LogicalDevice;
 class VulkanInstance;
 
+struct FramebufferInfo;
+
 struct RendInitInfo;
 
 class VulkanDeviceContext : public DeviceContext
@@ -46,7 +48,7 @@ public:
     [[nodiscard]] CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) override;
     [[nodiscard]] DescriptorPoolHandle      create_descriptor_pool(const DescriptorPoolInfo& info) override;
     [[nodiscard]] DescriptorSetLayoutHandle create_descriptor_set_layout(const DescriptorSetLayoutInfo& info) override;
-    [[nodiscard]] DescriptorSetHandle       create_descriptor_set(const DescriptorSetInfo& info) override;
+    [[nodiscard]] DescriptorSetHandle       create_descriptor_set(DescriptorPoolHandle pool_h, const DescriptorSetInfo& info) override;
     [[nodiscard]] Texture2DHandle           register_swapchain_image(VkImage swapchain_image, VkFormat format);
 
     void destroy_buffer(BufferHandle handle) override;
@@ -74,10 +76,11 @@ public:
     void destroy_semaphore(VkSemaphore semaphore);
 
     // Command Buffer
-    void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) override;
+    void bind_descriptor_sets(CommandBufferHandle command_buffer_handle, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, const std::vector<DescriptorSet*> descriptor_sets) override;
     void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) override;
     void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
     void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) override;
+    void blit(CommandBufferHandle command_buffer_handle, TextureHandle src, TextureHandle dst, ImageLayout src_layout, ImageLayout dst_layout, uint32_t off[8]) override;
     void command_buffer_begin(CommandBufferHandle command_buffer_handle) override;
     void command_buffer_end(CommandBufferHandle command_buffer_handle) override;
     void command_buffer_reset(CommandBufferHandle command_buffer_handle) override;
@@ -91,9 +94,11 @@ public:
     void set_viewport(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) override;
     void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) override;
     void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil );
-    void end_render_pass(const CommandBufferHandle command_buffer_handle);
+    void end_render_pass(const CommandBufferHandle command_buffer_handle) override;
+    void reset_command_pool(const CommandPoolHandle command_pool_handle) override;
+    void next_subpass(CommandBufferHandle handle) override;
 
-    void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) override;
+    void write_descriptor_bindings(const DescriptorSetHandle handle, const std::vector<DescriptorSetBinding>& binding) override;
 
     void* map_buffer_memory(BufferHandle handle, size_t bytes);
     void  unmap_buffer_memory(BufferHandle handle);
@@ -135,12 +140,14 @@ private:
         DataArrayHandle memory_handle{ NULL_HANDLE };
         DataArrayHandle view_handle{ NULL_HANDLE };
         DataArrayHandle sampler_handle{ NULL_HANDLE };
+        bool            is_swapchain{ false };
     };
 
     struct VulkanBufferInfo
     {
         VkBuffer buffer{ VK_NULL_HANDLE };
         DataArrayHandle memory_handle{ NULL_HANDLE };
+        size_t bytes{ 0 };
     };
 
     struct VulkanDescriptorSetInfo

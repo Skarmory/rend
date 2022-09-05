@@ -3,15 +3,22 @@
 #ifndef REND_DEVICE_CONTEXT_H
 #define REND_DEVICE_CONTEXT_H
 
-#include "rend_defs.h"
-#include "resource.h"
+#include "core/rend_defs.h"
+#include "core/resource.h"
+
+#include "core/descriptor_set_binding.h"
 
 #include <cstddef>
+#include <vector>
 
 namespace rend
 {
 
 class DescriptorSet;
+
+struct DescriptorSetInfo;
+struct DescriptorSetLayoutInfo;
+struct FramebufferInfo;
 
 class DeviceContext
 {
@@ -31,7 +38,7 @@ public:
     [[nodiscard]] virtual CommandBufferHandle       create_command_buffer(CommandPoolHandle pool_handle) = 0;
     [[nodiscard]] virtual DescriptorPoolHandle      create_descriptor_pool(const DescriptorPoolInfo& info) = 0;
     [[nodiscard]] virtual DescriptorSetLayoutHandle create_descriptor_set_layout(const DescriptorSetLayoutInfo& info) = 0;
-    [[nodiscard]] virtual DescriptorSetHandle       create_descriptor_set(const DescriptorSetInfo& info) = 0;
+    [[nodiscard]] virtual DescriptorSetHandle       create_descriptor_set(DescriptorPoolHandle pool_h, const DescriptorSetInfo& info) = 0;
 
     virtual void destroy_buffer(BufferHandle handle) = 0;
     virtual void destroy_texture(Texture2DHandle handle ) = 0;
@@ -47,10 +54,11 @@ public:
     virtual void destroy_descriptor_set(DescriptorSetHandle handle) = 0;
 
     // Command Buffer functions
-    virtual void bind_descriptor_sets(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, DescriptorSet* descriptor_set, uint32_t descriptor_set_count) = 0;
+    virtual void bind_descriptor_sets(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle pipeline_handle, const std::vector<DescriptorSet*> descriptor_sets) = 0;
     virtual void bind_pipeline(CommandBufferHandle cmd_buffer, PipelineBindPoint bind_point, PipelineHandle handle) = 0;
     virtual void bind_vertex_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
     virtual void bind_index_buffer(CommandBufferHandle command_buffer_handle, BufferHandle handle) = 0;
+    virtual void blit(CommandBufferHandle command_buffer_handle, TextureHandle src, TextureHandle dst, ImageLayout src_layout, ImageLayout dst_layout, uint32_t off[8]) = 0;
     virtual void command_buffer_begin(CommandBufferHandle command_buffer_handle) = 0;
     virtual void command_buffer_end(CommandBufferHandle command_buffer_handle) = 0;
     virtual void command_buffer_reset(CommandBufferHandle command_buffer_handle) = 0;
@@ -65,8 +73,10 @@ public:
     virtual void set_scissor(const CommandBufferHandle command_buffer_handle, const ViewportInfo* infos, uint32_t infos_count) = 0;
     virtual void begin_render_pass(const CommandBufferHandle command_buffer_handle, const RenderPassHandle render_pass_handle, const FramebufferHandle framebuffer_handle, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil ) = 0;
     virtual void end_render_pass(const CommandBufferHandle command_buffer_handle) = 0;
+    virtual void reset_command_pool(const CommandPoolHandle command_pool_handle) = 0;
+    virtual void next_subpass(CommandBufferHandle handle) = 0;
 
-    virtual void add_descriptor_binding(const DescriptorSetHandle handle, const DescriptorSetBinding& binding) = 0;
+    virtual void write_descriptor_bindings(const DescriptorSetHandle handle, const std::vector<DescriptorSetBinding>& binding) = 0;
 };
 
 }
