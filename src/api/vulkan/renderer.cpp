@@ -304,9 +304,6 @@ void Renderer::resize_resources(void)
     _swapchain->recreate();
     _create_swapchain_textures();
     _create_framebuffers();
-
-    //_create_backbuffer_depth_buffer(_swapchain->get_extent());
-    //_create_backbuffer_framebuffers(true);
 }
 
 void Renderer::get_size_ratio_dims(SizeRatio size_ratio, uint32_t& width, uint32_t& height)
@@ -405,15 +402,6 @@ void Renderer::_create_descriptor_set_layouts(void)
             .shader_stages = ShaderStage::SHADER_STAGE_FRAGMENT
         };
         dsl_info.layout_bindings.push_back(diffuse_texture_binding);
-
-        //DescriptorSetLayoutBinding material_data_binding =
-        //{
-        //    .binding = 1,
-        //    .descriptor_type = DescriptorType::UNIFORM_BUFFER,
-        //    .descriptor_count = 1,
-        //    .shader_stages = ShaderStage::SHADER_STAGE_FRAGMENT
-        //};
-        //dsl_info.layout_bindings.push_back(material_data_binding);
 
         _per_material_descriptor_set_layout_h = _desc_set_layouts.allocate("per view", dsl_info);
     }
@@ -733,13 +721,11 @@ DescriptorSetHandle Renderer::create_descriptor_set(DescriptorSetLayoutHandle la
 {
     DescriptorSetInfo info =
     {
-        //.pool_handle = _descriptor_pool->handle(),
         .layout_handle = layout_handle,
         .set_number = set_number
     };
 
     return _descriptor_pool->allocate_descriptor_set(info);
-    //return _descriptor_sets.allocate(info);
 }
 
 BufferHandle Renderer::create_buffer(const std::string& name, const BufferInfo& info)
