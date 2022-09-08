@@ -1,8 +1,8 @@
 #include "core/descriptor_set.h"
 
 #include "core/device_context.h"
+#include "core/renderer.h"
 #include "core/rend_service.h"
-#include "api/vulkan/renderer.h"
 
 using namespace rend;
 

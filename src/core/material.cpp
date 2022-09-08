@@ -1,9 +1,8 @@
 #include "core/material.h"
 
 #include "core/descriptor_set.h"
+#include "core/renderer.h"
 #include "core/rend_service.h"
-
-#include "api/vulkan/renderer.h"
 
 using namespace rend;
 

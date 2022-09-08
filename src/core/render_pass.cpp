@@ -5,9 +5,8 @@
 #include "core/draw_item.h"
 #include "core/framebuffer.h"
 #include "core/mesh.h"
+#include "core/renderer.h"
 #include "core/rend_service.h"
-
-#include "api/vulkan/renderer.h"
 
 #include <cassert>
 #include <functional>

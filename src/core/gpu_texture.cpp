@@ -2,9 +2,7 @@
 
 #include "core/device_context.h"
 #include "core/rend_service.h"
-
-// TODO: COMMONISE THE RENDERER!
-#include "api/vulkan/renderer.h"
+#include "core/renderer.h"
 
 #include <functional>
 
@@ -31,7 +29,7 @@ GPUTexture::GPUTexture(const std::string& name, const TextureInfo& info)
 
     if(_info.width == 0)
     {
-        rr.get_size_ratio_dims(_info.size_ratio, _info.width, _info.height);
+        rr.get_size_by_ratio(_info.size_ratio, _info.width, _info.height);
     }
 
     _handle = ctx.create_texture(_info.width, _info.height, _info.depth, _info.mips, _info.layers, _info.format, _info.samples, _info.usage);

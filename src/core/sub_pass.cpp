@@ -1,9 +1,8 @@
 #include "core/sub_pass.h"
 
 #include "core/command_buffer.h"
+#include "core/renderer.h"
 #include "core/rend_service.h"
-
-#include "api/vulkan/renderer.h"
 
 using namespace rend;
 
