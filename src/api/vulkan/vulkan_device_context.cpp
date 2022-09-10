@@ -22,12 +22,10 @@
 
 using namespace rend;
 
-VulkanDeviceContext::VulkanDeviceContext( const RendInitInfo& rend_info )
+VulkanDeviceContext::VulkanDeviceContext( const VulkanInitInfo& vk_init_info )
 {
-    VulkanInitInfo* vk_init_info = static_cast<VulkanInitInfo*>(rend_info.api_init_info);
-
     // Create Vulkan instance
-    _vulkan_instance = new VulkanInstance(vk_init_info->extensions, vk_init_info->extensions_count, vk_init_info->layers, vk_init_info->layers_count);
+    _vulkan_instance = new VulkanInstance(vk_init_info.extensions, vk_init_info.extensions_count, vk_init_info.layers, vk_init_info.layers_count);
 
     // Create surface
     _vulkan_instance->create_surface();
@@ -43,14 +41,14 @@ VulkanDeviceContext::VulkanDeviceContext( const RendInitInfo& rend_info )
     }
 
     // Choose GPU
-    if((_chosen_gpu = _find_physical_device(vk_init_info->features)) == nullptr)
+    if((_chosen_gpu = _find_physical_device(vk_init_info.features)) == nullptr)
     {
         std::string error_string = "GPU with desired features not found";
         throw std::runtime_error(error_string);
     }
 
     // Create logical device
-    if((_logical_device = _chosen_gpu->create_logical_device(vk_init_info->queues)) == nullptr)
+    if((_logical_device = _chosen_gpu->create_logical_device(vk_init_info.queues)) == nullptr)
     {
         std::string error_string = "Failed to create logical device";
         throw std::runtime_error(error_string);

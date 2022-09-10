@@ -18,12 +18,12 @@ class VulkanInstance;
 
 struct FramebufferInfo;
 
-struct RendInitInfo;
+struct VulkanInitInfo;
 
 class VulkanDeviceContext : public DeviceContext
 {
 public:
-    VulkanDeviceContext( const RendInitInfo& rend_info );
+    VulkanDeviceContext( const VulkanInitInfo& rend_info );
     ~VulkanDeviceContext(void);
     VulkanDeviceContext(const VulkanDeviceContext&)            = delete;
     VulkanDeviceContext(VulkanDeviceContext&&)                 = delete;

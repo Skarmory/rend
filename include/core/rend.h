@@ -29,6 +29,7 @@ struct RendInitInfo
     API         api{ API::API_VULKAN };
     void*       api_init_info{ nullptr };
     const char* app_name{ nullptr };
+    const char* resource_path{ nullptr}; //TODO Temporary whilst I figure out how to deal with loading from the dll
 };
 
 void init_rend(const RendInitInfo& info);
