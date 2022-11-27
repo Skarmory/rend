@@ -14,9 +14,9 @@ public:
     explicit Semaphore(void);
     ~Semaphore(void);
     Semaphore(const Semaphore&)            = delete;
-    Semaphore(Semaphore&&)                 = delete;
+    Semaphore(Semaphore&&)                 = default;
     Semaphore& operator=(const Semaphore&) = delete;
-    Semaphore& operator=(Semaphore&&)      = delete;
+    Semaphore& operator=(Semaphore&&)      = default;
 
     VkSemaphore handle(void) const;
 
