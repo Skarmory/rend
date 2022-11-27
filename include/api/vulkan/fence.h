@@ -11,11 +11,12 @@ class Fence
 {
 public:
     explicit Fence(bool start_signalled);
+    Fence(void);
     ~Fence(void);
     Fence(const Fence&)            = delete;
-    Fence(Fence&&)                 = delete;
+    Fence(Fence&&)                 = default;
     Fence& operator=(const Fence&) = delete;
-    Fence& operator=(Fence&&)      = delete;
+    Fence& operator=(Fence&&)      = default;
 
     VkFence  handle(void) const;
     void     reset(void) const;

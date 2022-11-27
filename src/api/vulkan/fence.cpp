@@ -19,6 +19,12 @@ Fence::Fence(bool start_signalled)
     _vk_fence = ctx.create_fence(create_info);
 }
 
+Fence::Fence(void)
+    :
+        Fence(false)
+{
+}
+
 Fence::~Fence(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
