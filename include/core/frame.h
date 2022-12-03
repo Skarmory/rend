@@ -13,7 +13,7 @@ class CommandBuffer;
 class Semaphore;
 class Fence;
 
-struct FrameResources
+struct FrameData
 {
     uint32_t           swapchain_idx{ 0xdeadbeef };
     uint32_t           frame{ 0 };

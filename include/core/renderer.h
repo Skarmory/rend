@@ -95,10 +95,10 @@ class Renderer
         std::vector<FramebufferHandle>        _forward_framebuffers;
         std::queue<std::function<void(void)>> _pre_render_queue;
 
-        uint32_t                                      _frame_counter { 0 };
-        uint32_t                                      _current_frame_resources{ 0 };
-        static const uint32_t                         _FRAMES_IN_FLIGHT { 2 };
-        std::array<FrameResources, _FRAMES_IN_FLIGHT> _frame_resources;
+        uint32_t                             _frame_counter { 0 };
+        uint32_t                             _current_frame{ 0 };
+        static const uint32_t                _FRAMES_IN_FLIGHT { 2 };
+        std::array<FrameData, _FRAMES_IN_FLIGHT> _frame_datas;
 
         DataArray<DescriptorSetLayout> _desc_set_layouts;
         DataArray<Framebuffer>         _framebuffers;

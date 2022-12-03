@@ -57,9 +57,9 @@ VulkanRenderer::~VulkanRenderer(void)
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
-        delete _frame_resources[idx].acquire_sem;
-        delete _frame_resources[idx].present_sem;
-        delete _frame_resources[idx].submit_fen;
+        delete _frame_datas[idx].acquire_sem;
+        delete _frame_datas[idx].present_sem;
+        delete _frame_datas[idx].submit_fen;
     }
 
     // Delete our GPUTexture references to the swapchain
@@ -81,8 +81,8 @@ void VulkanRenderer::configure(void)
 
 void VulkanRenderer::start_frame(void)
 {
-    _current_frame_resources = _frame_counter % _FRAMES_IN_FLIGHT;
-    FrameResources& frame_res = _frame_resources[_current_frame_resources];
+    _current_frame = _frame_counter % _FRAMES_IN_FLIGHT;
+    FrameData& frame_res = _frame_datas[_current_frame];
     frame_res.frame = _frame_counter;
     _frame_counter++;
 
@@ -131,7 +131,7 @@ void VulkanRenderer::end_frame(void)
 {
     auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
 
-    FrameResources& frame_res = _frame_resources[_current_frame_resources];
+    FrameData& frame_res = _frame_datas[_current_frame];
 
     frame_res.command_buffer->begin();
     {
@@ -200,7 +200,7 @@ void VulkanRenderer::load_texture(TextureHandle texture, const void* data, size_
 {
     transition(texture, PipelineStage::PIPELINE_STAGE_TOP_OF_PIPE, PipelineStage::PIPELINE_STAGE_TRANSFER, ImageLayout::TRANSFER_DST);
 
-    FrameResources& fr = _frame_resources[_current_frame_resources];
+    FrameData& fr = _frame_datas[_current_frame];
     CommandBuffer* cmd = fr.command_buffer;
     auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
     void* mapped = NULL;
@@ -255,7 +255,7 @@ void VulkanRenderer::load_buffer(BufferHandle buffer_h, const void* data, size_t
     {
         BufferHandle staging_buffer_h = _staging_buffers.acquire();
         GPUBuffer* staging_buffer = _staging_buffers.get(staging_buffer_h);
-        FrameResources& fr = _frame_resources[_current_frame_resources];
+        FrameData& fr = _frame_datas[_current_frame];
         CommandBuffer* cmd = fr.command_buffer;
 
         mapped = ctx.map_buffer_memory(staging_buffer->handle(), staging_buffer->bytes());
@@ -283,7 +283,7 @@ void VulkanRenderer::load_buffer(BufferHandle buffer_h, const void* data, size_t
 
 void VulkanRenderer::transition(TextureHandle texture_h, PipelineStages src, PipelineStages dst, ImageLayout final_layout)
 {
-    FrameResources& fr = _frame_resources[_current_frame_resources];
+    FrameData& fr = _frame_datas[_current_frame];
     CommandBuffer* cmd = fr.command_buffer;
     GPUTexture* texture = get_texture(texture_h);
     cmd->transition_image(*texture, src, dst, final_layout);
@@ -455,15 +455,15 @@ RenderPassHandle VulkanRenderer::_build_forward_render_pass(ShaderSetHandle shad
     return _render_passes.allocate("forward render pass", render_pass_info);
 }
 
-void VulkanRenderer::_setup_frame_resources(void)
+void VulkanRenderer::_setup_frame_datas(void)
 {
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
-        _frame_resources[idx].swapchain_idx = 0xdeadbeef;
-        _frame_resources[idx].acquire_sem = new Semaphore;
-        _frame_resources[idx].present_sem = new Semaphore;
-        _frame_resources[idx].submit_fen  = new Fence(true);
-        _frame_resources[idx].command_buffer = _command_pool->create_command_buffer();
+        _frame_datas[idx].swapchain_idx = 0xdeadbeef;
+        _frame_datas[idx].acquire_sem = new Semaphore;
+        _frame_datas[idx].present_sem = new Semaphore;
+        _frame_datas[idx].submit_fen  = new Fence(true);
+        _frame_datas[idx].command_buffer = _command_pool->create_command_buffer();
 
         BufferInfo info =
         {
@@ -471,16 +471,16 @@ void VulkanRenderer::_setup_frame_resources(void)
             .element_size = sizeof(LightUniformData),
             .usage = BufferUsage::UNIFORM_BUFFER
         };
-        _frame_resources[idx].per_view_data.light_data_uniform_buffer_h = _gpu_buffers.allocate("point lights buffer", info);
+        _frame_datas[idx].per_view_data.light_data_uniform_buffer_h = _gpu_buffers.allocate("point lights buffer", info);
 
         info.element_count = 1;
         info.element_size = sizeof(CameraData);
-        _frame_resources[idx].per_view_data.camera_data_uniform_buffer_h = _gpu_buffers.allocate("camera buffer", info);
+        _frame_datas[idx].per_view_data.camera_data_uniform_buffer_h = _gpu_buffers.allocate("camera buffer", info);
 
-        _frame_resources[idx].per_view_data.descriptor_set = create_descriptor_set(_per_view_descriptor_set_layout_h, 0);
-        DescriptorSet* ds = _descriptor_pool->get_descriptor_set(_frame_resources[idx].per_view_data.descriptor_set);
-        ds->add_uniform_buffer_binding(0, _frame_resources[idx].per_view_data.camera_data_uniform_buffer_h);
-        ds->add_uniform_buffer_binding(1, _frame_resources[idx].per_view_data.light_data_uniform_buffer_h);
+        _frame_datas[idx].per_view_data.descriptor_set = create_descriptor_set(_per_view_descriptor_set_layout_h, 0);
+        DescriptorSet* ds = _descriptor_pool->get_descriptor_set(_frame_datas[idx].per_view_data.descriptor_set);
+        ds->add_uniform_buffer_binding(0, _frame_datas[idx].per_view_data.camera_data_uniform_buffer_h);
+        ds->add_uniform_buffer_binding(1, _frame_datas[idx].per_view_data.light_data_uniform_buffer_h);
         ds->write_bindings();
     }
 }
@@ -492,7 +492,7 @@ void VulkanRenderer::_setup_forward(void)
     std::vector<char> shader_code;
 
     _create_descriptor_set_layouts();
-    _setup_frame_resources();
+    _setup_frame_datas();
 
     ShaderHandle vertex_shader = _load_shader("light.vert.spv", shaders_path, ShaderStage::SHADER_STAGE_VERTEX);
     ShaderHandle fragment_shader = _load_shader("light.frag.spv", shaders_path, ShaderStage::SHADER_STAGE_FRAGMENT);
@@ -518,7 +518,7 @@ void VulkanRenderer::_update_uniform_buffers(void)
 {
     if(_lights_dirty)
     {
-        for(auto& fr : _frame_resources)
+        for(auto& fr : _frame_datas)
         {
             load_buffer(fr.per_view_data.light_data_uniform_buffer_h, &_light_uniform_data, sizeof(LightUniformData), 0);
         }
@@ -528,7 +528,7 @@ void VulkanRenderer::_update_uniform_buffers(void)
 
     if(_camera_data_dirty)
     {
-        for(auto& fr : _frame_resources)
+        for(auto& fr : _frame_datas)
         {
            load_buffer(fr.per_view_data.camera_data_uniform_buffer_h, &_camera_data, sizeof(CameraData), 0);
         }
@@ -565,7 +565,7 @@ std::unordered_map<RenderPassHandle, std::vector<DrawItem*>> VulkanRenderer::_so
 
 void VulkanRenderer::_process_draw_items(void)
 {
-    FrameResources& frame_res = _frame_resources[_current_frame_resources];
+    FrameData& frame_res = _frame_datas[_current_frame];
     FramebufferHandle fb_handle = _forward_framebuffers[frame_res.swapchain_idx];
     CommandBuffer* cmd = frame_res.command_buffer;
 

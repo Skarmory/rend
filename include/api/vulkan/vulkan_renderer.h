@@ -41,7 +41,7 @@ public:
 private:
     void             _create_swapchain_textures(void);
     void             _create_descriptor_set_layouts(void);
-    void             _setup_frame_resources(void);
+    void             _setup_frame_datas(void);
     ShaderHandle     _load_shader(const std::string& name, const std::string& path, ShaderStage stage);
     ShaderSetHandle  _load_shader_set(ShaderHandle vertex_shader, ShaderHandle fragment_shader);
     BufferHandle     _create_depth_buffer(VkExtent2D extent);
