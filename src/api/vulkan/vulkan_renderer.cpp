@@ -81,14 +81,12 @@ void VulkanRenderer::configure(void)
 
 void VulkanRenderer::start_frame(void)
 {
-    _current_frame = _frame_counter % _FRAMES_IN_FLIGHT;
+    // Update frame and grab next
+    _current_frame = ++_frame_counter % _FRAMES_IN_FLIGHT;
     FrameData& frame_res = _frame_datas[_current_frame];
     frame_res.frame = _frame_counter;
-    _frame_counter++;
 
-    frame_res.submit_fen->wait();
-    frame_res.command_buffer->reset();
-
+    // Acquire next swapchain image
     StatusCode code = StatusCode::SUCCESS;
     while((code = _swapchain->acquire(frame_res.acquire_sem, nullptr)) != StatusCode::SUCCESS)
     {
@@ -104,27 +102,19 @@ void VulkanRenderer::start_frame(void)
         }
     }
 
+    // Set new swapchain image to render into
     frame_res.swapchain_idx = _swapchain->get_current_image_index();
     frame_res.framebuffer = _forward_framebuffers[frame_res.swapchain_idx];
 
-    frame_res.command_buffer->begin();
-    {
-        _process_pre_render_tasks();
-        _update_uniform_buffers();
-    }
-    frame_res.command_buffer->end();
-
-    if(frame_res.command_buffer->recorded())
-    {
-        auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-        Fence load_fence{ false };
-        VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(frame_res.command_buffer->handle());
-        ctx.get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, {}, {}, &load_fence);
-        load_fence.wait();
-    }
-
-
+    // Release command buffers from previous usage of this FrameData
+    frame_res.submit_fen->wait();
     frame_res.command_buffer->reset();
+
+    // Release staging buffers from previous usage of this FrameData
+    for(auto staging_buffer_h : frame_res.staging_buffers_used)
+    {
+        _staging_buffers.release(staging_buffer_h);
+    }
 }
 
 void VulkanRenderer::end_frame(void)
@@ -135,6 +125,8 @@ void VulkanRenderer::end_frame(void)
 
     frame_res.command_buffer->begin();
     {
+        _process_pre_render_tasks();
+        _update_uniform_buffers();
         _process_draw_items();
     }
     frame_res.command_buffer->end();
@@ -145,11 +137,6 @@ void VulkanRenderer::end_frame(void)
         VkCommandBuffer vk_command_buffer = ctx.get_command_buffer(frame_res.command_buffer->handle());
         ctx.get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { frame_res.acquire_sem }, { frame_res.present_sem }, frame_res.submit_fen);
         _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
-    }
-
-    for(auto staging_buffer_h : frame_res.staging_buffers_used)
-    {
-        _staging_buffers.release(staging_buffer_h);
     }
 }
 
