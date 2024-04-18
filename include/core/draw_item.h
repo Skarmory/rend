@@ -9,19 +9,25 @@
 namespace rend
 {
 
+class DescriptorSet;
+class Framebuffer;
+class GPUBuffer;
+class Material;
+class Mesh;
+
 struct PerViewData
 {
-    BufferHandle camera_data_uniform_buffer_h;
-    BufferHandle light_data_uniform_buffer_h;
-    DescriptorSetHandle descriptor_set;
+    GPUBuffer*     camera_data_uniform_buffer;
+    GPUBuffer*     light_data_uniform_buffer;
+    DescriptorSet* descriptor_set;
 };
 
 struct PerPassData
 {
-    FramebufferHandle   framebuffer;
-    ColourClear         colour_clear;
-    DepthStencilClear   depth_clear;
-    RenderArea          render_area;
+    Framebuffer*      framebuffer;
+    ColourClear       colour_clear;
+    DepthStencilClear depth_clear;
+    RenderArea        render_area;
 };
 
 struct PerDrawData // Push constant
@@ -33,12 +39,11 @@ struct PerDrawData // Push constant
 
 struct DrawItem
 {
-    MeshHandle mesh{ NULL_HANDLE };
-    MaterialHandle material{ NULL_HANDLE };
+    Mesh* mesh{ nullptr };
+    Material* material{ nullptr };
     PerDrawData per_draw_data;
 };
 
 }
 
 #endif
-

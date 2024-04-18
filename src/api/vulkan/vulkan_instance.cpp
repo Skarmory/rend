@@ -61,9 +61,9 @@ void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& d
     vkEnumeratePhysicalDevices(_vk_instance, &device_count, devices.data());
 }
 
-void VulkanInstance::create_surface(void)
+void VulkanInstance::create_surface(const Window& window)
 {
-    glfwCreateWindowSurface(_vk_instance, RendService::window()->get_handle(), nullptr, &_vk_surface);
+    glfwCreateWindowSurface(_vk_instance, window.get_handle(), nullptr, &_vk_surface);
 }
 
 VkInstance VulkanInstance::get_handle(void) const

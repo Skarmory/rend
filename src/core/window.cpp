@@ -31,3 +31,14 @@ GLFWwindow* Window::get_handle(void) const
 {
     return _glfw_window;
 }
+
+bool Window::should_close(void) const
+{
+    return glfwWindowShouldClose(_glfw_window);
+}
+
+void Window::resize(uint32_t width, uint32_t height)
+{
+    _width  = width;
+    _height = height;
+}

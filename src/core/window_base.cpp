@@ -2,12 +2,6 @@
 
 using namespace rend;
 
-void WindowBase::resize(uint32_t width, uint32_t height)
-{
-    _width  = width;
-    _height = height;
-}
-
 void WindowBase::set_title(const char* title)
 {
     snprintf(_title, C_TITLE_LENGTH_MAX, title);

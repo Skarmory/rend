@@ -1,47 +1,31 @@
 #include "core/gpu_buffer.h"
 
-#include "core/device_context.h"
-#include "core/rend_service.h"
-
 using namespace rend;
 
-namespace
-{
-    static uint32_t _unnamed_buffer_count = 0;
-}
-
-GPUBuffer::GPUBuffer(const BufferInfo& info)
+GPUBuffer::GPUBuffer(const std::string& name, RendHandle rend_handle, const BufferInfo& info)
     :
-        GPUBuffer("Unnamed buffer " + std::to_string(::_unnamed_buffer_count++), info)
+        GPUResource(name),
+        RendObject(rend_handle),
+        _buffer_info(info)
 {
 }
 
-GPUBuffer::GPUBuffer(const std::string& name, const BufferInfo& info)
-    : GPUResource(name),
-      _info(info)
+uint32_t GPUBuffer::elements_count(void) const
 {
-    auto& ctx = *RendService::device_context();
-
-    //TODO: This seems weird. Pushback GPUBuffer and GPUTexture creation and storage to the device contexts?
-    if((info.usage & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE)
-    {
-        _handle = ctx.create_vertex_buffer(info.element_count, info.element_size);
-    }
-    else if((info.usage & BufferUsage::INDEX_BUFFER) != BufferUsage::NONE)
-    {
-        _handle = ctx.create_index_buffer(info.element_count, info.element_size);
-    }
-    else if((info.usage & BufferUsage::UNIFORM_BUFFER) != BufferUsage::NONE)
-    {
-        _handle = ctx.create_uniform_buffer(info.element_count * info.element_size);
-    }
-
-    _bytes = info.element_size * info.element_count;
+    return _buffer_info.element_count;
 }
 
-GPUBuffer::~GPUBuffer(void)
+size_t GPUBuffer::element_size(void) const
 {
-    auto& ctx = *RendService::device_context();
+    return _buffer_info.element_size;
+}
 
-    ctx.destroy_buffer(_handle);
+BufferUsage GPUBuffer::usage(void) const
+{
+    return _buffer_info.usage;
+}
+
+size_t GPUBuffer::bytes(void) const
+{
+    return _buffer_info.element_size * _buffer_info.element_count;
 }

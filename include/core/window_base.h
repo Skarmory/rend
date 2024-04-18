@@ -11,13 +11,13 @@ class WindowBase
 {
 public:
     WindowBase(void)                         = default;
-    virtual ~WindowBase(void)                        = default;
+    virtual ~WindowBase(void)                = default;
     WindowBase(const WindowBase&)            = delete;
     WindowBase(WindowBase&&)                 = delete;
     WindowBase& operator=(const WindowBase&) = delete;
     WindowBase& operator=(WindowBase&&)      = delete;
 
-    void resize(uint32_t width, uint32_t height);
+    virtual void resize(uint32_t width, uint32_t height) = 0;
     void set_title(const char* title);
 
     uint32_t    width(void) const;

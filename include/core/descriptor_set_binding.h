@@ -10,7 +10,7 @@ struct DescriptorSetBinding
 {
     uint32_t       slot;
     DescriptorType type;
-    HandleType     handle;
+    void*          resource;
 };
 
 }

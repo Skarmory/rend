@@ -29,11 +29,13 @@ struct RendInitInfo
     API         api{ API::API_VULKAN };
     void*       api_init_info{ nullptr };
     const char* app_name{ nullptr };
+    uint32_t    resolution_width{ 800 };
+    uint32_t    resolution_height{ 600 };
     const char* resource_path{ nullptr}; //TODO Temporary whilst I figure out how to deal with loading from the dll
 };
 
-void init_rend(const RendInitInfo& info);
-void destroy_rend(void);
+//void init_rend(const RendInitInfo& info);
+//void destroy_rend(void);
 
 }
 

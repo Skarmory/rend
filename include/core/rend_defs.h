@@ -6,6 +6,7 @@
 #include <limits>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 
 #define UU(x) ((void)x)
 #define BIT(x) (static_cast<uint32_t>(1 << x))
@@ -13,7 +14,11 @@
 namespace rend
 {
 
+class GPUTexture;
+class ShaderSet;
+
 typedef uint64_t HandleType;
+typedef HandleType RendHandle;
 typedef HandleType MemoryHandle;
 typedef HandleType BufferHandle;
 typedef HandleType TextureHandle;
@@ -500,52 +505,11 @@ struct AttachmentInfo
     ImageLayout final_layout{ ImageLayout::UNDEFINED };
 };
 
-struct SubpassInfo
-{
-    PipelineBindPoint bind_point{ PipelineBindPoint::GRAPHICS };
-    uint32_t          colour_attachment_infos[rend::constants::max_framebuffer_attachments];
-    uint32_t          input_attachment_infos[rend::constants::max_framebuffer_attachments];
-    uint32_t          resolve_attachment_infos[rend::constants::max_framebuffer_attachments];
-    uint32_t          depth_stencil_attachment{};
-    uint32_t          preserve_attachments[rend::constants::max_framebuffer_attachments];
-    uint32_t          colour_attachment_infos_count{ 0 };
-    uint32_t          input_attachment_infos_count{ 0 };
-    uint32_t          resolve_attachment_infos_count{ 0 };
-    uint32_t          preserve_attachments_count{ 0 };
-    ShaderSetHandle   shader_set_handle;
-};
-
-struct SubpassDependency
-{
-    uint32_t        src_subpass{ 0 };
-    uint32_t        dst_subpass{ 0 };
-    Synchronisation src_sync{};
-    Synchronisation dst_sync{};
-};
-
-struct RenderPassInfo
-{
-    AttachmentInfo    attachment_infos[rend::constants::max_framebuffer_attachments];
-    SubpassInfo       subpasses[rend::constants::max_subpasses];
-    SubpassDependency subpass_dependencies[rend::constants::max_subpasses];
-    uint32_t          attachment_infos_count{ 0 };
-    uint32_t          subpasses_count{ 0 };
-    uint32_t          subpass_dependency_count{ 0 };
-};
-
 struct PushConstantRange
 {
     ShaderStages shader_stages;
     uint32_t     offset{ 0 };
     uint32_t     size{ 0 };
-};
-
-struct PipelineLayoutInfo
-{
-    const DescriptorSetLayoutHandle* descriptor_set_layouts{ nullptr };
-    uint32_t                         descriptor_set_layout_count{ 0 };
-    const PushConstantRange*         push_constant_ranges{ nullptr };
-    uint32_t                         push_constant_range_count{ 0 };
 };
 
 struct VertexBindingInfo
@@ -643,40 +607,6 @@ struct ColourBlendingInfo
     uint32_t              blend_attachments_count{ 0 };
 };
 
-struct PipelineInfo
-{
-    // Shader State
-    ShaderHandle        shaders[SHADER_STAGE_COUNT];
-
-    // Vertex Input State
-    VertexBindingInfo   vertex_binding_info{};
-    VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
-    uint32_t            vertex_attribute_info_count{ 0 };
-
-    // Input Assembly State
-    Topology topology{ Topology::TRIANGLE_LIST };
-    bool     primitive_restart{ false };
-
-    // Tessellation State
-    uint32_t patch_control_points{ 0 };
-
-    // Viewport State
-    ViewportInfo      viewport_info[constants::max_viewports];
-    uint32_t          viewport_info_count{ 0 };
-    ViewportInfo      scissor_info[constants::max_scissors];
-    uint32_t          scissor_info_count{ 0 };
-
-    RasteriserInfo     rasteriser_info{};
-    MultisamplingInfo  multisampling_info{};
-    DepthStencilInfo   depth_stencil_info{};
-    ColourBlendingInfo colour_blending_info{};
-    DynamicStates      dynamic_states{ (uint32_t)DynamicState::NONE };
-
-    PipelineLayoutHandle layout_handle{ NULL_HANDLE };
-    RenderPassHandle     render_pass_handle{ NULL_HANDLE };
-    int32_t subpass{ 0 };
-};
-
 struct BufferBufferCopyInfo
 {
     uint32_t size_bytes;
@@ -723,7 +653,7 @@ struct ImageMemoryBarrier
     MemoryAccesses dst_accesses{ MemoryAccess::NO_ACCESS } ;
     ImageLayout    old_layout{ ImageLayout::UNDEFINED };
     ImageLayout    new_layout{ ImageLayout::UNDEFINED };
-    TextureHandle  image_handle{ NULL_HANDLE };
+    GPUTexture*    image{ nullptr };
     uint32_t       mip_level_count{ 0 };
     uint32_t       base_mip_level{ 0 };
     uint32_t       layers_count{ 0 };

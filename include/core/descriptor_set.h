@@ -1,47 +1,46 @@
-#ifndef REND_DESCRIPTOR_SET_H
-#define REND_DESCRIPTOR_SET_H
+#ifndef REND_CORE_DESCRIPTOR_SET_H
+#define REND_CORE_DESCRIPTOR_SET_H
 
-#include "core/alloc/allocator.h"
-#include "core/containers/data_array.h"
 #include "core/descriptor_set_binding.h"
+#include "core/gpu_resource.h"
 #include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <vector>
 
 namespace rend
 {
 
+class DescriptorSetLayout;
+class GPUBuffer;
+class GPUTexture;
+
 struct DescriptorSetInfo
 {
-    DescriptorSetLayoutHandle layout_handle{ NULL_HANDLE };
-    uint32_t                  set_number{ 0 };
+    const DescriptorSetLayout* layout{ nullptr };
+    uint32_t                   set{ 0 };
 };
 
-class DescriptorSet
+class DescriptorSet : public GPUResource, public RendObject
 {
-    friend class Allocator<DescriptorSet>;
-
 public:
+    DescriptorSet(const std::string& name, const DescriptorSetInfo& info, RendHandle rend_handle);
+    virtual ~DescriptorSet(void) = default;
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
     DescriptorSet& operator=(DescriptorSet&&)      = delete;
 
-    void add_uniform_buffer_binding(uint32_t slot, BufferHandle handle);
-    void add_texture_binding(uint32_t slot, TextureHandle handle);
-    void write_bindings(void);
+    void add_uniform_buffer_binding(uint32_t slot, GPUBuffer* buffer);
+    void add_texture_binding(uint32_t slot, GPUTexture* texture);
 
-    DescriptorSetHandle handle(void) const;
-    uint32_t            set_number(void) const;
-
-private:
-    DescriptorSet(DescriptorPoolHandle pool_h, const DescriptorSetInfo& info);
-    ~DescriptorSet(void);
+    uint32_t                                 set(void) const;
+    const std::vector<DescriptorSetBinding>& bindings(void) const;
 
 private:
-    DescriptorSetHandle               _handle{ NULL_HANDLE };
+    uint32_t                          _set{ 0 };
+    const DescriptorSetLayout*        _layout{ nullptr };
     std::vector<DescriptorSetBinding> _bindings;
-    uint32_t                          _set_number{ 0 };
 };
 
 }

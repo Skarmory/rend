@@ -1,6 +1,7 @@
 #include "core/gpu_resource.h"
 
 #include <functional>
+#include <cstdint>
 
 using namespace rend;
 

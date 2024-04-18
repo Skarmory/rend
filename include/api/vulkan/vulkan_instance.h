@@ -1,5 +1,5 @@
-#ifndef REND_VULKAN_INSTANCE_H
-#define REND_VULKAN_INSTANCE_H
+#ifndef REND_API_VULKAN_VULKAN_INSTANCE_H
+#define REND_API_VULKAN_VULKAN_INSTANCE_H
 
 #include "core/rend_defs.h"
 
@@ -22,7 +22,7 @@ public:
     VulkanInstance operator=(VulkanInstance&&)      = delete;
 
     void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
-    void create_surface();
+    void create_surface(const Window& window);
 
     VkInstance get_handle(void) const;
     VkSurfaceKHR surface(void) const;

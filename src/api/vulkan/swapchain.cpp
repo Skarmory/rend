@@ -1,23 +1,24 @@
 #include "api/vulkan/swapchain.h"
 
-#include "core/device_context.h"
-#include "core/rend_service.h"
-#include "core/window.h"
-
 #include "api/vulkan/fence.h"
-#include "api/vulkan/physical_device.h"
 #include "api/vulkan/logical_device.h"
-#include "api/vulkan/vulkan_instance.h"
-#include "api/vulkan/vulkan_semaphore.h"
-#include "api/vulkan/vulkan_helper_funcs.h"
+#include "api/vulkan/physical_device.h"
 #include "api/vulkan/vulkan_device_context.h"
-
+#include "api/vulkan/vulkan_helper_funcs.h"
+#include "api/vulkan/vulkan_instance.h"
+//#include "api/vulkan/vulkan_renderer.h"
+#include "api/vulkan/vulkan_semaphore.h"
+#include "api/vulkan/vulkan_texture.h"
+#include "core/window.h"
 #include <cassert>
 #include <limits>
+#include <sstream>
 
 using namespace rend;
 
-Swapchain::Swapchain(uint32_t desired_images)
+Swapchain::Swapchain(uint32_t desired_images, VulkanDeviceContext& ctx)
+    :
+        _ctx(&ctx)
 {
     _create(desired_images);
 }
@@ -25,23 +26,12 @@ Swapchain::Swapchain(uint32_t desired_images)
 Swapchain::~Swapchain(void)
 {
     _clean_up_images();
-
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    ctx.get_device()->destroy_swapchain(_vk_swapchain);
-    _image_count = 0;
-    _current_image_idx = 0;
-    _surface_format = {};
-    _present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-    _vk_swapchain = VK_NULL_HANDLE;
-    _vk_extent = {};
-    _swapchain_image_handles.clear();
+    _ctx->get_device()->destroy_swapchain(_vk_swapchain);
 }
 
 StatusCode Swapchain::recreate(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    ctx.get_device()->wait_idle();
-
+    _ctx->get_device()->wait_idle();
     _clean_up_images();
     return _create(_image_count);
 }
@@ -51,14 +41,14 @@ Format Swapchain::get_format(void) const
     return vulkan_helpers::convert_format(_surface_format.format);
 }
 
-std::vector<Texture2DHandle> Swapchain::get_back_buffer_handles(void)
+const std::vector<VkImage>& Swapchain::get_back_buffer_textures(void)
 {
-    return _swapchain_image_handles;
+    return _vk_swapchain_images;
 }
 
-Texture2DHandle Swapchain::get_back_buffer_handle(uint32_t idx)
+VkImage Swapchain::get_back_buffer_texture(uint32_t idx)
 {
-    return _swapchain_image_handles[idx];
+    return _vk_swapchain_images[idx];
 }
 
 VkExtent2D Swapchain::get_extent(void) const
@@ -66,21 +56,19 @@ VkExtent2D Swapchain::get_extent(void) const
     return _vk_extent;
 }
 
-VkSwapchainKHR Swapchain::get_handle(void) const
-{
-    return _vk_swapchain;
-}
-
 uint32_t Swapchain::get_current_image_index(void) const
 {
     return _current_image_idx;
 }
 
+VkSwapchainKHR Swapchain::vk_handle(void) const
+{
+    return _vk_swapchain;
+}
+
 StatusCode Swapchain::acquire(Semaphore* signal_sem, Fence* acquire_fence)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-
-    VkResult result = ctx.get_device()->acquire_next_image(
+    VkResult result = _ctx->get_device()->acquire_next_image(
         this, std::numeric_limits<uint64_t>::max(), signal_sem, acquire_fence, &_current_image_idx
     );
 
@@ -103,8 +91,7 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
 {
     std::vector<VkResult> results(1);
 
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    if(ctx.get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
+    if(_ctx->get_device()->queue_present(type, wait_sems, { this }, { _current_image_idx }, results))
     {
         return StatusCode::FAILURE;
     }
@@ -119,10 +106,9 @@ StatusCode Swapchain::present(QueueType type, const std::vector<Semaphore*>& wai
 
 StatusCode Swapchain::_create(uint32_t desired_images)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    const PhysicalDevice& physical_device = ctx.get_device()->get_physical_device();
+    const PhysicalDevice& physical_device = _ctx->get_device()->get_physical_device();
 
-    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities(ctx.vulkan_instance());
+    VkSurfaceCapabilitiesKHR surface_caps = physical_device.get_surface_capabilities(_ctx->vulkan_instance());
 
     if(physical_device.get_surface_formats().empty())
     {
@@ -143,7 +129,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
     VkSwapchainKHR old_swapchain = _vk_swapchain;
 
     VkSwapchainCreateInfoKHR create_info = vulkan_helpers::gen_swapchain_create_info();
-    create_info.surface               = ctx.vulkan_instance().surface();
+    create_info.surface               = _ctx->vulkan_instance().surface();
     create_info.minImageCount         = _image_count;
     create_info.imageFormat           = _surface_format.format;
     create_info.imageColorSpace       = _surface_format.colorSpace;
@@ -156,7 +142,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
     create_info.presentMode           = _present_mode;
     create_info.oldSwapchain          = old_swapchain;
 
-    _vk_swapchain = ctx.get_device()->create_swapchain(create_info);
+    _vk_swapchain = _ctx->get_device()->create_swapchain(create_info);
     if(_vk_swapchain == VK_NULL_HANDLE)
     {
         return StatusCode::FAILURE;
@@ -164,7 +150,7 @@ StatusCode Swapchain::_create(uint32_t desired_images)
 
     if(old_swapchain != VK_NULL_HANDLE)
     {
-        ctx.get_device()->destroy_swapchain(old_swapchain);
+        _ctx->get_device()->destroy_swapchain(old_swapchain);
     }
 
     return _get_images();
@@ -172,28 +158,12 @@ StatusCode Swapchain::_create(uint32_t desired_images)
 
 void Swapchain::_clean_up_images(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-
-    for(auto handle : _swapchain_image_handles)
-    {
-        ctx.unregister_swapchain_image(handle);
-    }
-
-    _swapchain_image_handles.clear();
+    _vk_swapchain_images.clear();
 }
 
 StatusCode Swapchain::_get_images(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-
-    std::vector<VkImage> tmp_swapchain_images;
-    ctx.get_device()->get_swapchain_images(this, tmp_swapchain_images);
-
-    for(size_t idx = 0; idx < tmp_swapchain_images.size(); idx++)
-    {
-        _swapchain_image_handles.push_back(ctx.register_swapchain_image(tmp_swapchain_images[idx], _surface_format.format));
-    }
-
+    _ctx->get_device()->get_swapchain_images(_vk_swapchain, _vk_swapchain_images);
     return StatusCode::SUCCESS;
 }
 

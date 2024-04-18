@@ -3,31 +3,40 @@
 
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <string>
-#include <vector>
 
 namespace rend
 {
 
-struct MaterialInfo
+class DescriptorSet;
+class GPUTexture;
+class RenderPass;
+
+enum class MaterialBindingSlot
 {
-    TextureHandle albedo_texture_h{ NULL_HANDLE };
-    RenderPassHandle render_pass_h{ NULL_HANDLE };
+    ALBEDO
 };
 
-class Material : public GPUResource
+struct MaterialInfo
+{
+    GPUTexture* albedo_texture{ nullptr };
+    RenderPass* render_pass{ nullptr };
+};
+
+class Material : public GPUResource, public RendObject
 {
     public:
-        Material(const std::string& name, const MaterialInfo& info);
-        ~Material(void);
+        Material(const std::string& name, const MaterialInfo& info, DescriptorSet* descriptor_set, RendHandle rend_handle);
+        ~Material(void) = default;
 
-        const MaterialInfo& get_material_info(void) const;
-        DescriptorSetHandle get_descriptor_set(void) const;
+        const MaterialInfo&  get_material_info(void) const;
+        const DescriptorSet& get_descriptor_set(void) const;
 
     private:
         MaterialInfo _info{};
-        DescriptorSetHandle _descriptor_set_h{ NULL_HANDLE };
+        DescriptorSet* _descriptor_set{ nullptr };
 };
 
 }

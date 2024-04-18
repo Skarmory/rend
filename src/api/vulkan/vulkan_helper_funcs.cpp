@@ -2,7 +2,7 @@
 
 #include "api/vulkan/swapchain.h"
 #include "api/vulkan/vulkan_renderer.h"
-#include "core/rend_service.h"
+#include "core/renderer.h"
 
 #include <cassert>
 #include <iostream>
@@ -111,9 +111,8 @@ VkFormat vulkan_helpers::convert_format(Format format)
         case Format::D24_S8: return VK_FORMAT_D24_UNORM_S8_UINT;
         case Format::SWAPCHAIN:
         {
-            auto* rr = static_cast<VulkanRenderer*>(RendService::renderer());
-            auto* sc = rr->get_swapchain();
-            return convert_format(sc->get_format());
+            rend::VulkanRenderer& rr = static_cast<rend::VulkanRenderer&>(rend::Renderer::get_instance());
+            return convert_format(rr.get_swapchain()->get_format());
         }
     }
 

@@ -1,8 +1,9 @@
 #ifndef REND_CORE_SUB_PASS_H
 #define REND_CORE_SUB_PASS_H
 
-#include "core/rend_defs.h"
 #include "core/gpu_resource.h"
+#include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <string>
 #include <vector>
@@ -11,22 +12,32 @@ namespace rend
 {
 
 class CommandBuffer;
+class Pipeline;
+class RenderPass;
+class ShaderSet;
 
-class SubPass : public GPUResource
+struct SubPassInfo
+{
+    RenderPass* render_pass;
+    uint32_t    subpass_index;
+    const ShaderSet* shader_set;
+};
+
+class SubPass : public GPUResource, public RendObject
 {
     public:
-        SubPass(const std::string& name, ShaderSetHandle shader_set, RenderPassHandle render_pass, uint32_t subpass_idx);
-        ~SubPass(void);
+        SubPass(const std::string& name, const SubPassInfo& info, Pipeline* pipeline, RendHandle rend_handle);
+        ~SubPass(void) = default;
 
-        ShaderSetHandle get_shader_set(void) const;
-        uint32_t        get_index(void) const;
+        [[nodiscard]] const Pipeline&  get_pipeline(void) const;
+        [[nodiscard]] const ShaderSet& get_shader_set(void) const;
+        uint32_t   get_index(void) const;
 
         void begin(CommandBuffer& command_buffer);
 
     private:
-        PipelineHandle _pipeline_handle{ NULL_HANDLE };
-        ShaderSetHandle _shader_set_handle { NULL_HANDLE };
-        uint32_t _subpass_idx;
+        Pipeline*   _pipeline{ nullptr };
+        SubPassInfo _info{};
 };
 
 }

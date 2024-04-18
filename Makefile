@@ -18,6 +18,7 @@ OBJS=$(SRCS:.cpp=.o)
 DEPS=$(SRCS:.cpp=.d)
 
 .PHONY: clean default fullclean debug release
+.NOTPARALLEL:
 
 default:
 	@echo "Specify a target. Options: debug, release"

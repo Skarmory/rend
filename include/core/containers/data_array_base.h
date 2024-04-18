@@ -34,6 +34,7 @@ public:
     void*            data(void) const;
     DataArrayHandle* handles(void) const;
     uint32_t         size(void) const;
+    uint32_t         capacity(void) const;
     uint32_t         max_used(void) const;
 
 protected:

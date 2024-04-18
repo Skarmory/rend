@@ -1,28 +1,24 @@
 #include "api/vulkan/event.h"
 
-#include "core/device_context.h"
-#include "core/rend_service.h"
-#include "api/vulkan/logical_device.h"
 #include "api/vulkan/vulkan_helper_funcs.h"
 #include "api/vulkan/vulkan_device_context.h"
 
 using namespace rend;
 
-Event::Event(void)
+Event::Event(VulkanDeviceContext& ctx)
+    :
+        _ctx(&ctx)
 {
     VkEventCreateInfo create_info = vulkan_helpers::gen_event_create_info();
-
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    _vk_event = ctx.create_event(create_info);
+    _vk_event = _ctx->create_event(create_info);
 }
 
 Event::~Event(void)
 {
-    auto& ctx = static_cast<VulkanDeviceContext&>(*RendService::device_context());
-    ctx.destroy_event(_vk_event);
+    _ctx->destroy_event(_vk_event);
 }
 
-VkEvent Event::handle(void) const
+VkEvent Event::vk_handle(void) const
 {
     return _vk_event;
 }

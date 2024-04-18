@@ -5,22 +5,9 @@
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(const std::string& name, const PipelineLayoutInfo& info)
+PipelineLayout::PipelineLayout(const std::string& name, RendHandle rend_handle)
     :
         GPUResource(name),
-        _info(info)
+        RendObject(rend_handle)
 {
-    auto& ctx = *RendService::device_context();
-    _handle = ctx.create_pipeline_layout(info);
-}
-
-PipelineLayout::~PipelineLayout(void)
-{
-    auto& ctx = *RendService::device_context();
-    ctx.destroy_pipeline_layout(_handle);
-}
-
-PipelineLayoutHandle PipelineLayout::handle(void) const
-{
-    return _handle;
 }

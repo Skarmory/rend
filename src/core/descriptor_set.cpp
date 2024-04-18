@@ -1,53 +1,38 @@
 #include "core/descriptor_set.h"
 
 #include "core/device_context.h"
-#include "core/renderer.h"
-#include "core/rend_service.h"
 
 using namespace rend;
 
-DescriptorSet::DescriptorSet(DescriptorPoolHandle pool_h, const DescriptorSetInfo& info)
+DescriptorSet::DescriptorSet(const std::string& name, const DescriptorSetInfo& info, RendHandle rend_handle)
     :
-        _set_number(info.set_number)
+        GPUResource(name),
+        RendObject(rend_handle),
+        _set(info.set),
+        _layout(info.layout)
 {
-    auto& ctx = *RendService::device_context();
-    _handle = ctx.create_descriptor_set(pool_h, info);
 }
 
-DescriptorSet::~DescriptorSet(void)
+void DescriptorSet::add_uniform_buffer_binding(uint32_t slot, GPUBuffer* buffer)
 {
-    auto& ctx = *RendService::device_context();
-    ctx.destroy_descriptor_set(_handle);
-}
-
-void DescriptorSet::add_texture_binding(uint32_t slot, TextureHandle handle)
-{
-    auto* rr = RendService::renderer();
     _bindings.emplace_back(
-        slot, DescriptorType::COMBINED_IMAGE_SAMPLER, rr->get_texture(handle)->handle()
+        slot, DescriptorType::UNIFORM_BUFFER, buffer
     );
 }
 
-void DescriptorSet::add_uniform_buffer_binding(uint32_t slot, BufferHandle handle)
+void DescriptorSet::add_texture_binding(uint32_t slot, GPUTexture* texture)
 {
-    auto* rr = RendService::renderer();
     _bindings.emplace_back(
-        slot, DescriptorType::UNIFORM_BUFFER, rr->get_buffer(handle)->handle()
+        slot, DescriptorType::COMBINED_IMAGE_SAMPLER, texture
     );
 }
 
-void DescriptorSet::write_bindings(void)
+uint32_t DescriptorSet::set(void) const
 {
-   auto& ctx = *RendService::device_context();
-   ctx.write_descriptor_bindings(_handle, _bindings);
+    return _set;
 }
 
-DescriptorSetHandle DescriptorSet::handle(void) const
+const std::vector<DescriptorSetBinding>& DescriptorSet::bindings(void) const
 {
-    return _handle;
-}
-
-uint32_t DescriptorSet::set_number(void) const
-{
-    return _set_number;
+    return _bindings;
 }

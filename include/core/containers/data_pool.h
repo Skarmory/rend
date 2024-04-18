@@ -2,6 +2,8 @@
 #define REND_CORE_CONTAINERS_DATA_POOL_H
 
 #include "core/alloc/allocator.h"
+#include "core/containers/data_array_base.h"
+#include "core/containers/data_pool_iterator.h"
 
 namespace rend
 {
@@ -20,7 +22,11 @@ class DataPool : public DataArrayBase
         {
             for(size_t i = 0; i < N; ++i)
             {
-                _allocator.destruct(&static_cast<DataItemType*>(_data)[i]);
+                DataArrayHandle handle = _handles[i];
+                if(!is_invalid_handle(handle))
+                {
+                    _allocator.destruct(&static_cast<DataItemType*>(_data)[i]);
+                }
             }
         }
 
@@ -60,8 +66,14 @@ class DataPool : public DataArrayBase
                 return nullptr;
             }
 
-            return &static_cast<DataItemType*>(_data)[_get_idx(handle)];
+            return &(static_cast<DataItemType*>(_data)[_get_idx(handle)]);
         }
+
+        DataPoolIterator<DataItemType> begin(void) { return DataPoolIterator<DataItemType>(*this, 0); }
+        DataPoolIterator<DataItemType> end(void)   { return DataPoolIterator<DataItemType>(*this, _max_used); }
+
+        DataPoolConstIterator<DataItemType> cbegin(void) const { return DataPoolConstIterator<DataItemType>(*this, 0); }
+        DataPoolConstIterator<DataItemType> cend(void)   const { return DataPoolConstIterator<DataItemType>(*this, _max_used); }
 
     private:
         AllocatorType _allocator;

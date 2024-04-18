@@ -21,6 +21,8 @@ public:
     Window& operator=(Window&&)      = delete;
 
     GLFWwindow* get_handle(void) const;
+    bool should_close(void) const;
+    void resize(uint32_t width, uint32_t height) override;
 
 private:
     GLFWwindow*  _glfw_window{ nullptr };

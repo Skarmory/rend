@@ -116,9 +116,11 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
     //std::vector<VkCommandBuffer> vk_command_buffers;
     std::vector<VkSemaphore>     vk_wait_sems;
     std::vector<VkSemaphore>     vk_sig_sems;
+    std::vector<VkPipelineStageFlags> vk_wait_stages;
 
     //vk_command_buffers.reserve(command_buffers.size());
     vk_wait_sems.reserve(wait_sems.size());
+    vk_wait_stages.reserve(wait_sems.size());
     vk_sig_sems.reserve(signal_sems.size());
 
     //for(CommandBuffer* buf : command_buffers)
@@ -128,15 +130,14 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
 
     for(Semaphore* sem : wait_sems)
     {
-        vk_wait_sems.push_back(sem->handle());
+        vk_wait_sems.push_back(sem->vk_handle());
+        vk_wait_stages.push_back(sem->get_wait_stages());
     }
 
     for(Semaphore* sem : signal_sems)
     {
-        vk_sig_sems.push_back(sem->handle());
+        vk_sig_sems.push_back(sem->vk_handle());
     }
-
-    VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_info =
     {
@@ -144,7 +145,7 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
         .pNext = nullptr,
         .waitSemaphoreCount = static_cast<uint32_t>(vk_wait_sems.size()),
         .pWaitSemaphores = vk_wait_sems.data(),
-        .pWaitDstStageMask = &wait_stages,
+        .pWaitDstStageMask = vk_wait_stages.data(),
         .commandBufferCount = command_buffers_count,
         .pCommandBuffers = command_buffers,
         .signalSemaphoreCount = static_cast<uint32_t>(vk_sig_sems.size()),
@@ -153,7 +154,7 @@ bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t comm
 
     VkQueue queue = get_queue(type);
 
-    if(vkQueueSubmit(queue, 1, &submit_info, fence->handle()) != VK_SUCCESS)
+    if(vkQueueSubmit(queue, 1, &submit_info, fence ? fence->vk_handle() : VK_NULL_HANDLE) != VK_SUCCESS)
     {
         return false;
     }
@@ -198,10 +199,10 @@ VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeou
 {
     return vkAcquireNextImageKHR(
         _vk_device,
-        swapchain->get_handle(),
+        swapchain->vk_handle(),
         timeout,
-        semaphore ? semaphore->handle() : VK_NULL_HANDLE,
-        fence ? fence->handle() : VK_NULL_HANDLE,
+        semaphore ? semaphore->vk_handle() : VK_NULL_HANDLE,
+        fence ? fence->vk_handle() : VK_NULL_HANDLE,
         image_index
     );
 }
@@ -216,12 +217,12 @@ VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphor
 
     for(Swapchain* swapchain : swapchains)
     {
-        vk_swapchains.push_back(swapchain->get_handle());
+        vk_swapchains.push_back(swapchain->vk_handle());
     }
 
     for(Semaphore* sem : wait_sems)
     {
-        vk_sems.push_back(sem->handle());
+        vk_sems.push_back(sem->vk_handle());
     }
 
     VkPresentInfoKHR present_info =
@@ -239,14 +240,12 @@ VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphor
     return vkQueuePresentKHR(get_queue(type), &present_info);
 }
 
-VkResult LogicalDevice::get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images)
+VkResult LogicalDevice::get_swapchain_images(VkSwapchainKHR swapchain, std::vector<VkImage>& images)
 {
     uint32_t count = 0;
-    vkGetSwapchainImagesKHR(_vk_device, swapchain->get_handle(), &count, nullptr);
-
+    vkGetSwapchainImagesKHR(_vk_device, swapchain, &count, nullptr);
     images.resize(count);
-
-    return vkGetSwapchainImagesKHR(_vk_device, swapchain->get_handle(), &count, images.data());
+    return vkGetSwapchainImagesKHR(_vk_device, swapchain, &count, images.data());
 }
 
 VkMemoryRequirements LogicalDevice::get_buffer_memory_reqs(VkBuffer buffer)
@@ -273,18 +272,18 @@ VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory)
     return vkBindImageMemory(_vk_device, image, memory, 0);
 }
 
-std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(VkDescriptorSetLayout* layouts, uint32_t layouts_count, VkDescriptorPool pool)
+std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool)
 {
     VkDescriptorSetAllocateInfo alloc_info =
     {
         .sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .pNext              = nullptr,
         .descriptorPool     = pool,
-        .descriptorSetCount = layouts_count,
-        .pSetLayouts        = layouts
+        .descriptorSetCount = (uint32_t)layouts.size(),
+        .pSetLayouts        = layouts.data()
     };
 
-    std::vector<VkDescriptorSet> sets(layouts_count);
+    std::vector<VkDescriptorSet> sets(layouts.size());
     VkResult result = vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
 
     return sets;
@@ -295,7 +294,7 @@ void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& wr
     vkUpdateDescriptorSets(_vk_device, write_sets.size(), write_sets.data(), 0, nullptr);
 }
 
-void LogicalDevice::free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool)
+void LogicalDevice::free_descriptor_sets(const VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool)
 {
     vkFreeDescriptorSets(_vk_device, pool, sets_count, sets);
 }

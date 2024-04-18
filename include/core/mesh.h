@@ -3,24 +3,27 @@
 
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <string>
 
 namespace rend
 {
 
-class Mesh : public GPUResource
+class GPUBuffer;
+
+class Mesh : public GPUResource, public RendObject
 {
     public:
-        Mesh(const std::string& name, BufferHandle vertex_buffer, BufferHandle index_buffer);
+        Mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer, RendHandle rend_handle);
         ~Mesh(void);
 
-        BufferHandle get_vertex_buffer(void) const { return _vertex_buffer; }
-        BufferHandle get_index_buffer(void) const { return _index_buffer; }
+        GPUBuffer* get_vertex_buffer(void) const;
+        GPUBuffer* get_index_buffer(void) const;
 
     private:
-        BufferHandle _vertex_buffer{ NULL_HANDLE };
-        BufferHandle _index_buffer{ NULL_HANDLE };
+        GPUBuffer* _vertex_buffer{ nullptr };
+        GPUBuffer* _index_buffer{ nullptr };
 };
 
 }

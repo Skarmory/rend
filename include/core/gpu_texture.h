@@ -1,8 +1,9 @@
-#ifndef REND_GPU_TEXTURE_H
-#define REND_GPU_TEXTURE_H
+#ifndef REND_CORE_GPU_TEXTURE_H
+#define REND_CORE_GPU_TEXTURE_H
 
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <cstdint>
 #include <string>
@@ -24,35 +25,30 @@ struct TextureInfo
     ImageUsage usage{ ImageUsage::NONE };
 };
 
-class GPUTexture : public GPUResource
+class GPUTexture : public GPUResource, public RendObject
 {
 public:
-    GPUTexture(const TextureInfo& info);
-    GPUTexture(const std::string& name, const TextureInfo& info);
-    GPUTexture(const std::string& name, const TextureInfo& info, TextureHandle handle);
-    ~GPUTexture(void);
+    GPUTexture(const std::string& name, const TextureInfo& info, RendHandle rend_handle);
+    virtual ~GPUTexture(void) = default;
 
     GPUTexture(const GPUTexture&)            = delete;
     GPUTexture(GPUTexture&&)                 = delete;
     GPUTexture& operator=(const GPUTexture&) = delete;
     GPUTexture& operator=(GPUTexture&&)      = delete;
 
-    TextureHandle handle(void) const { return _handle; }
-
-    uint32_t    width(void) const   { return _info.width; }
-    uint32_t    height(void) const  { return _info.height; }
-    uint32_t    depth(void) const   { return _info.depth; }
-    uint32_t    mips(void) const    { return _info.mips; }
-    uint32_t    layers(void) const  { return _info.layers; }
-    Format      format(void) const  { return _info.format; }
-    ImageLayout layout(void) const  { return _info.layout; }
-    void        layout(ImageLayout layout) { _info.layout = layout; }
-    MSAASamples samples(void) const { return _info.samples; }
-    ImageUsage  usage(void) const  { return  _info.usage; }
+    uint32_t    width(void) const;
+    uint32_t    height(void) const;
+    uint32_t    depth(void) const;
+    uint32_t    mips(void) const;
+    uint32_t    layers(void) const;
+    Format      format(void) const;
+    ImageLayout layout(void) const;
+    void        layout(ImageLayout layout);
+    MSAASamples samples(void) const;
+    ImageUsage  usage(void) const;
 
 protected:
-    TextureHandle _handle{ NULL_HANDLE };
-    TextureInfo   _info{};
+    TextureInfo     _info{};
 };
 
 }

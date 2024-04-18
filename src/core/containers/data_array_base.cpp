@@ -102,6 +102,11 @@ uint32_t DataArrayBase::size(void) const
     return _count;
 }
 
+uint32_t DataArrayBase::capacity(void) const
+{
+    return _capacity;
+}
+
 uint32_t DataArrayBase::max_used(void) const
 {
     return _max_used;

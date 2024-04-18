@@ -12,19 +12,23 @@ namespace rend
 class CommandBuffer;
 class Semaphore;
 class Fence;
+class Framebuffer;
+class GPUBuffer;
 
 struct FrameData
 {
-    uint32_t           swapchain_idx{ 0xdeadbeef };
-    uint32_t           frame{ 0 };
-    CommandBuffer*     command_buffer{ nullptr };
-    Semaphore*         acquire_sem{ nullptr };
-    Semaphore*         present_sem{ nullptr };
-    Fence*             submit_fen{ nullptr };
-    FramebufferHandle  framebuffer;
+    uint32_t       swapchain_idx{ 0xdeadbeef };
+    uint32_t       frame{ 0 };
+    CommandBuffer* command_buffer{ nullptr };
+    CommandBuffer* other_buffer{ nullptr };
+    Semaphore*     acquire_sem{ nullptr };
+    Semaphore*     present_sem{ nullptr };
+    Semaphore*     other_sem{ nullptr };
+    Fence*         submit_fen{ nullptr };
+    Framebuffer*   framebuffer;
 
-    std::vector<BufferHandle> staging_buffers_used;
-    PerViewData               per_view_data;
+    std::vector<GPUBuffer*> staging_buffers_used;
+    PerViewData             per_view_data;
 };
 
 }

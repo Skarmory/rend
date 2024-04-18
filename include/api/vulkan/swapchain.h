@@ -1,25 +1,25 @@
-#ifndef SWAPCHAIN_H
-#define SWAPCHAIN_H
-
-#include <vulkan.h>
-#include <vector>
-
-#include "core/rend_defs.h"
+#ifndef REND_API_VULKAN_SWAPCHAIN_H
+#define REND_API_VULKAN_SWAPCHAIN_H
 
 #include "api/vulkan/queue_family.h"
+#include "core/rend_defs.h"
+#include <vector>
+#include <vulkan.h>
 
 namespace rend
 {
 
 class Fence;
+class GPUTexture;
 class LogicalDevice;
 class RenderTarget;
 class Semaphore;
+class VulkanDeviceContext;
 
 class Swapchain
 {
 public:
-    explicit Swapchain(uint32_t desired_images);
+    explicit Swapchain(uint32_t desired_images, VulkanDeviceContext& ctx);
     ~Swapchain(void);
     Swapchain(const Swapchain&)            = delete;
     Swapchain(Swapchain&&)                 = delete;
@@ -29,12 +29,12 @@ public:
     StatusCode recreate(void);
 
     // Accessors
-    Format                       get_format(void) const;
-    std::vector<Texture2DHandle> get_back_buffer_handles(void);
-    Texture2DHandle              get_back_buffer_handle(uint32_t idx);
-    VkExtent2D                   get_extent(void) const;
-    VkSwapchainKHR               get_handle(void) const;
-    uint32_t                     get_current_image_index(void) const;
+    VkImage                     get_back_buffer_texture(uint32_t idx);
+    const std::vector<VkImage>& get_back_buffer_textures(void);
+    uint32_t                    get_current_image_index(void) const;
+    VkExtent2D                  get_extent(void) const;
+    Format                      get_format(void) const;
+    VkSwapchainKHR              vk_handle(void) const;
 
     // Mutators
     StatusCode acquire(Semaphore* signal_sem, Fence* acquire_fence);
@@ -49,13 +49,14 @@ private:
     uint32_t           _find_image_count(uint32_t desired_images, const VkSurfaceCapabilitiesKHR& surface_caps);
 
 private:
-    uint32_t           _image_count { 0 };
-    uint32_t           _current_image_idx { 0 };
-    VkSurfaceFormatKHR _surface_format {};
-    VkPresentModeKHR   _present_mode { VK_PRESENT_MODE_IMMEDIATE_KHR };
-    VkSwapchainKHR     _vk_swapchain { VK_NULL_HANDLE };
-    VkExtent2D         _vk_extent {};
-    std::vector<Texture2DHandle> _swapchain_image_handles;
+    uint32_t                 _image_count { 0 };
+    uint32_t                 _current_image_idx { 0 };
+    VkSurfaceFormatKHR       _surface_format {};
+    VkPresentModeKHR         _present_mode { VK_PRESENT_MODE_IMMEDIATE_KHR };
+    VkSwapchainKHR           _vk_swapchain { VK_NULL_HANDLE };
+    VkExtent2D               _vk_extent {};
+    std::vector<VkImage>     _vk_swapchain_images;
+    VulkanDeviceContext*     _ctx{ nullptr };
 };
 
 }

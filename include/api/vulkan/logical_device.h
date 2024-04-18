@@ -1,5 +1,5 @@
-#ifndef REND_LOGICAL_DEVICE_H
-#define REND_LOGICAL_DEVICE_H
+#ifndef REND_API_VULKAN_LOGICAL_DEVICE_H
+#define REND_API_VULKAN_LOGICAL_DEVICE_H
 
 #include "core/rend_defs.h"
 
@@ -43,7 +43,7 @@ public:
 
     VkResult                     acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index);
     VkResult                     queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results);
-    VkResult                     get_swapchain_images(Swapchain* swapchain, std::vector<VkImage>& images);
+    VkResult                     get_swapchain_images(VkSwapchainKHR swapchain, std::vector<VkImage>& images);
 
     VkMemoryRequirements         get_buffer_memory_reqs(VkBuffer buffer);
     VkResult                     bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory);
@@ -51,8 +51,8 @@ public:
     VkMemoryRequirements         get_image_memory_reqs(VkImage image);
     VkResult                     bind_image_memory(VkImage image, VkDeviceMemory memory);
 
-    std::vector<VkDescriptorSet> allocate_descriptor_sets(VkDescriptorSetLayout* layouts, uint32_t layouts_count, VkDescriptorPool pool);
-    void                         free_descriptor_sets(VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool);
+    std::vector<VkDescriptorSet> allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool);
+    void                         free_descriptor_sets(const VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool);
     void                         update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets);
 
     std::vector<VkCommandBuffer> allocate_command_buffers(uint32_t count, VkCommandBufferLevel level, VkCommandPool pool) const;

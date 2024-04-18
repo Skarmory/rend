@@ -1,8 +1,9 @@
-#ifndef REND_GPU_BUFFER_H
-#define REND_GPU_BUFFER_H
+#ifndef REND_CORE_GPU_BUFFER_H
+#define REND_CORE_GPU_BUFFER_H
 
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <string>
 
@@ -16,29 +17,24 @@ struct BufferInfo
     BufferUsage usage{ BufferUsage::NONE };
 };
 
-class GPUBuffer : public GPUResource
+class GPUBuffer : public GPUResource, public RendObject
 {
 public:
-    GPUBuffer(const BufferInfo& info);
-    GPUBuffer(const std::string& name, const BufferInfo& info);
-    ~GPUBuffer(void);
+    GPUBuffer(const std::string& name, RendHandle rend_handle, const BufferInfo& info);
+    virtual ~GPUBuffer(void) = default;
 
     GPUBuffer(const GPUBuffer&)            = delete;
     GPUBuffer(GPUBuffer&&)                 = delete;
     GPUBuffer& operator=(const GPUBuffer&) = delete;
     GPUBuffer& operator=(GPUBuffer&&)      = delete;
 
-    BufferHandle handle(void) const { return _handle; }
-
-    uint32_t elements_count(void) const { return _info.element_count; }
-    size_t element_size(void) const { return _info.element_size; }
-    BufferUsage usage(void) const { return _info.usage; }
-    size_t bytes(void) const { return _bytes; }
+    uint32_t        elements_count(void) const;
+    size_t          element_size(void) const;
+    BufferUsage     usage(void) const;
+    size_t          bytes(void) const;
 
 private:
-    BufferHandle _handle{ NULL_HANDLE };
-    BufferInfo   _info{};
-    size_t       _bytes;
+    BufferInfo      _buffer_info{};
 };
 
 }

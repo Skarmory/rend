@@ -1,29 +1,29 @@
-#ifndef REND_PIPELINE_LAYOUT_H
-#define REND_PIPELINE_LAYOUT_H
+#ifndef REND_CORE_PIPELINE_LAYOUT_H
+#define REND_CORE_PIPELINE_LAYOUT_H
 
-#include "core/rend_defs.h"
 #include "core/gpu_resource.h"
+#include "core/rend_defs.h"
+#include "core/rend_object.h"
 
 #include <string>
 
 namespace rend
 {
 
-class PipelineLayout : public GPUResource
+class DescriptorSetLayout;
+struct PushConstantRange;
+
+struct PipelineLayoutInfo
+{
+    std::vector<DescriptorSetLayout*> descriptor_set_layouts;
+    std::vector<PushConstantRange> push_constant_ranges;
+};
+
+class PipelineLayout : public GPUResource, public RendObject
 {
 public:
-    explicit PipelineLayout(const std::string& name, const PipelineLayoutInfo& info);
-    ~PipelineLayout(void);
-    PipelineLayout(const PipelineLayout&) = delete;
-    PipelineLayout(PipelineLayout&&) = delete;
-    PipelineLayout& operator=(const PipelineLayout&) = delete;
-    PipelineLayout& operator=(PipelineLayout&&) = delete;
-
-    PipelineLayoutHandle handle(void) const;
-
-private:
-    PipelineLayoutHandle _handle{ NULL_HANDLE };
-    PipelineLayoutInfo   _info{};
+    explicit PipelineLayout(const std::string& name, RendHandle rend_handle);
+    virtual ~PipelineLayout(void) = default;
 };
 
 }
