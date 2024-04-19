@@ -84,6 +84,8 @@ public:
     void* map_image_memory(GPUTexture& texture, size_t bytes);
     void  unmap_image_memory(GPUTexture& texture);
 
+    void set_debug_name(const char* name, VkObjectType type, uint64_t handle);
+
 private:
     PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
 

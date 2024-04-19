@@ -2,6 +2,7 @@
 #define REND_REND_H
 
 #include <cstdint>
+#include <vector>
 #include <vulkan.h>
 
 namespace rend
@@ -16,10 +17,8 @@ enum class API
 
 struct VulkanInitInfo
 {
-    const char** extensions{ nullptr };
-    uint32_t     extensions_count{ 0 };
-    const char** layers{ nullptr };
-    uint32_t     layers_count{ 0 };
+    std::vector<const char*> extensions;
+    std::vector<const char*> layers;
     VkPhysicalDeviceFeatures features{};
     VkQueueFlags queues{};
 };

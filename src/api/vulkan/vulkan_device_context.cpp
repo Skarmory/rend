@@ -11,6 +11,7 @@
 #include "core/sub_pass.h"
 #include "core/window.h"
 
+#include "api/vulkan/extension_funcs.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/vulkan_buffer.h"
@@ -32,10 +33,19 @@
 
 using namespace rend;
 
+namespace
+{
+    const char* c_debug_utils_name = "VK_EXT_debug_utils";
+}
+
 VulkanDeviceContext::VulkanDeviceContext(const VulkanInitInfo& vk_init_info, const Window& window)
 {
+#if DEBUG
+    const_cast<VulkanInitInfo&>(vk_init_info).extensions.push_back(::c_debug_utils_name);
+#endif
+
     // Create Vulkan instance
-    _vulkan_instance = new VulkanInstance(vk_init_info.extensions, vk_init_info.extensions_count, vk_init_info.layers, vk_init_info.layers_count);
+    _vulkan_instance = new VulkanInstance(vk_init_info.extensions, vk_init_info.layers);
 
     // Create surface
     _vulkan_instance->create_surface(window);
@@ -921,6 +931,18 @@ void VulkanDeviceContext::unmap_image_memory(GPUTexture& texture)
 {
     auto& image_info = static_cast<VulkanTexture&>(texture).vk_image_info();
     _logical_device->unmap_memory(image_info.memory);
+}
+
+void VulkanDeviceContext::set_debug_name(const char* name, VkObjectType type, uint64_t handle)
+{
+    VkDebugUtilsObjectNameInfoEXT info;
+    info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    info.pNext = nullptr;
+    info.objectType = type;
+    info.objectHandle = handle;
+    info.pObjectName = name;
+
+    pfnSetDebugUtilsObjectNameEXT(_logical_device->get_handle(), &info);
 }
 
 PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)

@@ -14,7 +14,7 @@ class Window;
 class VulkanInstance
 {
 public:
-    VulkanInstance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count);
+    VulkanInstance(const std::vector<const char*>& extensions, const std::vector<const char*>& layers);
     ~VulkanInstance(void);
     VulkanInstance(const VulkanInstance&)           = delete;
     VulkanInstance(VulkanInstance&&)                = delete;

@@ -105,13 +105,6 @@ VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
             _staging_buffers.release(temp_buffers[i]);
         }
     }
-
-    //_staging_buffers.initialise("staging buffer", REND_NULL_HANDLE, info, vk_info);
-
-    //for(int i = 0; i < _staging_buffers.capacity(); ++i)
-    //{
-    //    _create_staging_buffer();
-    //}
 }
 
 VulkanRenderer::~VulkanRenderer(void)
@@ -418,22 +411,6 @@ Shader* VulkanRenderer::_load_shader(const std::string& name, const std::string&
     fs.read(shader_code.data(), shader_code.size());
     return create_shader(name, shader_code.data(), shader_code.size(), stage);
 }
-
-//VulkanBuffer* VulkanRenderer::_create_staging_buffer(void)
-//{
-//    auto handle = _staging_buffers.acquire();
-//    auto* buffer = _staging_buffers.get(handle);
-//
-//    //if(!buffer)
-//    //{
-//    size_t bytes = 32 * 1080 * 1080;
-//    BufferInfo info{ 1, bytes, BufferUsage::UNIFORM_BUFFER };
-//    VulkanBufferInfo vk_info = _device_context->create_buffer(info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-//    buffer = new VulkanBuffer("staging buffer", handle,info, vk_info);
-//    //}
-//
-//    return buffer;
-//}
 
 void VulkanRenderer::_create_descriptor_set_layouts(void)
 {
@@ -800,6 +777,11 @@ GPUBuffer* VulkanRenderer::create_buffer(const std::string& name, const BufferIn
     auto rend_handle = _buffers.acquire();
     VulkanBuffer* rend_buffer = _buffers.get(rend_handle);
     rend_buffer = new(rend_buffer) VulkanBuffer(name, rend_handle, info, vk_buffer_info);
+
+#ifdef DEBUG
+    _device_context->set_debug_name(name.c_str(), VK_OBJECT_TYPE_BUFFER, (uint64_t)vk_buffer_info.buffer);
+#endif
+
     return rend_buffer;
 }
 

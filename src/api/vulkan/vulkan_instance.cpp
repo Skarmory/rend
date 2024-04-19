@@ -1,5 +1,7 @@
 #include "api/vulkan/vulkan_instance.h"
 
+#include "api/vulkan/extension_funcs.h"
+
 #include "core/window.h"
 #include "core/rend_service.h"
 
@@ -13,7 +15,7 @@
 
 using namespace rend;
 
-VulkanInstance::VulkanInstance(const char** extensions, uint32_t extension_count, const char** layers, uint32_t layer_count)
+VulkanInstance::VulkanInstance(const std::vector<const char*>& extensions, const std::vector<const char*>& layers)
 {
     VkApplicationInfo app_info =
     {
@@ -32,10 +34,10 @@ VulkanInstance::VulkanInstance(const char** extensions, uint32_t extension_count
         .pNext = nullptr,
         .flags = 0,
         .pApplicationInfo = &app_info,
-        .enabledLayerCount = layer_count,
-        .ppEnabledLayerNames = layers,
-        .enabledExtensionCount = extension_count,
-        .ppEnabledExtensionNames = extensions
+        .enabledLayerCount = layers.size(),
+        .ppEnabledLayerNames = layers.data(),
+        .enabledExtensionCount = extensions.size(),
+        .ppEnabledExtensionNames = extensions.data()
     };
 
     if (auto code = vkCreateInstance(&instance_create_info, nullptr, &_vk_instance); code != VK_SUCCESS)
@@ -44,6 +46,8 @@ VulkanInstance::VulkanInstance(const char** extensions, uint32_t extension_count
         error_string << "Failed to create Vulkan instance: " << code;
         throw std::runtime_error(error_string.str());
     }
+
+    pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(_vk_instance, "vkSetDebugUtilsObjectNameEXT");
 }
 
 VulkanInstance::~VulkanInstance(void)
