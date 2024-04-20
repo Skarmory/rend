@@ -33,9 +33,6 @@ struct RendInitInfo
     const char* resource_path{ nullptr}; //TODO Temporary whilst I figure out how to deal with loading from the dll
 };
 
-//void init_rend(const RendInitInfo& info);
-//void destroy_rend(void);
-
 }
 
 #endif

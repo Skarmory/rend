@@ -779,7 +779,7 @@ GPUBuffer* VulkanRenderer::create_buffer(const std::string& name, const BufferIn
     rend_buffer = new(rend_buffer) VulkanBuffer(name, rend_handle, info, vk_buffer_info);
 
 #ifdef DEBUG
-    _device_context->set_debug_name(name.c_str(), VK_OBJECT_TYPE_BUFFER, (uint64_t)vk_buffer_info.buffer);
+    _device_context->set_debug_name("Buffer: " + name, VK_OBJECT_TYPE_BUFFER, (uint64_t)vk_buffer_info.buffer);
 #endif
 
     return rend_buffer;
@@ -792,6 +792,11 @@ DescriptorSet* VulkanRenderer::create_descriptor_set(const std::string& name, co
     auto rend_handle = _descriptor_sets.acquire();
     DescriptorSet* rend_set = _descriptor_sets.get(rend_handle);
     rend_set = new(rend_set) VulkanDescriptorSet(name, info, rend_handle, set_info);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Descriptor Set: " + name, VK_OBJECT_TYPE_DESCRIPTOR_SET, (uint64_t)set_info.set);
+#endif
+
     return rend_set;
 }
 
@@ -801,6 +806,11 @@ DescriptorSetLayout* VulkanRenderer::create_descriptor_set_layout(const std::str
     auto rend_handle = _descriptor_set_layouts.acquire();
     DescriptorSetLayout* rend_layout = _descriptor_set_layouts.get(rend_handle);
     rend_layout = new(rend_layout) VulkanDescriptorSetLayout(name, rend_handle, vk_layout);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Descriptor Set Layout: " + name, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, (uint64_t)vk_layout);
+#endif
+
     return rend_layout;
 }
 
@@ -810,6 +820,11 @@ Framebuffer* VulkanRenderer::create_framebuffer(const std::string& name, const F
     auto rend_handle = _framebuffers.acquire();
     Framebuffer* rend_framebuffer = _framebuffers.get(rend_handle);
     rend_framebuffer = new(rend_framebuffer) VulkanFramebuffer(name, info, rend_handle, vk_framebuffer);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Framebuffer: " + name, VK_OBJECT_TYPE_FRAMEBUFFER, (uint64_t)vk_framebuffer);
+#endif
+
     return rend_framebuffer;
 }
 
@@ -853,6 +868,11 @@ Pipeline* VulkanRenderer::create_pipeline(const std::string& name, const Pipelin
     auto rend_handle = _pipelines.acquire();
     Pipeline* rend_pipeline = _pipelines.get(rend_handle);
     rend_pipeline = new(rend_pipeline) VulkanPipeline(name, info, rend_handle, vk_pipeline);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Pipeline: " + name, VK_OBJECT_TYPE_PIPELINE, (uint64_t)vk_pipeline);
+#endif
+
     return rend_pipeline;
 }
 
@@ -862,6 +882,11 @@ PipelineLayout* VulkanRenderer::create_pipeline_layout(const std::string& name, 
     auto rend_handle = _pipeline_layouts.acquire();
     VulkanPipelineLayout* rend_pipeline_layout = _pipeline_layouts.get(rend_handle);
     rend_pipeline_layout = new(rend_pipeline_layout) VulkanPipelineLayout(name, rend_handle, vk_pipeline_layout);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Pipeline Layout: " + name, VK_OBJECT_TYPE_PIPELINE_LAYOUT, (uint64_t)vk_pipeline_layout);
+#endif
+
     return rend_pipeline_layout;
 } 
 
@@ -878,17 +903,18 @@ RenderPass* VulkanRenderer::create_render_pass(const std::string& name, const Re
     for(int i = 0; i < info.subpasses_count; ++i)
     {
         std::stringstream ss;
-        ss << name << " , subpass " << i;
+        ss << name << " , Subpass " << i;
 
         SubPassInfo sp_info{};
         sp_info.render_pass = rend_render_pass;
         sp_info.subpass_index = i;
         sp_info.shader_set = info.subpasses[i].shader_set;
         rend_render_pass->add_subpass(ss.str(), sp_info);
-
-        //SubPass* subpass = create_sub_pass(ss.str(), sp_info);
-        //subpasses.push_back(subpass);
     }
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Render Pass: " + name, VK_OBJECT_TYPE_RENDER_PASS, (uint64_t)vk_render_pass);
+#endif
 
     return rend_render_pass;
 }
@@ -899,6 +925,11 @@ Shader* VulkanRenderer::create_shader(const std::string& name, const void* code,
     auto rend_handle = _shaders.acquire();
     VulkanShader* rend_shader = _shaders.get(rend_handle);
     rend_shader = new(rend_shader) VulkanShader(name, size_bytes, type, rend_handle, vk_shader);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Shader: " + name, VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)vk_shader);
+#endif
+
     return rend_shader;
 }
 
@@ -956,7 +987,7 @@ SubPass* VulkanRenderer::create_sub_pass(const std::string& name, const SubPassI
     pl_info.layout = &info.shader_set->get_pipeline_layout();
     pl_info.render_pass = info.render_pass;
 
-    Pipeline* pipeline = create_pipeline(name + " pipeline", pl_info);
+    Pipeline* pipeline = create_pipeline("Pipeline: " + name, pl_info);
     auto rend_handle = _sub_passes.acquire();
     auto* sub_pass = _sub_passes.get(rend_handle);
     sub_pass = new(sub_pass) SubPass(name, info, pipeline, rend_handle);
@@ -970,6 +1001,11 @@ GPUTexture* VulkanRenderer::create_texture(const std::string& name, const Textur
     auto rend_handle = _textures.acquire();
     VulkanTexture* rend_texture = _textures.get(rend_handle);
     rend_texture = new(rend_texture) VulkanTexture(name, rend_handle, info, vk_image_info); 
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Texture: " + name, VK_OBJECT_TYPE_IMAGE, (uint64_t)vk_image_info.image);
+#endif
+
     return rend_texture;
 }
 
@@ -979,6 +1015,11 @@ GPUTexture* VulkanRenderer::_register_swapchain_image(const std::string& name, c
     auto rend_handle = _textures.acquire(); 
     VulkanTexture* rend_texture = _textures.get(rend_handle);
     rend_texture = new(rend_texture) VulkanTexture(name, rend_handle, info, vk_image_info);
+
+#ifdef DEBUG
+    _device_context->set_debug_name("Swapchain Image: " + name, VK_OBJECT_TYPE_IMAGE, (uint64_t)vk_image_info.image);
+#endif
+
     return rend_texture;
 }
 

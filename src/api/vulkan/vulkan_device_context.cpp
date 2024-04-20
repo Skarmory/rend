@@ -30,6 +30,7 @@
 #include <cassert>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <string>
 
 using namespace rend;
 
@@ -933,14 +934,14 @@ void VulkanDeviceContext::unmap_image_memory(GPUTexture& texture)
     _logical_device->unmap_memory(image_info.memory);
 }
 
-void VulkanDeviceContext::set_debug_name(const char* name, VkObjectType type, uint64_t handle)
+void VulkanDeviceContext::set_debug_name(const std::string& name, VkObjectType type, uint64_t handle)
 {
     VkDebugUtilsObjectNameInfoEXT info;
     info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     info.pNext = nullptr;
     info.objectType = type;
     info.objectHandle = handle;
-    info.pObjectName = name;
+    info.pObjectName = name.c_str();
 
     pfnSetDebugUtilsObjectNameEXT(_logical_device->get_handle(), &info);
 }
