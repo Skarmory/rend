@@ -21,7 +21,7 @@ class Shader;
 enum DescriptorFrequency
 {
     VIEW = 0,
-    MATERIAL
+    MATERIAL = 1
 };
 constexpr size_t DESCRIPTOR_FREQUENCY_COUNT = 2;
 

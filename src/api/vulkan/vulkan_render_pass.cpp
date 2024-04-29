@@ -11,19 +11,10 @@ VulkanRenderPass::VulkanRenderPass(const std::string& name, const RenderPassInfo
         RenderPass(name, info, rend_handle),
         _vk_handle(vk_handle)
 {
-    //for(int i = 0; i < subpasses.size(); ++i)
-    //{
-    //    std::string subpass_name = name + ", Subpass: " + std::to_string(i);
-    //    _subpasses.emplace_back(
-    //        rr->create_sub_pass(subpass_name, _info.subpasses[i].shader_set_handle, _handle, i)
-    //    );
-    //}
 }
 
 VulkanRenderPass::~VulkanRenderPass(void)
 {
-    //auto& ctx = *RendService::device_context();
-    //ctx.destroy_render_pass(_handle);
 }
 
 VkRenderPass VulkanRenderPass::vk_handle(void) const
