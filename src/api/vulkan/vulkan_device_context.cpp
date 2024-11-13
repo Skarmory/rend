@@ -8,13 +8,19 @@
 #include "core/pipeline_layout.h"
 #include "core/rend.h"
 #include "core/render_pass.h"
+#include "core/shader_set.h"
 #include "core/sub_pass.h"
 #include "core/window.h"
 
+#include "core/logging/log_defs.h"
+#include "core/logging/log_manager.h"
+
 #include "api/vulkan/extension_funcs.h"
+#include "api/vulkan/fence.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/vulkan_buffer.h"
+#include "api/vulkan/vulkan_command_buffer.h"
 #include "api/vulkan/vulkan_descriptor_set.h"
 #include "api/vulkan/vulkan_descriptor_set_layout.h"
 #include "api/vulkan/vulkan_framebuffer.h"
@@ -23,6 +29,7 @@
 #include "api/vulkan/vulkan_pipeline.h"
 #include "api/vulkan/vulkan_pipeline_layout.h"
 #include "api/vulkan/vulkan_render_pass.h"
+#include "api/vulkan/vulkan_semaphore.h"
 #include "api/vulkan/vulkan_shader.h"
 #include "api/vulkan/vulkan_texture.h"
 
@@ -36,17 +43,32 @@ using namespace rend;
 
 namespace
 {
-    const char* c_debug_utils_name = "VK_EXT_debug_utils";
+    const std::string C_VALIDATION_LOG_FILE_NAME{ "validation.log" };
+    const std::string C_VALIDATION_LOG_CHANNEL_NAME{ "validation_channel" };
 }
 
-VulkanDeviceContext::VulkanDeviceContext(const VulkanInitInfo& vk_init_info, const Window& window)
+VulkanDeviceContext::VulkanDeviceContext(VulkanInitInfo& vk_init_info, const Window& window)
 {
-#if DEBUG
-    const_cast<VulkanInitInfo&>(vk_init_info).extensions.push_back(::c_debug_utils_name);
-#endif
-
     // Create Vulkan instance
     _vulkan_instance = new VulkanInstance(vk_init_info.extensions, vk_init_info.layers);
+
+    auto& logger = core::logging::LogManager::get_instance();
+    logger.add_log_channel(C_VALIDATION_LOG_CHANNEL_NAME);
+    logger.bind_file_to_channel(core::logging::C_RENDERER_LOG_FILE_NAME, C_VALIDATION_LOG_CHANNEL_NAME);
+    logger.bind_file_to_channel(C_VALIDATION_LOG_FILE_NAME, C_VALIDATION_LOG_CHANNEL_NAME);
+
+    VkDebugUtilsMessengerCreateInfoEXT validation_messenger_create_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .flags = 0,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+        .pfnUserCallback = _validation_message_callback,
+        .pUserData = nullptr
+    };
+
+    _validation_messenger = _vulkan_instance->create_debug_utils_messenger(validation_messenger_create_info);
 
     // Create surface
     _vulkan_instance->create_surface(window);
@@ -68,11 +90,12 @@ VulkanDeviceContext::VulkanDeviceContext(const VulkanInitInfo& vk_init_info, con
     }
 
     // Create logical device
-    if((_logical_device = _chosen_gpu->create_logical_device(vk_init_info.queues)) == nullptr)
+    if((_logical_device = _chosen_gpu->create_logical_device(vk_init_info.queues, vk_init_info.features)) == nullptr)
     {
         std::string error_string = "Failed to create logical device";
         throw std::runtime_error(error_string);
     }
+
 }
 
 VulkanDeviceContext::~VulkanDeviceContext(void)
@@ -83,6 +106,8 @@ VulkanDeviceContext::~VulkanDeviceContext(void)
     {
         delete physical_device;
     }
+
+    _vulkan_instance->destroy_debug_utils_messenger(_validation_messenger);
 
     delete _vulkan_instance;
 }
@@ -198,46 +223,76 @@ VkShaderModule VulkanDeviceContext::create_shader(const void* code, const size_t
 
 VkFramebuffer VulkanDeviceContext::create_framebuffer(const FramebufferInfo& info)
 {
-    VkImageView vk_image_views[rend::constants::max_framebuffer_attachments];
+    //VkImageView vk_image_views[rend::constants::max_framebuffer_attachments];
     size_t attachment_count = info.render_targets.size();
 
-    for(size_t idx{ 0 }; idx < info.render_targets.size(); ++idx)
-    {
-        //TextureHandle attachment_handle = info.render_targets[idx];
-        //VulkanImageInfo& image_info = *_vk_image_infos.get(attachment_handle);
-        //VkImageView vk_image_view = *_vk_image_views.get(image_info.view_handle);
+    VkFramebufferAttachmentImageInfo vk_attachment_image_info[rend::constants::max_framebuffer_attachments];
+    VkFormat formats[rend::constants::max_framebuffer_attachments];
 
-        auto* vk_rt = static_cast<VulkanTexture*>(info.render_targets[idx]);
-        vk_image_views[idx] = vk_rt->vk_image_info().view;
+    for(size_t idx = 0; idx < attachment_count; ++idx)
+    {
+        //auto* vk_rt = static_cast<VulkanTexture*>(info.render_targets[idx]);
+        //vk_image_views[idx] = vk_rt->vk_image_info().view;
+
+        auto& texture_info = info.render_targets[idx];
+
+        formats[idx] = vulkan_helpers::convert_format(texture_info.format);
+
+        vk_attachment_image_info[idx] =
+        {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .usage = vulkan_helpers::convert_image_usage_flags(texture_info.usage),
+            .width = texture_info.width,
+            .height = texture_info.height,
+            .layerCount = texture_info.layers,
+            .viewFormatCount = 1,
+            .pViewFormats = &formats[idx]
+        };
     }
 
-    if(info.depth_target)
-    {
-        //VulkanImageInfo& image_info = *_vk_image_infos.get(info.depth_target);
-        //VkImageView vk_image_view = *_vk_image_views.get(image_info.view_handle);
+    //if(info.depth_target)
+    //{
+    //    //auto* vk_dt = static_cast<VulkanTexture*>(info.depth_target);
+    //    //vk_image_views[attachment_count] = vk_dt->vk_image_info().view;
+    //    vk_attachment_image_info[attachment_count] =
+    //    {
+    //        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO,
+    //        .pNext = nullptr,
+    //        .flags = 0,
+    //        .usage = vulkan_helpers::convert_image_usage_flags(info.depth_target->usage),
+    //        .width = info.depth_target->width,
+    //        .height = info.depth_target->height,
+    //        .layerCount = info.depth_target->layers,
+    //        .viewFormatCount = 0,
+    //        .pViewFormats = nullptr
+    //    };
 
-        auto* vk_dt = static_cast<VulkanTexture*>(info.depth_target);
-        vk_image_views[attachment_count] = vk_dt->vk_image_info().view;
-        ++attachment_count;
-    }
+    //    ++attachment_count;
+    //}
+
+    VkFramebufferAttachmentsCreateInfo vk_framebuffer_attachments_create_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO,
+        .pNext = nullptr,
+        .attachmentImageInfoCount = attachment_count,
+        .pAttachmentImageInfos = vk_attachment_image_info
+    };
 
     VkFramebufferCreateInfo create_info = vulkan_helpers::gen_framebuffer_create_info();
+    create_info.pNext           = &vk_framebuffer_attachments_create_info;
+    create_info.flags           = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
     create_info.renderPass      = static_cast<VulkanRenderPass*>(info.render_pass)->vk_handle();
     create_info.attachmentCount = attachment_count;
-    create_info.pAttachments    = vk_image_views;
+    //create_info.pAttachments    = vk_image_views;
     create_info.width           = info.width;
     create_info.height          = info.height;
     create_info.layers          = info.depth;
 
     VkFramebuffer vk_framebuffer = _logical_device->create_framebuffer(create_info);
-    return vk_framebuffer;
-    //if(vk_framebuffer == VK_NULL_HANDLE)
-    //{
-    //    return NULL_HANDLE;
-    //}
 
-    //FramebufferHandle fb_handle = _vk_framebuffers.allocate(vk_framebuffer);
-    //return fb_handle;
+    return vk_framebuffer;
 }
 
 VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
@@ -251,7 +306,7 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
     size_t                vk_attachment_ref_block_start{ 0 };
     size_t                vk_preserve_ref_block_start{ 0 };
 
-    for(uint32_t subpass_idx{ 0 }; subpass_idx < info.subpasses_count; ++subpass_idx)
+    for(size_t subpass_idx{ 0 }; subpass_idx < info.subpasses.size(); ++subpass_idx)
     {
         const SubPassDescription& rend_subpass  = info.subpasses[subpass_idx];
         VkSubpassDescription& vk_subpass = vk_subpass_descs[subpass_idx];
@@ -263,60 +318,60 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
         {
             size_t colour_attach_block_start = vk_attachment_ref_block_start;
 
-            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.colour_attachment_infos_count; ++attachment_idx)
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.colour_attachment_infos.size(); ++attachment_idx)
             {
                 VkAttachmentReference& ref = vk_attachment_refs[colour_attach_block_start + attachment_idx];
                 ref.attachment = rend_subpass.colour_attachment_infos[attachment_idx];
                 ref.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             }
 
-            vk_subpass.colorAttachmentCount = rend_subpass.colour_attachment_infos_count;
+            vk_subpass.colorAttachmentCount = (uint32_t)rend_subpass.colour_attachment_infos.size();
             vk_subpass.pColorAttachments    = &vk_attachment_refs[colour_attach_block_start];
-            vk_attachment_ref_block_start   = (colour_attach_block_start + rend_subpass.colour_attachment_infos_count);
+            vk_attachment_ref_block_start   = (colour_attach_block_start + rend_subpass.colour_attachment_infos.size());
         }
 
         // Input attachments
         {
             size_t input_attach_block_start = vk_attachment_ref_block_start;
 
-            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.input_attachment_infos_count; ++attachment_idx)
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.input_attachment_infos.size(); ++attachment_idx)
             {
                 VkAttachmentReference& ref = vk_attachment_refs[input_attach_block_start + attachment_idx];
                 ref.attachment = rend_subpass.input_attachment_infos[attachment_idx];
                 ref.layout     = VK_IMAGE_LAYOUT_UNDEFINED;
             }
 
-            vk_subpass.inputAttachmentCount = rend_subpass.input_attachment_infos_count;
+            vk_subpass.inputAttachmentCount = (uint32_t)rend_subpass.input_attachment_infos.size();
             vk_subpass.pInputAttachments    = &vk_attachment_refs[input_attach_block_start];
-            vk_attachment_ref_block_start   = (input_attach_block_start + rend_subpass.input_attachment_infos_count);
+            vk_attachment_ref_block_start   = (input_attach_block_start + rend_subpass.input_attachment_infos.size());
         }
 
         // Preserve
         {
             size_t preserve_attach_block_start = vk_preserve_ref_block_start;
 
-            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.preserve_attachments_count; ++attachment_idx)
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.preserve_attachments.size(); ++attachment_idx)
             {
                 vk_preserve_refs[preserve_attach_block_start + attachment_idx] = rend_subpass.preserve_attachments[attachment_idx];
             }
 
-            vk_subpass.preserveAttachmentCount = rend_subpass.preserve_attachments_count;
+            vk_subpass.preserveAttachmentCount = (uint32_t)rend_subpass.preserve_attachments.size();
             vk_subpass.pPreserveAttachments    = &vk_preserve_refs[preserve_attach_block_start];
-            vk_preserve_ref_block_start = (preserve_attach_block_start + rend_subpass.preserve_attachments_count);
+            vk_preserve_ref_block_start = (preserve_attach_block_start + rend_subpass.preserve_attachments.size());
         }
 
         // Resolve
         {
             size_t resolve_attach_block_start = vk_attachment_ref_block_start;
 
-            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.resolve_attachment_infos_count; ++attachment_idx)
+            for(size_t attachment_idx{ 0 }; attachment_idx < rend_subpass.resolve_attachment_infos.size(); ++attachment_idx)
             {
                 VkAttachmentReference& ref = vk_attachment_refs[resolve_attach_block_start + attachment_idx];
                 ref.attachment = rend_subpass.resolve_attachment_infos[attachment_idx];
                 ref.layout     = VK_IMAGE_LAYOUT_UNDEFINED;
             }
 
-            if(rend_subpass.resolve_attachment_infos_count > 0)
+            if(rend_subpass.resolve_attachment_infos.size() > 0)
             {
                 vk_subpass.pResolveAttachments = &vk_attachment_refs[resolve_attach_block_start];
             }
@@ -325,7 +380,7 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
                 vk_subpass.pResolveAttachments = nullptr;
             }
 
-            vk_attachment_ref_block_start  = (resolve_attach_block_start + rend_subpass.resolve_attachment_infos_count);
+            vk_attachment_ref_block_start  = (resolve_attach_block_start + rend_subpass.resolve_attachment_infos.size());
         }
 
         // Depth stencil
@@ -339,7 +394,7 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
     }
 
     // Set the subpass dependencies
-    for(size_t subpass_dep_idx{ 0 }; subpass_dep_idx < info.subpass_dependency_count; ++subpass_dep_idx)
+    for(size_t subpass_dep_idx{ 0 }; subpass_dep_idx < info.subpass_dependencies.size(); ++subpass_dep_idx)
     {
         VkSubpassDependency& vk_subpass_dep = vk_subpass_deps[subpass_dep_idx];
         const SubPassDependency& rend_subpass_dep = info.subpass_dependencies[subpass_dep_idx];
@@ -354,11 +409,11 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
     }
 
     // Set the external passes properly
-    VkSubpassDependency& final_dep = vk_subpass_deps[info.subpass_dependency_count-1];
+    VkSubpassDependency& final_dep = vk_subpass_deps[info.subpass_dependencies.size() - 1];
     vk_subpass_deps[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    vk_subpass_deps[info.subpass_dependency_count] =
+    vk_subpass_deps[info.subpass_dependencies.size()] =
     {
-        info.subpass_dependency_count - 1,
+        info.subpass_dependencies.size() - 1,
         VK_SUBPASS_EXTERNAL,
         final_dep.dstStageMask,
         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
@@ -369,18 +424,18 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
 
     // Set the attachment descriptions
     {
-        for(size_t attachment_idx{ 0 }; attachment_idx < info.attachment_infos_count; ++attachment_idx)
+        for(size_t attachment_idx{ 0 }; attachment_idx < info.attachment_infos.size(); ++attachment_idx)
         {
             vk_attachment_descs[attachment_idx] = vulkan_helpers::convert_attachment_description(info.attachment_infos[attachment_idx]);
         }
     }
 
     VkRenderPassCreateInfo create_info = vulkan_helpers::gen_render_pass_create_info();
-    create_info.attachmentCount = info.attachment_infos_count;
+    create_info.attachmentCount = (uint32_t)info.attachment_infos.size();
     create_info.pAttachments    = &vk_attachment_descs[0];
-    create_info.subpassCount    = info.subpasses_count;
+    create_info.subpassCount    = (uint32_t)info.subpasses.size();
     create_info.pSubpasses      = &vk_subpass_descs[0];
-    create_info.dependencyCount = info.subpasses_count + 1;
+    create_info.dependencyCount = (uint32_t)(info.subpasses.size() + 1);
     create_info.pDependencies   = &vk_subpass_deps[0];
 
     VkRenderPass vk_render_pass = _logical_device->create_render_pass(create_info);
@@ -425,11 +480,8 @@ VkPipelineLayout VulkanDeviceContext::create_pipeline_layout(const PipelineLayou
 
 VkPipeline VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 {
-    const int c_vertex_stage   = 0;
-    const int c_fragment_stage = 1;
-
     VkGraphicsPipelineCreateInfo pipeline_create_info = vulkan_helpers::gen_graphics_pipeline_create_info();
-    pipeline_create_info.layout             = static_cast<const VulkanPipelineLayout*>(info.layout)->vk_handle();
+    pipeline_create_info.layout             = static_cast<const VulkanPipelineLayout&>(info.shader_set->get_pipeline_layout()).vk_handle();
     pipeline_create_info.renderPass         = static_cast<VulkanRenderPass*>(info.render_pass)->vk_handle();
     pipeline_create_info.subpass            = info.subpass;
     pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
@@ -439,7 +491,7 @@ VkPipeline VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
     VkPipelineShaderStageCreateInfo shader_create_infos[SHADER_STAGE_COUNT];
     int create_info_idx{ 0 };
 
-    const Shader* vertex_shader = info.shaders[c_vertex_stage];
+    const Shader* vertex_shader = info.shader_set->get_shader(ShaderIndex::SHADER_INDEX_VERTEX);
     if(vertex_shader != nullptr)
     {
         shader_create_infos[create_info_idx]        = vulkan_helpers::gen_shader_stage_create_info();
@@ -450,7 +502,7 @@ VkPipeline VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
         ++create_info_idx;
     }
 
-    const Shader* fragment_shader = info.shaders[c_fragment_stage];
+    const Shader* fragment_shader = info.shader_set->get_shader(ShaderIndex::SHADER_INDEX_FRAGMENT);
     if(fragment_shader != nullptr)
     {
         shader_create_infos[create_info_idx] = vulkan_helpers::gen_shader_stage_create_info();
@@ -514,24 +566,24 @@ VkPipeline VulkanDeviceContext::create_pipeline(const PipelineInfo& info)
 
     // Vertex input info
     create_info_idx = 0;
-    VkVertexInputBindingDescription vk_input_binding_desc;
-    vk_input_binding_desc.binding = info.vertex_binding_info.index;
-    vk_input_binding_desc.stride = info.vertex_binding_info.stride;
-    vk_input_binding_desc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
+    VkVertexInputBindingDescription vk_input_binding_descs[4]; // TODO: Figure out max input bindings
     VkVertexInputAttributeDescription vk_attribute_descs[constants::max_vertex_attributes];
-    for(size_t vertex_attribute_idx{ 0 }; vertex_attribute_idx < info.vertex_attribute_info_count; ++vertex_attribute_idx)
+
+    auto& vertex_binding_info = info.shader_set->get_vertex_bindings();
+    for(size_t vb_idx = 0; vb_idx < vertex_binding_info.size(); ++vb_idx)
     {
-        vk_attribute_descs[vertex_attribute_idx].location = info.vertex_attribute_infos[vertex_attribute_idx].location;
-        vk_attribute_descs[vertex_attribute_idx].binding = info.vertex_attribute_infos[vertex_attribute_idx].binding->index;
-        vk_attribute_descs[vertex_attribute_idx].format = vulkan_helpers::convert_format(info.vertex_attribute_infos[vertex_attribute_idx].format);
-        vk_attribute_descs[vertex_attribute_idx].offset = info.vertex_attribute_infos[vertex_attribute_idx].offset;
-        ++create_info_idx;
+        vk_input_binding_descs[vb_idx] = vulkan_helpers::convert_vertex_binding_info(vertex_binding_info[vb_idx]);
+
+        for(size_t va_idx = 0; va_idx < vertex_binding_info[vb_idx].attributes.size(); ++va_idx)
+        {
+            vk_attribute_descs[create_info_idx] = vulkan_helpers::convert_vertex_attribute_info(vertex_binding_info[vb_idx].attributes[va_idx], vk_input_binding_descs[vb_idx].binding);
+            ++create_info_idx;
+        }
     }
 
     VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = vulkan_helpers::gen_vertex_input_state_create_info();
-    vertex_input_state_create_info.vertexBindingDescriptionCount   = 1;
-    vertex_input_state_create_info.pVertexBindingDescriptions      = &vk_input_binding_desc;
+    vertex_input_state_create_info.vertexBindingDescriptionCount   = vertex_binding_info.size();
+    vertex_input_state_create_info.pVertexBindingDescriptions      = vk_input_binding_descs;
     vertex_input_state_create_info.vertexAttributeDescriptionCount = create_info_idx;
     vertex_input_state_create_info.pVertexAttributeDescriptions    = vk_attribute_descs;
 
@@ -934,6 +986,12 @@ void VulkanDeviceContext::unmap_image_memory(GPUTexture& texture)
     _logical_device->unmap_memory(image_info.memory);
 }
 
+void VulkanDeviceContext::queue_submit(const VulkanCommandBuffer& cmd, QueueType queue, const std::vector<Semaphore*>& wait_for_semaphores, const std::vector<Semaphore*>& signal_semaphores, const Fence* signal_fence)
+{
+    VkCommandBuffer vk_command_buffer = cmd.vk_handle();
+    _logical_device->queue_submit(&vk_command_buffer, 1, queue, wait_for_semaphores, signal_semaphores, signal_fence);
+}
+
 void VulkanDeviceContext::set_debug_name(const std::string& name, VkObjectType type, uint64_t handle)
 {
     VkDebugUtilsObjectNameInfoEXT info;
@@ -946,7 +1004,14 @@ void VulkanDeviceContext::set_debug_name(const std::string& name, VkObjectType t
     pfnSetDebugUtilsObjectNameEXT(_logical_device->get_handle(), &info);
 }
 
-PhysicalDevice* VulkanDeviceContext::_find_physical_device(const VkPhysicalDeviceFeatures& features)
+VkBool32 VulkanDeviceContext::_validation_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* userdata)
+{
+    std::string msg = "VALIDATION | " + std::string(callback_data->pMessage);
+    core::logging::LogManager::write(C_VALIDATION_LOG_CHANNEL_NAME, msg);
+    return VK_TRUE;
+}
+
+PhysicalDevice* VulkanDeviceContext::_find_physical_device(const std::vector<DeviceFeature>& features)
 {
     for(PhysicalDevice* device : _physical_devices)
     {

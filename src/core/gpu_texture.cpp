@@ -1,13 +1,20 @@
 #include "core/gpu_texture.h"
 
+#include "core/renderer.h"
+
 using namespace rend;
 
-GPUTexture::GPUTexture(const std::string& name, const TextureInfo& info, RendHandle rend_handle)
+GPUTexture::GPUTexture(const std::string& name, const TextureInfo& info)
     :
       GPUResource(name),
-      RendObject(rend_handle),
       _info(info)
 {
+    _data = (char*)malloc(info.width * info.height * (info.depth == 0 ? 1 : info.depth) * info.layers);
+}
+
+GPUTexture::~GPUTexture(void)
+{
+    free(_data);
 }
 
 uint32_t GPUTexture::width(void) const
@@ -58,4 +65,31 @@ MSAASamples GPUTexture::samples(void) const
 ImageUsage GPUTexture::usage(void) const
 {
     return  _info.usage;
+}
+
+const TextureInfo& GPUTexture::get_info(void) const
+{
+    return _info;
+}
+
+void* GPUTexture::data(void)
+{
+    return _data;
+}
+
+uint32_t GPUTexture::bytes(void) const
+{
+    return (_info.width * _info.height * (_info.depth == 0 ? 1 : _info.depth) * _info.layers);
+}
+
+void GPUTexture::store_data(char* data, size_t size_bytes)
+{
+    memcpy(_data, data, size_bytes);
+}
+
+void GPUTexture::load_to_gpu(void)
+{
+    auto& rr = rend::Renderer::get_instance();
+    //rr.load_texture(*this, _data.data(), _data.size(), 0);
+    rr.load_texture(*this);
 }

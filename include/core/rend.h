@@ -1,6 +1,8 @@
 #ifndef REND_REND_H
 #define REND_REND_H
 
+#include "api/vulkan/device_features.h"
+
 #include <cstdint>
 #include <vector>
 #include <vulkan.h>
@@ -19,7 +21,7 @@ struct VulkanInitInfo
 {
     std::vector<const char*> extensions;
     std::vector<const char*> layers;
-    VkPhysicalDeviceFeatures features{};
+    std::vector<DeviceFeature> features;
     VkQueueFlags queues{};
 };
 
@@ -30,8 +32,10 @@ struct RendInitInfo
     const char* app_name{ nullptr };
     uint32_t    resolution_width{ 800 };
     uint32_t    resolution_height{ 600 };
-    const char* resource_path{ nullptr}; //TODO Temporary whilst I figure out how to deal with loading from the dll
 };
+
+void rend_initialise(const RendInitInfo& init_info);
+void rend_uninitialise(void);
 
 }
 

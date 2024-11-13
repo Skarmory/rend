@@ -72,8 +72,8 @@ class DataPool : public DataArrayBase
         DataPoolIterator<DataItemType> begin(void) { return DataPoolIterator<DataItemType>(*this, 0); }
         DataPoolIterator<DataItemType> end(void)   { return DataPoolIterator<DataItemType>(*this, _max_used); }
 
-        DataPoolConstIterator<DataItemType> cbegin(void) const { return DataPoolConstIterator<DataItemType>(*this, 0); }
-        DataPoolConstIterator<DataItemType> cend(void)   const { return DataPoolConstIterator<DataItemType>(*this, _max_used); }
+        DataPoolConstIterator<DataItemType> begin(void) const { return DataPoolConstIterator<DataItemType>(*this, 0); }
+        DataPoolConstIterator<DataItemType> end(void)   const { return DataPoolConstIterator<DataItemType>(*this, _max_used); }
 
     private:
         AllocatorType _allocator;

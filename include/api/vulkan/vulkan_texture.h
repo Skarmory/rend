@@ -14,7 +14,7 @@ struct VulkanImageInfo;
 class VulkanTexture : public GPUTexture
 {
 public:
-    VulkanTexture(const std::string& name, RendHandle rend_handle, const TextureInfo& info, const VulkanImageInfo& vk_image_info);
+    VulkanTexture(const std::string& name, const TextureInfo& info, const VulkanImageInfo& vk_image_info);
     ~VulkanTexture(void) = default;
 
     const VulkanImageInfo& vk_image_info(void) const;

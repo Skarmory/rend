@@ -2,9 +2,9 @@
 
 using namespace rend;
 
-VulkanFramebuffer::VulkanFramebuffer(const std::string& name, const FramebufferInfo& info, RendHandle rend_handle, VkFramebuffer vk_handle)
+VulkanFramebuffer::VulkanFramebuffer(const std::string& name, const FramebufferInfo& info, VkFramebuffer vk_handle)
     :
-        Framebuffer(name, info, rend_handle),
+        Framebuffer(name, info),
         _vk_handle(vk_handle)
 {
 }

@@ -12,7 +12,7 @@ namespace rend
 class VulkanShader : public Shader
 {
 public:
-    VulkanShader(const std::string& name, size_t size_bytes, ShaderStage type, RendHandle rend_handle, VkShaderModule vk_handle);
+    VulkanShader(const std::string& name, size_t size_bytes, ShaderStage type, VkShaderModule vk_handle);
     ~VulkanShader(void) = default;
 
     VkShaderModule vk_handle(void) const;

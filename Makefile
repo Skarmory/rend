@@ -10,6 +10,7 @@ SRCS=$(wildcard src/*.cpp)
 SRCS+=$(wildcard src/core/*.cpp)
 SRCS+=$(wildcard src/core/containers/*.cpp)
 SRCS+=$(wildcard src/core/alloc/*.cpp)
+SRCS+=$(wildcard src/core/logging/*.cpp)
 SRCS+=$(wildcard src/api/vulkan/*.cpp)
 SRCS+=$(wildcard src/lights/*.cpp)
 

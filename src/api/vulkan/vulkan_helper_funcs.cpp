@@ -634,6 +634,31 @@ VkImageCopy vulkan_helpers::convert_image_copy(const ImageImageCopyInfo& copy)
     return vk_copy;
 }
 
+VkVertexInputAttributeDescription vulkan_helpers::convert_vertex_attribute_info(const VertexAttributeInfo& info, int binding)
+{
+    VkVertexInputAttributeDescription vk_vertex_attribute =
+    {
+        .location = info.location,
+        .binding = binding,
+        .format = vulkan_helpers::convert_format(info.format),
+        .offset = info.location * info.align
+    };
+
+    return vk_vertex_attribute;
+}
+
+VkVertexInputBindingDescription vulkan_helpers::convert_vertex_binding_info(const VertexBindingInfo& info)
+{
+    VkVertexInputBindingDescription vk_vertex_binding = 
+    {
+        .binding = info.index,
+        .stride = info.stride,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
+
+    return vk_vertex_binding;
+}
+
 VkMemoryAllocateInfo vulkan_helpers::gen_memory_allocate_info(void)
 {
     VkMemoryAllocateInfo info = {};
@@ -691,6 +716,151 @@ VkShaderModuleCreateInfo vulkan_helpers::gen_shader_module_create_info(void)
     info.flags = 0;
 
     return info;
+}
+
+VkPhysicalDeviceFeatures vulkan_helpers::gen_vk_1_0_features(void)
+{
+    VkPhysicalDeviceFeatures vk_1_0_features =
+    {
+        .robustBufferAccess = VK_FALSE,
+        .fullDrawIndexUint32 = VK_FALSE,
+        .imageCubeArray = VK_FALSE,
+        .independentBlend = VK_FALSE,
+        .geometryShader = VK_FALSE,
+        .tessellationShader = VK_FALSE,
+        .sampleRateShading = VK_FALSE,
+        .dualSrcBlend = VK_FALSE,
+        .logicOp = VK_FALSE,
+        .multiDrawIndirect = VK_FALSE,
+        .drawIndirectFirstInstance = VK_FALSE,
+        .depthClamp = VK_FALSE,
+        .depthBiasClamp = VK_FALSE,
+        .fillModeNonSolid = VK_FALSE,
+        .depthBounds = VK_FALSE,
+        .wideLines = VK_FALSE,
+        .largePoints = VK_FALSE,
+        .alphaToOne = VK_FALSE,
+        .multiViewport = VK_FALSE,
+        .samplerAnisotropy = VK_FALSE,
+        .textureCompressionETC2 = VK_FALSE,
+        .textureCompressionASTC_LDR = VK_FALSE,
+        .textureCompressionBC = VK_FALSE,
+        .occlusionQueryPrecise = VK_FALSE,
+        .pipelineStatisticsQuery = VK_FALSE,
+        .vertexPipelineStoresAndAtomics = VK_FALSE,
+        .fragmentStoresAndAtomics = VK_FALSE,
+        .shaderTessellationAndGeometryPointSize = VK_FALSE,
+        .shaderImageGatherExtended = VK_FALSE,
+        .shaderStorageImageExtendedFormats = VK_FALSE,
+        .shaderStorageImageMultisample = VK_FALSE,
+        .shaderStorageImageReadWithoutFormat = VK_FALSE,
+        .shaderStorageImageWriteWithoutFormat = VK_FALSE,
+        .shaderUniformBufferArrayDynamicIndexing = VK_FALSE,
+        .shaderSampledImageArrayDynamicIndexing = VK_FALSE,
+        .shaderStorageBufferArrayDynamicIndexing = VK_FALSE,
+        .shaderStorageImageArrayDynamicIndexing = VK_FALSE,
+        .shaderClipDistance = VK_FALSE,
+        .shaderCullDistance = VK_FALSE,
+        .shaderFloat64 = VK_FALSE,
+        .shaderInt64 = VK_FALSE,
+        .shaderInt16 = VK_FALSE,
+        .shaderResourceResidency = VK_FALSE,
+        .shaderResourceMinLod = VK_FALSE,
+        .sparseBinding = VK_FALSE,
+        .sparseResidencyBuffer = VK_FALSE,
+        .sparseResidencyImage2D = VK_FALSE,
+        .sparseResidencyImage3D = VK_FALSE,
+        .sparseResidency2Samples = VK_FALSE,
+        .sparseResidency4Samples = VK_FALSE,
+        .sparseResidency8Samples = VK_FALSE,
+        .sparseResidency16Samples = VK_FALSE,
+        .sparseResidencyAliased = VK_FALSE,
+        .variableMultisampleRate = VK_FALSE,
+        .inheritedQueries = VK_FALSE
+    };
+
+    return vk_1_0_features;
+}
+
+VkPhysicalDeviceVulkan11Features vulkan_helpers::gen_vk_1_1_features(void)
+{
+    VkPhysicalDeviceVulkan11Features vk_1_1_features =
+    {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+        .pNext = nullptr,
+        .storageBuffer16BitAccess = VK_FALSE,
+        .uniformAndStorageBuffer16BitAccess = VK_FALSE,
+        .storagePushConstant16 = VK_FALSE,
+        .storageInputOutput16 = VK_FALSE,
+        .multiview = VK_FALSE,
+        .multiviewGeometryShader = VK_FALSE,
+        .multiviewTessellationShader = VK_FALSE,
+        .variablePointersStorageBuffer = VK_FALSE,
+        .variablePointers = VK_FALSE,
+        .protectedMemory = VK_FALSE,
+        .samplerYcbcrConversion = VK_FALSE,
+        .shaderDrawParameters = VK_FALSE
+    };
+
+    return vk_1_1_features;
+}
+
+VkPhysicalDeviceVulkan12Features vulkan_helpers::gen_vk_1_2_features(void)
+{
+    VkPhysicalDeviceVulkan12Features vk_1_2_features = 
+    {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+        .pNext = nullptr,
+        .samplerMirrorClampToEdge = VK_FALSE,
+        .drawIndirectCount = VK_FALSE,
+        .storageBuffer8BitAccess = VK_FALSE,
+        .uniformAndStorageBuffer8BitAccess = VK_FALSE,
+        .storagePushConstant8 = VK_FALSE,
+        .shaderBufferInt64Atomics = VK_FALSE,
+        .shaderSharedInt64Atomics = VK_FALSE,
+        .shaderFloat16 = VK_FALSE,
+        .shaderInt8 = VK_FALSE,
+        .descriptorIndexing = VK_FALSE,
+        .shaderInputAttachmentArrayDynamicIndexing = VK_FALSE,
+        .shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE,
+        .shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE,
+        .shaderUniformBufferArrayNonUniformIndexing = VK_FALSE,
+        .shaderSampledImageArrayNonUniformIndexing = VK_FALSE,
+        .shaderStorageBufferArrayNonUniformIndexing = VK_FALSE,
+        .shaderStorageImageArrayNonUniformIndexing = VK_FALSE,
+        .shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE,
+        .shaderUniformTexelBufferArrayNonUniformIndexing = VK_FALSE,
+        .shaderStorageTexelBufferArrayNonUniformIndexing = VK_FALSE,
+        .descriptorBindingUniformBufferUpdateAfterBind = VK_FALSE,
+        .descriptorBindingSampledImageUpdateAfterBind = VK_FALSE,
+        .descriptorBindingStorageImageUpdateAfterBind = VK_FALSE,
+        .descriptorBindingStorageBufferUpdateAfterBind = VK_FALSE,
+        .descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE,
+        .descriptorBindingStorageTexelBufferUpdateAfterBind = VK_FALSE,
+        .descriptorBindingUpdateUnusedWhilePending = VK_FALSE,
+        .descriptorBindingPartiallyBound = VK_FALSE,
+        .descriptorBindingVariableDescriptorCount = VK_FALSE,
+        .runtimeDescriptorArray = VK_FALSE,
+        .samplerFilterMinmax = VK_FALSE,
+        .scalarBlockLayout = VK_FALSE,
+        .imagelessFramebuffer = VK_FALSE,
+        .uniformBufferStandardLayout = VK_FALSE,
+        .shaderSubgroupExtendedTypes = VK_FALSE,
+        .separateDepthStencilLayouts = VK_FALSE,
+        .hostQueryReset = VK_FALSE,
+        .timelineSemaphore = VK_FALSE,
+        .bufferDeviceAddress = VK_FALSE,
+        .bufferDeviceAddressCaptureReplay = VK_FALSE,
+        .bufferDeviceAddressMultiDevice = VK_FALSE,
+        .vulkanMemoryModel = VK_FALSE,
+        .vulkanMemoryModelDeviceScope = VK_FALSE,
+        .vulkanMemoryModelAvailabilityVisibilityChains = VK_FALSE,
+        .shaderOutputViewportIndex = VK_FALSE,
+        .shaderOutputLayer = VK_FALSE,
+        .subgroupBroadcastDynamicId = VK_FALSE
+    };
+
+    return vk_1_2_features;
 }
 
 VkPipelineLayoutCreateInfo vulkan_helpers::gen_pipeline_layout_create_info(void)

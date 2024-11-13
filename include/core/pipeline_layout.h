@@ -22,7 +22,7 @@ struct PipelineLayoutInfo
 class PipelineLayout : public GPUResource, public RendObject
 {
 public:
-    explicit PipelineLayout(const std::string& name, RendHandle rend_handle);
+    PipelineLayout(const std::string& name);
     virtual ~PipelineLayout(void) = default;
 };
 

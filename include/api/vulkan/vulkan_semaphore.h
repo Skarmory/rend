@@ -2,6 +2,7 @@
 #define REND_API_VULKAN_VULKAN_SEMAPHORE_H
 
 #include "core/rend_defs.h"
+#include <string>
 #include <vulkan.h>
 
 namespace rend
@@ -12,7 +13,7 @@ class VulkanDeviceContext;
 class Semaphore
 {
 public:
-    explicit Semaphore(VulkanDeviceContext& ctx, VkPipelineStageFlags wait_stages);
+    Semaphore(const std::string& name, VulkanDeviceContext& ctx, VkPipelineStageFlags wait_stages);
     ~Semaphore(void);
     Semaphore(const Semaphore&)            = delete;
     Semaphore(Semaphore&&)                 = default;
@@ -24,6 +25,7 @@ public:
 
 private:
     VkSemaphore _vk_semaphore { VK_NULL_HANDLE };
+    std::string _name;
     VkPipelineStageFlags _wait_stages{};
     VulkanDeviceContext* _ctx{ nullptr };
 };

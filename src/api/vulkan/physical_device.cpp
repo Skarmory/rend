@@ -5,6 +5,7 @@
 #include "core/window.h"
 
 #include "api/vulkan/logical_device.h"
+#include "api/vulkan/device_features.h"
 #include "api/vulkan/vulkan_instance.h"
 
 #include <cassert>
@@ -17,7 +18,6 @@ PhysicalDevice::PhysicalDevice(const VulkanInstance& vk_instance, uint32_t physi
     _vk_physical_device = physical_device;
 
     vkGetPhysicalDeviceProperties(_vk_physical_device, &_vk_physical_device_properties);
-    vkGetPhysicalDeviceFeatures(_vk_physical_device, &_vk_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_vk_physical_device, &_vk_physical_device_memory_properties);
 
     VkSurfaceKHR surface = vk_instance.surface();
@@ -30,7 +30,7 @@ PhysicalDevice::~PhysicalDevice(void)
 {
 }
 
-LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags)
+LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_flags, const std::vector<DeviceFeature>& desired_features)
 {
     QueueFamily* graphics_family = nullptr;
     QueueFamily* present_family = nullptr;
@@ -46,7 +46,7 @@ LogicalDevice* PhysicalDevice::create_logical_device(const VkQueueFlags queue_fl
         present_family  = _present_queue_families[0];
     }
 
-    LogicalDevice* logical_device = new LogicalDevice(this, graphics_family, present_family);
+    LogicalDevice* logical_device = new LogicalDevice(this, graphics_family, present_family, desired_features);
 
     return logical_device;
 }
@@ -92,120 +92,257 @@ bool PhysicalDevice::has_queues(VkQueueFlags queue_flags) const
     return has_graphics_queue && has_present_queue;
 }
 
-bool PhysicalDevice::has_features(const VkPhysicalDeviceFeatures& features) const
+bool PhysicalDevice::has_features(const std::vector<DeviceFeature>& desired_features) const
 {
-   if(features.robustBufferAccess && !_vk_physical_device_features.robustBufferAccess)
+    PhysicalDeviceFeatures desired_features_built = PhysicalDeviceFeatures::make_device_features(desired_features);
+
+    PhysicalDeviceFeatures check_features = PhysicalDeviceFeatures::make_device_features({});
+    check_features.vk_1_1_features.pNext = &check_features.vk_1_2_features;
+    check_features.vk_1_2_features.pNext = nullptr;
+
+    VkPhysicalDeviceFeatures2 device_features;
+    device_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    device_features.pNext = &check_features.vk_1_1_features;
+    device_features.features = check_features.vk_1_0_features;
+
+    vkGetPhysicalDeviceFeatures2(_vk_physical_device, &device_features);
+
+    check_features.vk_1_0_features = device_features.features;
+
+    if(!check_features.vk_1_0_features.robustBufferAccess && desired_features_built.vk_1_0_features.robustBufferAccess)
        return false;
-   if(features.fullDrawIndexUint32 && !_vk_physical_device_features.fullDrawIndexUint32)
+    if(!check_features.vk_1_0_features.fullDrawIndexUint32 && desired_features_built.vk_1_0_features.fullDrawIndexUint32)
        return false;
-   if(features.imageCubeArray && !_vk_physical_device_features.imageCubeArray)
+    if(!check_features.vk_1_0_features.imageCubeArray && desired_features_built.vk_1_0_features.imageCubeArray)
        return false;
-   if(features.independentBlend && !_vk_physical_device_features.independentBlend)
+    if(!check_features.vk_1_0_features.independentBlend && desired_features_built.vk_1_0_features.independentBlend)
        return false;
-   if(features.geometryShader && !_vk_physical_device_features.geometryShader)
+    if(!check_features.vk_1_0_features.geometryShader && desired_features_built.vk_1_0_features.geometryShader)
        return false;
-   if(features.tessellationShader && !_vk_physical_device_features.tessellationShader)
+    if(!check_features.vk_1_0_features.tessellationShader && desired_features_built.vk_1_0_features.tessellationShader)
        return false;
-   if(features.sampleRateShading && !_vk_physical_device_features.sampleRateShading)
+    if(!check_features.vk_1_0_features.sampleRateShading && desired_features_built.vk_1_0_features.sampleRateShading)
        return false;
-   if(features.dualSrcBlend && !_vk_physical_device_features.dualSrcBlend)
+    if(!check_features.vk_1_0_features.dualSrcBlend && desired_features_built.vk_1_0_features.dualSrcBlend)
        return false;
-   if(features.logicOp && !_vk_physical_device_features.logicOp)
+    if(!check_features.vk_1_0_features.logicOp && desired_features_built.vk_1_0_features.logicOp)
        return false;
-   if(features.multiDrawIndirect && !_vk_physical_device_features.multiDrawIndirect)
+    if(!check_features.vk_1_0_features.multiDrawIndirect && desired_features_built.vk_1_0_features.multiDrawIndirect)
        return false;
-   if(features.drawIndirectFirstInstance && !_vk_physical_device_features.drawIndirectFirstInstance)
+    if(!check_features.vk_1_0_features.drawIndirectFirstInstance && desired_features_built.vk_1_0_features.drawIndirectFirstInstance)
        return false;
-   if(features.depthClamp && !_vk_physical_device_features.depthClamp)
+    if(!check_features.vk_1_0_features.depthClamp && desired_features_built.vk_1_0_features.depthClamp)
        return false;
-   if(features.depthBiasClamp && !_vk_physical_device_features.depthBiasClamp)
+    if(!check_features.vk_1_0_features.depthBiasClamp && desired_features_built.vk_1_0_features.depthBiasClamp)
        return false;
-   if(features.fillModeNonSolid && !_vk_physical_device_features.fillModeNonSolid)
+    if(!check_features.vk_1_0_features.fillModeNonSolid && desired_features_built.vk_1_0_features.fillModeNonSolid)
        return false;
-   if(features.depthBounds && !_vk_physical_device_features.depthBounds)
+    if(!check_features.vk_1_0_features.depthBounds && desired_features_built.vk_1_0_features.depthBounds)
        return false;
-   if(features.wideLines && !_vk_physical_device_features.wideLines)
+    if(!check_features.vk_1_0_features.wideLines && desired_features_built.vk_1_0_features.wideLines)
        return false;
-   if(features.largePoints && !_vk_physical_device_features.largePoints)
+    if(!check_features.vk_1_0_features.largePoints && desired_features_built.vk_1_0_features.largePoints)
        return false;
-   if(features.alphaToOne && !_vk_physical_device_features.alphaToOne)
+    if(!check_features.vk_1_0_features.alphaToOne && desired_features_built.vk_1_0_features.alphaToOne)
        return false;
-   if(features.multiViewport && !_vk_physical_device_features.multiViewport)
+    if(!check_features.vk_1_0_features.multiViewport && desired_features_built.vk_1_0_features.multiViewport)
        return false;
-   if(features.samplerAnisotropy && !_vk_physical_device_features.samplerAnisotropy)
+    if(!check_features.vk_1_0_features.samplerAnisotropy && desired_features_built.vk_1_0_features.samplerAnisotropy)
        return false;
-   if(features.textureCompressionETC2 && !_vk_physical_device_features.textureCompressionETC2)
+    if(!check_features.vk_1_0_features.textureCompressionETC2 && desired_features_built.vk_1_0_features.textureCompressionETC2)
        return false;
-   if(features.textureCompressionASTC_LDR && !_vk_physical_device_features.textureCompressionASTC_LDR)
+    if(!check_features.vk_1_0_features.textureCompressionASTC_LDR && desired_features_built.vk_1_0_features.textureCompressionASTC_LDR)
        return false;
-   if(features.textureCompressionBC && !_vk_physical_device_features.textureCompressionBC)
+    if(!check_features.vk_1_0_features.textureCompressionBC && desired_features_built.vk_1_0_features.textureCompressionBC)
        return false;
-   if(features.occlusionQueryPrecise && !_vk_physical_device_features.occlusionQueryPrecise)
+    if(!check_features.vk_1_0_features.occlusionQueryPrecise && desired_features_built.vk_1_0_features.occlusionQueryPrecise)
        return false;
-   if(features.pipelineStatisticsQuery && !_vk_physical_device_features.pipelineStatisticsQuery)
+    if(!check_features.vk_1_0_features.pipelineStatisticsQuery && desired_features_built.vk_1_0_features.pipelineStatisticsQuery)
        return false;
-   if(features.vertexPipelineStoresAndAtomics && !_vk_physical_device_features.vertexPipelineStoresAndAtomics)
+    if(!check_features.vk_1_0_features.vertexPipelineStoresAndAtomics && desired_features_built.vk_1_0_features.vertexPipelineStoresAndAtomics)
        return false;
-   if(features.fragmentStoresAndAtomics && !_vk_physical_device_features.fragmentStoresAndAtomics)
+    if(!check_features.vk_1_0_features.fragmentStoresAndAtomics && desired_features_built.vk_1_0_features.fragmentStoresAndAtomics)
        return false;
-   if(features.shaderTessellationAndGeometryPointSize && !_vk_physical_device_features.shaderTessellationAndGeometryPointSize)
+    if(!check_features.vk_1_0_features.shaderTessellationAndGeometryPointSize && desired_features_built.vk_1_0_features.shaderTessellationAndGeometryPointSize)
        return false;
-   if(features.shaderImageGatherExtended && !_vk_physical_device_features.shaderImageGatherExtended)
+    if(!check_features.vk_1_0_features.shaderImageGatherExtended && desired_features_built.vk_1_0_features.shaderImageGatherExtended)
        return false;
-   if(features.shaderStorageImageExtendedFormats && !_vk_physical_device_features.shaderStorageImageExtendedFormats)
+    if(!check_features.vk_1_0_features.shaderStorageImageExtendedFormats && desired_features_built.vk_1_0_features.shaderStorageImageExtendedFormats)
        return false;
-   if(features.shaderStorageImageMultisample && !_vk_physical_device_features.shaderStorageImageMultisample)
+    if(!check_features.vk_1_0_features.shaderStorageImageMultisample && desired_features_built.vk_1_0_features.shaderStorageImageMultisample)
        return false;
-   if(features.shaderStorageImageReadWithoutFormat && !_vk_physical_device_features.shaderStorageImageReadWithoutFormat)
+    if(!check_features.vk_1_0_features.shaderStorageImageReadWithoutFormat && desired_features_built.vk_1_0_features.shaderStorageImageReadWithoutFormat)
        return false;
-   if(features.shaderStorageImageWriteWithoutFormat && !_vk_physical_device_features.shaderStorageImageWriteWithoutFormat)
+    if(!check_features.vk_1_0_features.shaderStorageImageWriteWithoutFormat && desired_features_built.vk_1_0_features.shaderStorageImageWriteWithoutFormat)
        return false;
-   if(features.shaderUniformBufferArrayDynamicIndexing && !_vk_physical_device_features.shaderUniformBufferArrayDynamicIndexing)
+    if(!check_features.vk_1_0_features.shaderUniformBufferArrayDynamicIndexing && desired_features_built.vk_1_0_features.shaderUniformBufferArrayDynamicIndexing)
        return false;
-   if(features.shaderSampledImageArrayDynamicIndexing && !_vk_physical_device_features.shaderSampledImageArrayDynamicIndexing)
+    if(!check_features.vk_1_0_features.shaderSampledImageArrayDynamicIndexing && desired_features_built.vk_1_0_features.shaderSampledImageArrayDynamicIndexing)
        return false;
-   if(features.shaderStorageBufferArrayDynamicIndexing && !_vk_physical_device_features.shaderStorageBufferArrayDynamicIndexing)
+    if(!check_features.vk_1_0_features.shaderStorageBufferArrayDynamicIndexing && desired_features_built.vk_1_0_features.shaderStorageBufferArrayDynamicIndexing)
        return false;
-   if(features.shaderStorageImageArrayDynamicIndexing && !_vk_physical_device_features.shaderStorageImageArrayDynamicIndexing)
+    if(!check_features.vk_1_0_features.shaderStorageImageArrayDynamicIndexing && desired_features_built.vk_1_0_features.shaderStorageImageArrayDynamicIndexing)
        return false;
-   if(features.shaderClipDistance && !_vk_physical_device_features.shaderClipDistance)
+    if(!check_features.vk_1_0_features.shaderClipDistance && desired_features_built.vk_1_0_features.shaderClipDistance)
        return false;
-   if(features.shaderCullDistance && !_vk_physical_device_features.shaderCullDistance)
+    if(!check_features.vk_1_0_features.shaderCullDistance && desired_features_built.vk_1_0_features.shaderCullDistance)
        return false;
-   if(features.shaderFloat64 && !_vk_physical_device_features.shaderFloat64)
+    if(!check_features.vk_1_0_features.shaderFloat64 && desired_features_built.vk_1_0_features.shaderFloat64)
        return false;
-   if(features.shaderInt64 && !_vk_physical_device_features.shaderInt64)
+    if(!check_features.vk_1_0_features.shaderInt64 && desired_features_built.vk_1_0_features.shaderInt64)
        return false;
-   if(features.shaderInt16 && !_vk_physical_device_features.shaderInt16)
+    if(!check_features.vk_1_0_features.shaderInt16 && desired_features_built.vk_1_0_features.shaderInt16)
        return false;
-   if(features.shaderResourceResidency && !_vk_physical_device_features.shaderResourceResidency)
+    if(!check_features.vk_1_0_features.shaderResourceResidency && desired_features_built.vk_1_0_features.shaderResourceResidency)
        return false;
-   if(features.shaderResourceMinLod && !_vk_physical_device_features.shaderResourceMinLod)
+    if(!check_features.vk_1_0_features.shaderResourceMinLod && desired_features_built.vk_1_0_features.shaderResourceMinLod)
        return false;
-   if(features.sparseBinding && !_vk_physical_device_features.sparseBinding)
+    if(!check_features.vk_1_0_features.sparseBinding && desired_features_built.vk_1_0_features.sparseBinding)
        return false;
-   if(features.sparseResidencyBuffer && !_vk_physical_device_features.sparseResidencyBuffer)
+    if(!check_features.vk_1_0_features.sparseResidencyBuffer && desired_features_built.vk_1_0_features.sparseResidencyBuffer)
        return false;
-   if(features.sparseResidencyImage2D && !_vk_physical_device_features.sparseResidencyImage2D)
+    if(!check_features.vk_1_0_features.sparseResidencyImage2D && desired_features_built.vk_1_0_features.sparseResidencyImage2D)
        return false;
-   if(features.sparseResidencyImage3D && !_vk_physical_device_features.sparseResidencyImage3D)
+    if(!check_features.vk_1_0_features.sparseResidencyImage3D && desired_features_built.vk_1_0_features.sparseResidencyImage3D)
        return false;
-   if(features.sparseResidency2Samples && !_vk_physical_device_features.sparseResidency2Samples)
+    if(!check_features.vk_1_0_features.sparseResidency2Samples && desired_features_built.vk_1_0_features.sparseResidency2Samples)
        return false;
-   if(features.sparseResidency4Samples && !_vk_physical_device_features.sparseResidency4Samples)
+    if(!check_features.vk_1_0_features.sparseResidency4Samples && desired_features_built.vk_1_0_features.sparseResidency4Samples)
        return false;
-   if(features.sparseResidency8Samples && !_vk_physical_device_features.sparseResidency8Samples)
+    if(!check_features.vk_1_0_features.sparseResidency8Samples && desired_features_built.vk_1_0_features.sparseResidency8Samples)
        return false;
-   if(features.sparseResidency16Samples && !_vk_physical_device_features.sparseResidency16Samples)
+    if(!check_features.vk_1_0_features.sparseResidency16Samples && desired_features_built.vk_1_0_features.sparseResidency16Samples)
        return false;
-   if(features.sparseResidencyAliased && !_vk_physical_device_features.sparseResidencyAliased)
+    if(!check_features.vk_1_0_features.sparseResidencyAliased && desired_features_built.vk_1_0_features.sparseResidencyAliased)
        return false;
-   if(features.variableMultisampleRate && !_vk_physical_device_features.variableMultisampleRate)
+    if(!check_features.vk_1_0_features.variableMultisampleRate && desired_features_built.vk_1_0_features.variableMultisampleRate)
        return false;
-   if(features.inheritedQueries && !_vk_physical_device_features.inheritedQueries)
+    if(!check_features.vk_1_0_features.inheritedQueries && desired_features_built.vk_1_0_features.inheritedQueries)
        return false;
 
-   return true;
+    // Since Vulkan 1.1
+    if(!check_features.vk_1_1_features.storageBuffer16BitAccess && desired_features_built.vk_1_1_features.storageBuffer16BitAccess)
+       return false;
+    if(!check_features.vk_1_1_features.uniformAndStorageBuffer16BitAccess && desired_features_built.vk_1_1_features.uniformAndStorageBuffer16BitAccess)
+       return false;
+    if(!check_features.vk_1_1_features.storagePushConstant16 && desired_features_built.vk_1_1_features.storagePushConstant16)
+       return false;
+    if(!check_features.vk_1_1_features.storageInputOutput16 && desired_features_built.vk_1_1_features.storageInputOutput16)
+       return false;
+    if(!check_features.vk_1_1_features.multiview && desired_features_built.vk_1_1_features.multiview)
+       return false;
+    if(!check_features.vk_1_1_features.multiviewGeometryShader && desired_features_built.vk_1_1_features.multiviewGeometryShader)
+       return false;
+    if(!check_features.vk_1_1_features.multiviewTessellationShader && desired_features_built.vk_1_1_features.multiviewTessellationShader)
+       return false;
+    if(!check_features.vk_1_1_features.variablePointersStorageBuffer && desired_features_built.vk_1_1_features.variablePointersStorageBuffer)
+       return false;
+    if(!check_features.vk_1_1_features.variablePointers && desired_features_built.vk_1_1_features.variablePointers)
+       return false;
+    if(!check_features.vk_1_1_features.protectedMemory && desired_features_built.vk_1_1_features.protectedMemory)
+       return false;
+    if(!check_features.vk_1_1_features.samplerYcbcrConversion && desired_features_built.vk_1_1_features.samplerYcbcrConversion)
+       return false;
+    if(!check_features.vk_1_1_features.shaderDrawParameters && desired_features_built.vk_1_1_features.shaderDrawParameters)
+       return false;
+
+    // Since Vulkan 1.2
+    if(!check_features.vk_1_2_features.samplerMirrorClampToEdge && desired_features_built.vk_1_2_features.samplerMirrorClampToEdge)
+       return false;
+    if(!check_features.vk_1_2_features.drawIndirectCount && desired_features_built.vk_1_2_features.drawIndirectCount)
+       return false;
+    if(!check_features.vk_1_2_features.storageBuffer8BitAccess && desired_features_built.vk_1_2_features.storageBuffer8BitAccess)
+       return false;
+    if(!check_features.vk_1_2_features.uniformAndStorageBuffer8BitAccess && desired_features_built.vk_1_2_features.uniformAndStorageBuffer8BitAccess)
+       return false;
+    if(!check_features.vk_1_2_features.storagePushConstant8 && desired_features_built.vk_1_2_features.storagePushConstant8)
+       return false;
+    if(!check_features.vk_1_2_features.shaderBufferInt64Atomics && desired_features_built.vk_1_2_features.shaderBufferInt64Atomics)
+       return false;
+    if(!check_features.vk_1_2_features.shaderSharedInt64Atomics && desired_features_built.vk_1_2_features.shaderSharedInt64Atomics)
+       return false;
+    if(!check_features.vk_1_2_features.shaderFloat16 && desired_features_built.vk_1_2_features.shaderFloat16)
+       return false;
+    if(!check_features.vk_1_2_features.shaderInt8 && desired_features_built.vk_1_2_features.shaderInt8)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorIndexing && desired_features_built.vk_1_2_features.descriptorIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderInputAttachmentArrayDynamicIndexing && desired_features_built.vk_1_2_features.shaderInputAttachmentArrayDynamicIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderUniformTexelBufferArrayDynamicIndexing && desired_features_built.vk_1_2_features.shaderUniformTexelBufferArrayDynamicIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderStorageTexelBufferArrayDynamicIndexing && desired_features_built.vk_1_2_features.shaderStorageTexelBufferArrayDynamicIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderUniformBufferArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderUniformBufferArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderSampledImageArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderSampledImageArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderStorageBufferArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderStorageBufferArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderStorageImageArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderStorageImageArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderInputAttachmentArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderInputAttachmentArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderUniformTexelBufferArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderUniformTexelBufferArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.shaderStorageTexelBufferArrayNonUniformIndexing && desired_features_built.vk_1_2_features.shaderStorageTexelBufferArrayNonUniformIndexing)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingUniformBufferUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingUniformBufferUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingSampledImageUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingSampledImageUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingStorageImageUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingStorageImageUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingStorageBufferUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingStorageBufferUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingUniformTexelBufferUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingUniformTexelBufferUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingStorageTexelBufferUpdateAfterBind && desired_features_built.vk_1_2_features.descriptorBindingStorageTexelBufferUpdateAfterBind)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingUpdateUnusedWhilePending && desired_features_built.vk_1_2_features.descriptorBindingUpdateUnusedWhilePending)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingPartiallyBound && desired_features_built.vk_1_2_features.descriptorBindingPartiallyBound)
+       return false;
+    if(!check_features.vk_1_2_features.descriptorBindingVariableDescriptorCount && desired_features_built.vk_1_2_features.descriptorBindingVariableDescriptorCount)
+       return false;
+    if(!check_features.vk_1_2_features.runtimeDescriptorArray && desired_features_built.vk_1_2_features.runtimeDescriptorArray)
+       return false;
+    if(!check_features.vk_1_2_features.samplerFilterMinmax && desired_features_built.vk_1_2_features.samplerFilterMinmax)
+       return false;
+    if(!check_features.vk_1_2_features.scalarBlockLayout && desired_features_built.vk_1_2_features.scalarBlockLayout)
+       return false;
+    if(!check_features.vk_1_2_features.imagelessFramebuffer && desired_features_built.vk_1_2_features.imagelessFramebuffer)
+       return false;
+    if(!check_features.vk_1_2_features.uniformBufferStandardLayout && desired_features_built.vk_1_2_features.uniformBufferStandardLayout)
+       return false;
+    if(!check_features.vk_1_2_features.shaderSubgroupExtendedTypes && desired_features_built.vk_1_2_features.shaderSubgroupExtendedTypes)
+       return false;
+    if(!check_features.vk_1_2_features.separateDepthStencilLayouts && desired_features_built.vk_1_2_features.separateDepthStencilLayouts)
+       return false;
+    if(!check_features.vk_1_2_features.hostQueryReset && desired_features_built.vk_1_2_features.hostQueryReset)
+       return false;
+    if(!check_features.vk_1_2_features.timelineSemaphore && desired_features_built.vk_1_2_features.timelineSemaphore)
+       return false;
+    if(!check_features.vk_1_2_features.bufferDeviceAddress && desired_features_built.vk_1_2_features.bufferDeviceAddress)
+       return false;
+    if(!check_features.vk_1_2_features.bufferDeviceAddressCaptureReplay && desired_features_built.vk_1_2_features.bufferDeviceAddressCaptureReplay)
+       return false;
+    if(!check_features.vk_1_2_features.bufferDeviceAddressMultiDevice && desired_features_built.vk_1_2_features.bufferDeviceAddressMultiDevice)
+       return false;
+    if(!check_features.vk_1_2_features.vulkanMemoryModel && desired_features_built.vk_1_2_features.vulkanMemoryModel)
+       return false;
+    if(!check_features.vk_1_2_features.vulkanMemoryModelDeviceScope && desired_features_built.vk_1_2_features.vulkanMemoryModelDeviceScope)
+       return false;
+    if(!check_features.vk_1_2_features.vulkanMemoryModelAvailabilityVisibilityChains && desired_features_built.vk_1_2_features.vulkanMemoryModelAvailabilityVisibilityChains)
+       return false;
+    if(!check_features.vk_1_2_features.shaderOutputViewportIndex && desired_features_built.vk_1_2_features.shaderOutputViewportIndex)
+       return false;
+    if(!check_features.vk_1_2_features.shaderOutputLayer && desired_features_built.vk_1_2_features.shaderOutputLayer)
+       return false;
+    if(!check_features.vk_1_2_features.subgroupBroadcastDynamicId && desired_features_built.vk_1_2_features.subgroupBroadcastDynamicId)
+       return false;
+
+    return true;
 }
 
 bool PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)

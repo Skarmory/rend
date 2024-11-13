@@ -8,7 +8,7 @@ template<class T>
 class DataArrayIterator
 {
 public:
-    DataArrayIterator(DataArrayBase& container, uint32_t start)
+    DataArrayIterator(const DataArrayBase& container, uint32_t start)
         : _container(container),
           _current(start)
     {
@@ -59,7 +59,7 @@ public:
     }
 
 private:
-    DataArrayBase& _container;
+    const DataArrayBase& _container;
     size_t         _current{ 0 };
 };
 

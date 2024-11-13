@@ -18,25 +18,27 @@ class ShaderSet;
 
 struct SubPassInfo
 {
-    RenderPass* render_pass;
-    uint32_t    subpass_index;
-    const ShaderSet* shader_set;
+//    const RenderPass* render_pass{ nullptr };
+//    const ShaderSet*  shader_set{ nullptr };
+    Pipeline*   pipeline{ nullptr };
+    uint32_t          subpass_index{ 0 };
 };
 
-class SubPass : public GPUResource, public RendObject
+class SubPass : public GPUResource//, public RendObject
 {
+    friend class DrawPass;
+
     public:
-        SubPass(const std::string& name, const SubPassInfo& info, Pipeline* pipeline, RendHandle rend_handle);
+        SubPass(const std::string& name, const SubPassInfo& info);
         ~SubPass(void) = default;
 
-        [[nodiscard]] const Pipeline&  get_pipeline(void) const;
-        [[nodiscard]] const ShaderSet& get_shader_set(void) const;
+        [[nodiscard]] Pipeline&  get_pipeline(void);
+        //[[nodiscard]] const ShaderSet& get_shader_set(void) const;
         uint32_t   get_index(void) const;
 
         void begin(CommandBuffer& command_buffer);
 
     private:
-        Pipeline*   _pipeline{ nullptr };
         SubPassInfo _info{};
 };
 

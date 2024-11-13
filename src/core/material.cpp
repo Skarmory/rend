@@ -1,24 +1,38 @@
 #include "core/material.h"
 
 #include "core/descriptor_set.h"
+#include "core/renderer.h"
+
+#include <sstream>
 
 using namespace rend;
 
-Material::Material(const std::string& name, const MaterialInfo& info, DescriptorSet* descriptor_set, RendHandle rend_handle)
+Material::Material(const std::string& name, const MaterialInfo& info)
     :
         GPUResource(name),
-        RendObject(rend_handle),
-        _info(info),
-        _descriptor_set(descriptor_set)
+        _info(info)
 {
+    auto& rr = Renderer::get_instance();
+
+    std::stringstream ss;
+    ss << name << " descriptor set";
+
+    _descriptor_set = rr.create_descriptor_set(ss.str(), *_info.descriptor_set_layout);
+
+    for(auto& descriptor : _info.descriptors)
+    {
+        _descriptor_set->bind_resource(descriptor);
+    }
+
+    _descriptor_set->write_bindings();
 }
 
-const MaterialInfo& Material::get_material_info(void) const
+MaterialInfo& Material::get_material_info(void)
 {
     return _info;
 }
 
-const DescriptorSet& Material::get_descriptor_set(void) const
+DescriptorSet& Material::get_descriptor_set(void)
 {
     return *_descriptor_set;
 }

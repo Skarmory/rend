@@ -1,6 +1,7 @@
 #ifndef REND_CORE_COMMAND_BUFFER_H
 #define REND_CORE_COMMAND_BUFFER_H
 
+#include "core/gpu_resource.h"
 #include "core/rend_defs.h"
 
 #include <vector>
@@ -14,12 +15,27 @@ class GPUTexture;
 class Pipeline;
 class PipelineLayout;
 
-class CommandBuffer
+enum class CommandBufferState
+{
+    INVALID,
+    INITIAL,
+    RECORDING,
+    EXECUTABLE,
+    SUBMITTED
+};
+
+class CommandBuffer : public GPUResource
 {
 public:
+    CommandBuffer(const std::string& name)
+        :
+            GPUResource(name)
+    {
+    }
+
     virtual ~CommandBuffer(void) = default;
 
-    virtual bool recorded(void) const = 0;
+    virtual CommandBufferState get_state(void) const = 0;
 
     virtual void reset(void) = 0;
     virtual void bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, const std::vector<const DescriptorSet*> descriptor_sets) = 0;

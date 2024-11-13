@@ -43,6 +43,8 @@ VkBufferUsageFlags      convert_buffer_usage_flags(BufferUsage usage);
 VkImageUsageFlags       convert_image_usage_flags(ImageUsage usage);
 VkDescriptorType        convert_descriptor_type(DescriptorType type);
 VkImageCopy             convert_image_copy(const ImageImageCopyInfo& copy);
+VkVertexInputAttributeDescription convert_vertex_attribute_info(const VertexAttributeInfo& info, int binding);
+VkVertexInputBindingDescription convert_vertex_binding_info(const VertexBindingInfo& info);
 
 ImageLayout             convert_image_layout(VkImageLayout layout);
 uint32_t                convert_sample_count(VkSampleCountFlagBits samples);
@@ -54,6 +56,11 @@ VkImageCreateInfo                      gen_image_create_info(void);
 VkImageViewCreateInfo                  gen_image_view_create_info(void);
 VkBufferCreateInfo                     gen_buffer_create_info(void);
 VkShaderModuleCreateInfo               gen_shader_module_create_info(void);
+
+VkPhysicalDeviceFeatures               gen_vk_1_0_features(void);
+VkPhysicalDeviceVulkan11Features       gen_vk_1_1_features(void);
+VkPhysicalDeviceVulkan12Features       gen_vk_1_2_features(void);
+
 VkPipelineLayoutCreateInfo             gen_pipeline_layout_create_info(void);
 VkPipelineShaderStageCreateInfo        gen_shader_stage_create_info(void);
 VkPipelineVertexInputStateCreateInfo   gen_vertex_input_state_create_info(void);

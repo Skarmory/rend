@@ -15,7 +15,7 @@ class GPUBuffer;
 class Mesh : public GPUResource, public RendObject
 {
     public:
-        Mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer, RendHandle rend_handle);
+        Mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer);
         ~Mesh(void);
 
         GPUBuffer* get_vertex_buffer(void) const;

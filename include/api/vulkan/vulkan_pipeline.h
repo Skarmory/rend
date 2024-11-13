@@ -10,7 +10,7 @@ namespace rend
 class VulkanPipeline : public Pipeline
 {
 public:
-    VulkanPipeline(const std::string& name, const PipelineInfo& info, RendHandle rend_handle, VkPipeline vk_handle);
+    VulkanPipeline(const std::string& name, const PipelineInfo& info, VkPipeline vk_handle);
     ~VulkanPipeline(void) = default;
 
     VkPipeline vk_handle(void) const;

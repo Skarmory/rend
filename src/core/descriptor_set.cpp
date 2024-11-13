@@ -1,38 +1,27 @@
 #include "core/descriptor_set.h"
 
-#include "core/device_context.h"
+#include "core/descriptor_set_layout.h"
 
 using namespace rend;
 
-DescriptorSet::DescriptorSet(const std::string& name, const DescriptorSetInfo& info, RendHandle rend_handle)
+DescriptorSet::DescriptorSet(const std::string& name, const DescriptorSetLayout& layout)
     :
         GPUResource(name),
-        RendObject(rend_handle),
-        _set(info.set),
-        _layout(info.layout)
+        _layout(layout)
 {
 }
 
-void DescriptorSet::add_uniform_buffer_binding(uint32_t slot, GPUBuffer* buffer)
+DescriptorFrequency DescriptorSet::get_index(void) const
 {
-    _bindings.emplace_back(
-        slot, DescriptorType::UNIFORM_BUFFER, buffer
-    );
+    return _layout.get_frequency();
 }
 
-void DescriptorSet::add_texture_binding(uint32_t slot, GPUTexture* texture)
-{
-    _bindings.emplace_back(
-        slot, DescriptorType::COMBINED_IMAGE_SAMPLER, texture
-    );
-}
-
-uint32_t DescriptorSet::set(void) const
-{
-    return _set;
-}
-
-const std::vector<DescriptorSetBinding>& DescriptorSet::bindings(void) const
+const std::vector<DescriptorSetBinding>& DescriptorSet::get_bindings(void) const
 {
     return _bindings;
+}
+
+void DescriptorSet::bind_resource(const DescriptorSetBinding& descriptor)
+{
+    _bindings.push_back(descriptor);
 }

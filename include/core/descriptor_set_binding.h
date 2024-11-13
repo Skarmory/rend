@@ -6,11 +6,13 @@
 namespace rend
 {
 
+class GPUResource;
+
 struct DescriptorSetBinding
 {
-    uint32_t       slot;
+    uint32_t       slot { 0 };
     DescriptorType type;
-    void*          resource;
+    GPUResource*   resource{ nullptr };
 };
 
 }

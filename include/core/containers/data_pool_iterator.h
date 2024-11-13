@@ -21,14 +21,24 @@ public:
         return *this;
     }
 
-    bool operator!=(const DataPoolIterator& other) const
+    bool operator==(const DataPoolIterator& rhs) const
     {
-        return _current != other._current;
+        return &_container == &rhs._container && _current == rhs._current;
+    }
+
+    bool operator!=(const DataPoolIterator& rhs) const
+    {
+        return &_container == &rhs._container && _current != rhs._current;
     }
 
     T& operator*(void) const
     {
-        return static_cast<T*>(_container.data())[_current];
+        return *(&(static_cast<T*>(_container.data())[_current]));
+    }
+
+    T* operator->(void) const
+    {
+        return &(static_cast<T*>(_container.data())[_current]);
     }
 
     DataArrayHandle handle(void) const
@@ -58,14 +68,24 @@ public:
         return *this;
     }
 
-    bool operator!=(const DataPoolConstIterator& other) const
+    bool operator==(const DataPoolConstIterator& rhs) const
     {
-        return _current != other._current;
+        return &_container == &rhs._container && _current == rhs._current;
+    }
+
+    bool operator!=(const DataPoolConstIterator& rhs) const
+    {
+        return &_container == &rhs._container && _current != rhs._current;
     }
 
     const T& operator*(void) const
     {
-        return static_cast<const T*>(_container.data())[_current];
+        return *(&(static_cast<T*>(_container.data()) [_current]));
+    }
+
+    const T* operator->(void) const
+    {
+        return &(static_cast<T*>(_container.data())[_current]);
     }
 
     DataArrayHandle handle(void) const

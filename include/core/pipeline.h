@@ -6,6 +6,7 @@
 #include "core/rend_object.h"
 
 #include <string>
+#include <vector>
 
 namespace rend
 {
@@ -16,13 +17,10 @@ class Shader;
 
 struct PipelineInfo
 {
-    // Shader State
-    const Shader* shaders[SHADER_STAGE_COUNT];
-
     // Vertex Input State
-    VertexBindingInfo   vertex_binding_info{};
-    VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
-    uint32_t            vertex_attribute_info_count{ 0 };
+    //std::vector<VertexBindingInfo> vertex_binding_info{};
+    //VertexAttributeInfo vertex_attribute_infos[constants::max_vertex_attributes];
+    //uint32_t            vertex_attribute_info_count{ 0 };
 
     // Input Assembly State
     Topology topology{ Topology::TRIANGLE_LIST };
@@ -43,20 +41,23 @@ struct PipelineInfo
     ColourBlendingInfo colour_blending_info{};
     DynamicStates      dynamic_states{ (uint32_t)DynamicState::NONE };
 
-    const PipelineLayout*  layout{ nullptr };
-    RenderPass*      render_pass{ nullptr };
+    //const PipelineLayout*  layout{ nullptr };
+    ShaderSet* shader_set{ nullptr };
+    RenderPass* render_pass{ nullptr };
     int32_t subpass{ 0 };
 };
 
 class Pipeline : public GPUResource, public RendObject
 {
 public:
-    Pipeline(const std::string& name, const PipelineInfo& info, RendHandle rend_handle);
+    Pipeline(const std::string& name, const PipelineInfo& info);
     virtual ~Pipeline(void) = default;
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     Pipeline& operator=(Pipeline&&) = delete;
+
+    [[nodiscard]] const ShaderSet& get_shader_set(void) const;
 
     const PipelineInfo& pipeline_info(void) const;
 

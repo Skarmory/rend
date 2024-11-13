@@ -3,6 +3,7 @@
 
 #include "core/rend_defs.h"
 
+#include "api/vulkan/device_features.h"
 #include "api/vulkan/queue_family.h"
 
 #include <vulkan.h>
@@ -21,7 +22,7 @@ class LogicalDevice
 {
 
 public:
-    LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family);
+    LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family, const std::vector<DeviceFeature>& features);
     ~LogicalDevice(void);
     LogicalDevice(const LogicalDevice&)            = delete;
     LogicalDevice(LogicalDevice&&)                 = delete;
@@ -35,7 +36,7 @@ public:
     const QueueFamily*    get_queue_family(QueueType type) const;
 
     // Commands
-    bool                         queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence);
+    bool                         queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, const Fence* fence);
     uint32_t                     find_memory_type(uint32_t desired_type, VkMemoryPropertyFlags memory_properties);
     void                         wait_idle(void);
     VkResult                     wait_for_fences(std::vector<VkFence>& fences, uint64_t timeout, bool wait_all);

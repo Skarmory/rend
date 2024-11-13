@@ -12,7 +12,7 @@ namespace rend
 class VulkanDescriptorSetLayout : public DescriptorSetLayout
 {
 public:
-    VulkanDescriptorSetLayout(const std::string& name, RendHandle rend_handle, VkDescriptorSetLayout vk_handle);
+    VulkanDescriptorSetLayout(const std::string& name, VkDescriptorSetLayout vk_handle, const DescriptorSetLayoutInfo& info);
     ~VulkanDescriptorSetLayout(void) = default;
 
     VkDescriptorSetLayout vk_handle(void) const;

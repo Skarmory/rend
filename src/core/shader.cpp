@@ -2,10 +2,9 @@
 
 using namespace rend;
 
-Shader::Shader(const std::string& name, size_t size_bytes, ShaderStage type, RendHandle rend_handle)
+Shader::Shader(const std::string& name, size_t size_bytes, ShaderStage type)
     :
         GPUResource(name),
-        RendObject(rend_handle),
         _bytes(size_bytes),
         _type(type)
 {

@@ -25,7 +25,7 @@ VulkanInstance::VulkanInstance(const std::vector<const char*>& extensions, const
         .applicationVersion = 1,
         .pEngineName = "Rend",
         .engineVersion = 1,
-        .apiVersion = VK_API_VERSION_1_1
+        .apiVersion = VK_API_VERSION_1_3
     };
 
     VkInstanceCreateInfo instance_create_info =
@@ -48,6 +48,8 @@ VulkanInstance::VulkanInstance(const std::vector<const char*>& extensions, const
     }
 
     pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(_vk_instance, "vkSetDebugUtilsObjectNameEXT");
+    pfnCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkCreateDebugUtilsMessengerEXT");
+    pfnDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkDestroyDebugUtilsMessengerEXT");
 }
 
 VulkanInstance::~VulkanInstance(void)
@@ -68,6 +70,18 @@ void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& d
 void VulkanInstance::create_surface(const Window& window)
 {
     glfwCreateWindowSurface(_vk_instance, window.get_handle(), nullptr, &_vk_surface);
+}
+
+VkDebugUtilsMessengerEXT VulkanInstance::create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info)
+{
+    VkDebugUtilsMessengerEXT messenger;
+    pfnCreateDebugUtilsMessengerEXT(_vk_instance, &create_info, NULL, &messenger);
+    return messenger;
+}
+
+void VulkanInstance::destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger)
+{
+    pfnDestroyDebugUtilsMessengerEXT(_vk_instance, messenger, NULL);
 }
 
 VkInstance VulkanInstance::get_handle(void) const

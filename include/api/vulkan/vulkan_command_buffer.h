@@ -13,6 +13,7 @@ class DescriptorSet;
 class Framebuffer;
 class GPUBuffer;
 class GPUTexture;
+struct PerPassData;
 class Pipeline;
 class PipelineLayout;
 class RenderPass;
@@ -21,11 +22,11 @@ class VulkanCommandBuffer : public CommandBuffer
 {
 
 public:
-    VulkanCommandBuffer(VkCommandBuffer vk_handle);
+    VulkanCommandBuffer(const std::string& name, VkCommandBuffer vk_handle);
     ~VulkanCommandBuffer(void) = default;
 
     // Common functions
-    bool recorded(void) const override;
+    CommandBufferState get_state(void) const override;
     void reset(void) override;
     void bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, const std::vector<const DescriptorSet*> descriptor_sets) override;
     void bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline) override;
@@ -45,16 +46,16 @@ public:
     VkCommandBuffer vk_handle(void) const;
     void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
     void transition_image(GPUTexture& texture, ImageLayout layout, uint32_t mips, uint32_t layers, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
-    void begin(void);
+    bool begin(void);
     void end(void);
-    void begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil);
+    void begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data);
     void end_render_pass(void);
     void next_subpass(void);
     void pipeline_barrier(const PipelineBarrierInfo& info);
 
 private:
     VkCommandBuffer _vk_handle{ VK_NULL_HANDLE };
-    bool _recorded{ false };
+    CommandBufferState _state{ CommandBufferState::INITIAL };
 };
 
 }

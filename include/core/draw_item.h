@@ -14,20 +14,23 @@ class Framebuffer;
 class GPUBuffer;
 class Material;
 class Mesh;
+class View;
 
-struct PerViewData
-{
-    GPUBuffer*     camera_data_uniform_buffer;
-    GPUBuffer*     light_data_uniform_buffer;
-    DescriptorSet* descriptor_set;
-};
+//struct PerViewData
+//{
+//    GPUBuffer*     camera_data_uniform_buffer;
+//    GPUBuffer*     light_data_uniform_buffer;
+//    DescriptorSet* descriptor_set;
+//};
 
 struct PerPassData
 {
-    Framebuffer*      framebuffer;
-    ColourClear       colour_clear;
-    DepthStencilClear depth_clear;
-    RenderArea        render_area;
+    const Framebuffer* framebuffer{ nullptr };
+    const GPUTexture*  attachments[rend::constants::max_framebuffer_attachments];
+    size_t             attachments_count{ 0 };
+    ColourClear        colour_clear;
+    DepthStencilClear  depth_clear;
+    RenderArea         render_area;
 };
 
 struct PerDrawData // Push constant
@@ -40,6 +43,7 @@ struct PerDrawData // Push constant
 struct DrawItem
 {
     Mesh* mesh{ nullptr };
+    View* view{ nullptr };
     Material* material{ nullptr };
     PerDrawData per_draw_data;
 };

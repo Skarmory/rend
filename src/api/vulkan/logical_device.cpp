@@ -2,6 +2,7 @@
 
 #include "core/command_buffer.h"
 
+#include "api/vulkan/extensions.h"
 #include "api/vulkan/fence.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/swapchain.h"
@@ -14,7 +15,7 @@
 
 using namespace rend;
 
-LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family)
+LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family, const std::vector<DeviceFeature>& features)
 {
     // Step 1: Construct queue creation info
     float priority = 1.0f;
@@ -41,14 +42,23 @@ LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueF
 
     std::array<const char*, 1> extensions =
     {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        vk::device_ext::khr::swapchain
     };
+
+    PhysicalDeviceFeatures device_features = PhysicalDeviceFeatures::make_device_features(features);
+    device_features.vk_1_1_features.pNext = &device_features.vk_1_2_features;
+    device_features.vk_1_2_features.pNext = nullptr;
+
+    VkPhysicalDeviceFeatures2 vk_device_features_2;
+    vk_device_features_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    vk_device_features_2.pNext = &device_features.vk_1_1_features;
+    vk_device_features_2.features = device_features.vk_1_0_features;
 
     // Step 2: Create device 
     VkDeviceCreateInfo device_create_info =
     {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &vk_device_features_2,
         .flags = 0,
         .queueCreateInfoCount = static_cast<uint32_t>(device_queue_create_infos.size()),
         .pQueueCreateInfos = device_queue_create_infos.data(),
@@ -111,7 +121,7 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, Fence* fence)
+bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, const Fence* fence)
 {
     //std::vector<VkCommandBuffer> vk_command_buffers;
     std::vector<VkSemaphore>     vk_wait_sems;

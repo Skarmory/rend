@@ -5,9 +5,8 @@
 
 using namespace rend;
 
-PipelineLayout::PipelineLayout(const std::string& name, RendHandle rend_handle)
+PipelineLayout::PipelineLayout(const std::string& name)
     :
-        GPUResource(name),
-        RendObject(rend_handle)
+        GPUResource(name)
 {
 }

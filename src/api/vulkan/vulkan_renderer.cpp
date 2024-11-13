@@ -10,7 +10,12 @@
 #include "core/sub_pass.h"
 #include "core/window.h"
 
+#include "core/logging/log_defs.h"
+#include "core/logging/log_manager.h"
+
+#include "api/vulkan/extensions.h"
 #include "api/vulkan/fence.h"
+#include "api/vulkan/layers.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/swapchain.h"
 #include "api/vulkan/vulkan_command_buffer.h"
@@ -52,17 +57,33 @@ namespace
 }
 
 VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
-    :
-        Renderer(init_info)
 {
-    glfwInit();
+    auto& logger = core::logging::LogManager::get_instance();
+    logger.add_log_file(core::logging::C_RENDERER_LOG_FILE_NAME);
+    logger.add_log_channel(core::logging::C_RENDERER_LOG_CHANNEL_NAME);
+    logger.bind_file_to_channel(core::logging::C_RENDERER_LOG_FILE_NAME, core::logging::C_RENDERER_LOG_CHANNEL_NAME);
+
+    auto* vk_init_info = static_cast<VulkanInitInfo*>(init_info.api_init_info);
+
+    // Add required features
+    vk_init_info->features.push_back(DeviceFeature::IMAGELESS_FRAMEBUFFER);
+
+    // Add required extensions
+#if DEBUG
+    vk_init_info->extensions.push_back(vk::instance_ext::debug_utils);
+#endif
+
+    // Add required layers
+#if DEBUG
+    vk_init_info->layers.push_back(vk::layer::khronos::validation);
+#endif
 
     _window = new Window(init_info.resolution_width, init_info.resolution_height, init_info.app_name);
     glfwSetInputMode(_window->get_handle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowSizeCallback(_window->get_handle(), ::glfw_window_resize_callback);
     glfwSetErrorCallback(::glfw_error_callback);
 
-    _device_context = new VulkanDeviceContext(*static_cast<VulkanInitInfo*>(init_info.api_init_info), *_window);
+    _device_context = new VulkanDeviceContext(*vk_init_info, *_window);
     _swapchain = new Swapchain(3, *_device_context);
 
     DescriptorPoolSize pool_sizes[] =
@@ -82,27 +103,17 @@ VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
     _command_pool = _device_context->create_command_pool();
 
     {
-        size_t bytes = 32 * 1080 * 1080;
-        BufferInfo info{ 1, bytes, BufferUsage::TRANSFER_SRC };
 
         // TODO Improve buffer creation to avoid this
-        std::vector<BufferHandle> temp_buffers;
-        for(int i = 0; i < _staging_buffers.capacity(); ++i)
+        std::vector<VulkanBuffer*> buffers;
+        for(size_t i = 0; i < _staging_buffers.capacity(); ++i)
         {
-            std::stringstream ss;
-            ss << "Staging buffer " << i;
-
-            VulkanBufferInfo vk_info = _device_context->create_buffer(info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
-            auto buffer_handle = _staging_buffers.acquire();
-            VulkanBuffer* buffer = _staging_buffers.get(buffer_handle);
-            buffer = new(buffer) VulkanBuffer(ss.str(), buffer_handle, info, vk_info);
-            temp_buffers.push_back(buffer_handle);
+            buffers.push_back(_create_staging_buffer());
         }
 
-        for(int i = 0; i < _staging_buffers.capacity(); ++i)
+        for(size_t i = 0; i < _staging_buffers.capacity(); ++i)
         {
-            _staging_buffers.release(temp_buffers[i]);
+            _staging_buffers.release(buffers[i]->_rend_handle);
         }
     }
 }
@@ -111,89 +122,106 @@ VulkanRenderer::~VulkanRenderer(void)
 {
     _device_context->get_device()->wait_idle();
 
-    for(VulkanBuffer& buffer : _staging_buffers)
+    for(auto& buffer : _staging_buffers)
+    {
+        _destroy_staging_buffer(&buffer);
+    }
+
+    for(auto& buffer : _buffers)
     {
         destroy_buffer(&buffer);
     }
 
-    for(VulkanBuffer& buffer : _buffers)
-    {
-        destroy_buffer(&buffer);
-    }
-
-    for(VulkanTexture& texture : _textures)
+    for(auto& texture : _textures)
     {
         destroy_texture(&texture);
     }
 
-    for(VulkanFramebuffer& framebuffer : _framebuffers)
-    {
-        destroy_framebuffer(&framebuffer);
-    }
-
-    for(VulkanRenderPass& render_pass : _render_passes)
-    {
-        destroy_render_pass(&render_pass);
-    }
-
-    for(VulkanShader& shader : _shaders)
+    for(auto& shader : _shaders)
     {
         destroy_shader(&shader);
     }
 
-    for(VulkanPipeline& pipeline : _pipelines)
+    for(auto& framebuffer : _framebuffers)
+    {
+        destroy_framebuffer(&framebuffer);
+    }
+
+    for(auto& pipeline : _pipelines)
     {
         destroy_pipeline(&pipeline);
     }
 
-    for(VulkanPipelineLayout& layout : _pipeline_layouts)
+    for(auto& pipeline_layout : _pipeline_layouts)
     {
-        destroy_pipeline_layout(&layout);
+        destroy_pipeline_layout(&pipeline_layout);
     }
 
-    for(VulkanDescriptorSet& set : _descriptor_sets)
+    for(auto& render_pass : _render_passes)
     {
-        destroy_descriptor_set(&set);
+        destroy_render_pass(&render_pass);
     }
 
-    for(VulkanDescriptorSetLayout& layout : _descriptor_set_layouts)
+    for(auto& descriptor_set : _descriptor_sets)
     {
-        destroy_descriptor_set_layout(&layout);
+        destroy_descriptor_set(&descriptor_set);
+    }
+
+    for(auto& descriptor_set_layout : _descriptor_set_layouts)
+    {
+        destroy_descriptor_set_layout(&descriptor_set_layout);
     }
 
     for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
     {
-        delete _frame_datas[idx].acquire_sem;
-        delete _frame_datas[idx].present_sem;
         delete _frame_datas[idx].submit_fen;
-        delete _frame_datas[idx].other_sem;
+        delete _frame_datas[idx].load_sem;
     }
 
     _device_context->destroy_command_pool(_command_pool);
     _device_context->destroy_descriptor_pool(_descriptor_pool);
+
     delete _swapchain;
     delete _device_context;
     delete _window;
-
-    glfwTerminate();
 }
 
 void VulkanRenderer::configure(void)
 {
-    _setup_forward();
+    // Setup resources for each frame in flight
+    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
+    {
+        const std::string name_prefix = "frame " + std::to_string(idx);
+        std::string name{};
+
+        name = name_prefix + " load semaphore";
+        _frame_datas[idx].load_sem = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+        name = name_prefix + " submit fence";
+        _frame_datas[idx].submit_fen = new Fence(name, true, *_device_context);
+
+        name = name_prefix + " draw command buffer";
+        _frame_datas[idx].draw_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
+#if DEBUG
+        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].draw_cmd)->vk_handle());
+#endif
+
+        name = name_prefix + " load command buffer";
+        _frame_datas[idx].load_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
+#if DEBUG
+        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].load_cmd)->vk_handle());
+#endif
+    }
 }
 
 void VulkanRenderer::start_frame(void)
 {
     // Update frame and grab next
     _current_frame = ++_frame_counter % _FRAMES_IN_FLIGHT;
-    FrameData& frame_res = _frame_datas[_current_frame];
-    frame_res.frame = _frame_counter;
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Starting frame: " + std::to_string(_frame_counter));
 
-    // Release command buffers from previous usage of this FrameData
-    frame_res.submit_fen->wait();
-    frame_res.command_buffer->reset();
-    frame_res.other_buffer->reset();
+    auto& frame_res = _frame_datas[_current_frame];
+    frame_res.frame = _frame_counter;
 
     // Release staging buffers from previous usage of this FrameData
     for(auto* staging_buffer : frame_res.staging_buffers_used)
@@ -206,79 +234,74 @@ void VulkanRenderer::start_frame(void)
 
 void VulkanRenderer::end_frame(void)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Ending frame: " + std::to_string(_frame_counter));
     FrameData& frame_res = _frame_datas[_current_frame];
+
+    // Wait for previous submit of this frame to be complete
+    frame_res.submit_fen->wait();
+
+    if(_need_resize)
+    {
+        _resize();
+    }
 
     // Acquire next swapchain image
     StatusCode code = StatusCode::SUCCESS;
-    while((code = _swapchain->acquire(frame_res.acquire_sem, nullptr)) != StatusCode::SUCCESS)
+    while((code = _swapchain->acquire(&frame_res.swapchain_acquisition)) != StatusCode::SUCCESS)
     {
         if(code == StatusCode::SWAPCHAIN_ACQUIRE_ERROR)
         {
-            std::cerr << "Failed to acquire swapchain image" << std::endl;
+            core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Failed to acquire swapchain image. Killing process.");
             std::abort();
         }
 
         if(code == StatusCode::SWAPCHAIN_OUT_OF_DATE)
         {
-            resize();
+            _resize();
         }
     }
 
-    // Set new swapchain image to render into
-    frame_res.swapchain_idx = _swapchain->get_current_image_index();
-    frame_res.framebuffer = _forward_framebuffers[frame_res.swapchain_idx];
+    std::vector<Semaphore*> draw_wait_sems;
+    draw_wait_sems.push_back(frame_res.swapchain_acquisition->acquire_semaphore);
 
-    auto* other_cmd = static_cast<VulkanCommandBuffer*>(frame_res.other_buffer);
-    other_cmd->begin();
+    if(!_pre_render_queue.empty())
     {
+        auto* load_cmd = static_cast<VulkanCommandBuffer*>(frame_res.load_cmd);
+        load_cmd->reset();
+        load_cmd->begin();
         _process_pre_render_tasks();
-    }
-    other_cmd->end();
+        load_cmd->end();
 
-    if(other_cmd->recorded())
-    {
-        VkCommandBuffer vk_command_buffer = other_cmd->vk_handle();
-        _device_context->get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { }, { frame_res.other_sem }, nullptr);
+        _device_context->queue_submit(*load_cmd, QueueType::GRAPHICS, {}, { frame_res.load_sem }, nullptr);
+
+        draw_wait_sems.push_back(frame_res.load_sem);
     }
 
-    auto* vk_cmd = static_cast<VulkanCommandBuffer*>(frame_res.command_buffer);
-    vk_cmd->begin();
-    {
-        _update_uniform_buffers();
-        _process_draw_items();
-    }
-    vk_cmd->end();
+    auto* draw_cmd = static_cast<VulkanCommandBuffer*>(frame_res.draw_cmd);
+    draw_cmd->reset();
+    draw_cmd->begin();
+    _process_draw_items();
+    draw_cmd->end();
 
-    if(vk_cmd->recorded())
-    {
-        frame_res.submit_fen->reset();
-        VkCommandBuffer vk_command_buffer = vk_cmd->vk_handle();
-        _device_context->get_device()->queue_submit(&vk_command_buffer, 1, QueueType::GRAPHICS, { frame_res.acquire_sem, frame_res.other_sem }, { frame_res.present_sem }, frame_res.submit_fen);
-        _swapchain->present(QueueType::GRAPHICS, { frame_res.present_sem });
-    }
+    frame_res.submit_fen->reset(); 
+
+    _device_context->queue_submit(
+        *draw_cmd,
+        QueueType::GRAPHICS,
+        draw_wait_sems,
+        { frame_res.swapchain_acquisition->present_semaphore },
+        frame_res.submit_fen
+    );
+
+    _swapchain->present(
+        *frame_res.swapchain_acquisition,
+        QueueType::GRAPHICS
+    );
 }
 
 void VulkanRenderer::resize(void)
 {
-    for(auto* fb : _forward_framebuffers)
-    {
-        for(auto rt : fb->get_colour_attachments())
-        {
-            destroy_texture(rt);
-        }
-
-        if(fb->get_depth_stencil_attachment() != nullptr)
-        {
-            destroy_texture(fb->get_depth_stencil_attachment());
-        }
-
-        destroy_framebuffer(fb);
-    }
-
-    _forward_framebuffers.clear();
-
-    _swapchain->recreate();
-    _create_framebuffers();
+    _need_resize = true;
 }
 
 void VulkanRenderer::get_size_by_ratio(SizeRatio size_ratio, uint32_t& width, uint32_t& height)
@@ -297,98 +320,143 @@ void VulkanRenderer::get_size_by_ratio(SizeRatio size_ratio, uint32_t& width, ui
     }
 }
 
-void VulkanRenderer::load_texture(GPUTexture& texture, const void* data, size_t bytes, uint32_t offset)
+void VulkanRenderer::load_texture(GPUTexture& texture)
 {
-    transition(texture, PipelineStage::PIPELINE_STAGE_TOP_OF_PIPE, PipelineStage::PIPELINE_STAGE_TRANSFER, ImageLayout::TRANSFER_DST);
+    _pre_render_queue.push(
+        [this, &texture]()
+        {
+            FrameData& fr = _frame_datas[_current_frame];
+            VulkanCommandBuffer* cmd = static_cast<VulkanCommandBuffer*>(fr.load_cmd);
+            void* mapped = NULL;
 
-    FrameData& fr = _frame_datas[_current_frame];
-    CommandBuffer* cmd = fr.other_buffer;
-    void* mapped = NULL;
+            transition(texture, PipelineStage::PIPELINE_STAGE_TOP_OF_PIPE, PipelineStage::PIPELINE_STAGE_TRANSFER, ImageLayout::TRANSFER_DST);
 
-    auto  staging_buffer_h = _staging_buffers.acquire();
-    VulkanBuffer* staging_buffer = _staging_buffers.get(staging_buffer_h);
+            auto  staging_buffer_h = _staging_buffers.acquire();
+            VulkanBuffer* staging_buffer = _staging_buffers.get(staging_buffer_h);
 
-    mapped = _device_context->map_buffer_memory(*staging_buffer, staging_buffer->bytes());
-    memcpy(mapped, data, bytes);
-    _device_context->unmap_buffer_memory(*staging_buffer);
+            mapped = _device_context->map_buffer_memory(*staging_buffer, staging_buffer->bytes());
+            memcpy(mapped, texture.data(), texture.bytes());
+            _device_context->unmap_buffer_memory(*staging_buffer);
 
-    BufferImageCopyInfo info =
-    {
-        .buffer_offset  = 0,
-        .buffer_width   = texture.width(),
-        .buffer_height  = texture.height(),
-        .image_offset_x = 0,
-        .image_offset_y = 0,
-        .image_offset_z = 0,
-        .image_width    = texture.width(),
-        .image_height   = texture.height(),
-        .image_depth    = texture.depth(),
-        .image_layout   = texture.layout(),
-        .mip_level      = 0,
-        .base_layer     = 0,
-        .layer_count    = texture.layers()
-    };
+            BufferImageCopyInfo info =
+            {
+                .buffer_offset  = 0,
+                .buffer_width   = texture.width(),
+                .buffer_height  = texture.height(),
+                .image_offset_x = 0,
+                .image_offset_y = 0,
+                .image_offset_z = 0,
+                .image_width    = texture.width(),
+                .image_height   = texture.height(),
+                .image_depth    = texture.depth(),
+                .image_layout   = texture.layout(),
+                .mip_level      = 0,
+                .base_layer     = 0,
+                .layer_count    = texture.layers()
+            };
 
-    cmd->copy(*staging_buffer, texture, info);
-    transition(texture, PipelineStage::PIPELINE_STAGE_TRANSFER, PipelineStage::PIPELINE_STAGE_FRAGMENT_SHADER, ImageLayout::SHADER_READ_ONLY);
+            cmd->copy(*staging_buffer, texture, info);
+            transition(texture, PipelineStage::PIPELINE_STAGE_TRANSFER, PipelineStage::PIPELINE_STAGE_FRAGMENT_SHADER, ImageLayout::SHADER_READ_ONLY);
 
-    fr.staging_buffers_used.push_back(staging_buffer);
+            fr.staging_buffers_used.push_back(staging_buffer);
+        });
 }
 
-void VulkanRenderer::load_buffer(GPUBuffer& buffer, const void* data, size_t bytes, uint32_t offset)
+void VulkanRenderer::load_buffer(GPUBuffer& buffer)
 {
-    // TODO: This should be based on the memory properties, not the resource
-    bool is_device_local{ false };
-    if ((buffer.usage() & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE ||
-        (buffer.usage() & BufferUsage::INDEX_BUFFER)  != BufferUsage::NONE)
-    {
-        is_device_local = true;
-    }
-
-    void* mapped = NULL;
-
-    if(is_device_local)
-    {
-        auto staging_buffer_h = _staging_buffers.acquire();
-        GPUBuffer* staging_buffer = _staging_buffers.get(staging_buffer_h);
-        FrameData& fr = _frame_datas[_current_frame];
-        CommandBuffer* cmd = fr.other_buffer;
-
-        mapped = _device_context->map_buffer_memory(*staging_buffer, staging_buffer->bytes());
-        memcpy(mapped, data, bytes);
-        _device_context->unmap_buffer_memory(*staging_buffer);
-
-        BufferBufferCopyInfo info =
+    _pre_render_queue.push(
+        [this, &buffer]()
         {
-            .size_bytes = (uint32_t)buffer.bytes(),
-            .src_offset = 0,
-            .dst_offset = 0
-        };
+            // TODO: This should be based on the memory properties, not the resource
+            bool is_device_local{ false };
+            if ((buffer.usage() & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE ||
+                (buffer.usage() & BufferUsage::INDEX_BUFFER)  != BufferUsage::NONE)
+            {
+                is_device_local = true;
+            }
 
-        cmd->copy(*staging_buffer, buffer, info);
+            if(is_device_local)
+            {
+                FrameData& fr = _frame_datas[_current_frame];
+                auto staging_buffer_h = _staging_buffers.acquire();
+                GPUBuffer* staging_buffer = _staging_buffers.get(staging_buffer_h);
+                CommandBuffer* cmd = fr.load_cmd;
 
-        fr.staging_buffers_used.push_back(staging_buffer);
-    }
-    else
-    {
-        mapped = _device_context->map_buffer_memory(buffer, buffer.bytes());
-        memcpy(mapped, data, bytes);
-        _device_context->unmap_buffer_memory(buffer);
-    }
+                void* mapped = _device_context->map_buffer_memory(*staging_buffer, staging_buffer->bytes());
+                memcpy(mapped, buffer.data(), buffer.bytes());
+                _device_context->unmap_buffer_memory(*staging_buffer);
+
+                BufferBufferCopyInfo info =
+                {
+                    .size_bytes = (uint32_t)buffer.bytes(),
+                    .src_offset = 0,
+                    .dst_offset = 0
+                };
+
+                cmd->copy(*staging_buffer, buffer, info);
+
+                fr.staging_buffers_used.push_back(staging_buffer);
+            }
+            else
+            {
+                void* mapped = _device_context->map_buffer_memory(buffer, buffer.bytes());
+                memcpy(mapped, buffer.data(), buffer.bytes());
+                _device_context->unmap_buffer_memory(buffer);
+            }
+        });
 }
 
 void VulkanRenderer::transition(GPUTexture& texture, PipelineStages src, PipelineStages dst, ImageLayout final_layout)
 {
     FrameData& fr = _frame_datas[_current_frame];
-    VulkanCommandBuffer* vk_cmd = static_cast<VulkanCommandBuffer*>(fr.other_buffer);
+    VulkanCommandBuffer* vk_cmd = static_cast<VulkanCommandBuffer*>(fr.load_cmd);
     vk_cmd->transition_image(texture, src, dst, final_layout);
 }
 
-void VulkanRenderer::write_descriptor_bindings(DescriptorSet* descriptor_set)
+void VulkanRenderer::write_descriptor_bindings(const DescriptorSet& descriptor_set)
 {
-    auto* vk_set = static_cast<VulkanDescriptorSet*>(descriptor_set);
-    auto& vk_set_info = vk_set->vk_set_info();
-    _device_context->write_descriptor_bindings(vk_set_info.set, vk_set->bindings());
+    auto& vk_set = static_cast<const VulkanDescriptorSet&>(descriptor_set);
+    auto& vk_set_info = vk_set.vk_set_info();
+    _device_context->write_descriptor_bindings(vk_set_info.set, vk_set.get_bindings());
+}
+
+GPUBuffer* VulkanRenderer::get_buffer(const std::string& name) const
+{
+    for(const GPUBuffer& buffer : _buffers)
+    {
+        if(buffer.name() == name)
+        {
+            return const_cast<GPUBuffer*>(&buffer);
+        }
+    }
+
+    return nullptr;
+}
+
+DescriptorSetLayout* VulkanRenderer::get_descriptor_set_layout(const std::string& name) const
+{
+    for(const DescriptorSetLayout& layout : _descriptor_set_layouts)
+    {
+        if(layout.name() == name)
+        {
+            return const_cast<DescriptorSetLayout*>(&layout);
+        }
+    }
+
+    return nullptr;
+}
+
+Pipeline* VulkanRenderer::get_pipeline(const std::string& name) const
+{
+    for(const Pipeline& pipeline : _pipelines)
+    {
+        if(pipeline.name() == name)
+        {
+            return const_cast<Pipeline*>(&pipeline);
+        }
+    }
+
+    return nullptr;
 }
 
 Swapchain* VulkanRenderer::get_swapchain(void) const
@@ -396,222 +464,48 @@ Swapchain* VulkanRenderer::get_swapchain(void) const
     return _swapchain;
 }
 
+RenderPass* VulkanRenderer::get_render_pass(const std::string& name) const
+{
+    for(const RenderPass& render_pass : _render_passes)
+    {
+        if(render_pass.name() == name)
+        {
+            return const_cast<RenderPass*>(&render_pass);
+        }
+    }
+
+    return nullptr;
+}
+
+RenderStrategy* VulkanRenderer::get_render_strategy(const std::string& name) const
+{
+    for(const RenderStrategy& render_strategy : _render_strategies)
+    {
+        if(render_strategy.name() == name)
+        {
+            return const_cast<RenderStrategy*>(&render_strategy);
+        }
+    }
+
+    return nullptr;
+}
+
+GPUTexture* VulkanRenderer::get_texture(const std::string& name) const
+{
+    for(const GPUTexture& texture : _textures)
+    {
+        if(texture.name() == name)
+        {
+            return const_cast<GPUTexture*>(&texture);
+        }
+    }
+
+    return nullptr;
+}
+
 VulkanDeviceContext* VulkanRenderer::device_context(void) const
 {
     return _device_context;
-}
-
-Shader* VulkanRenderer::_load_shader(const std::string& name, const std::string& path, rend::ShaderStage stage)
-{
-    std::string full_path = _resource_path + path + name;
-    std::vector<char> shader_code;
-    std::ifstream fs(full_path, std::ios::binary | std::ios::ate);
-    shader_code.resize(fs.tellg());
-    fs.seekg(0);
-    fs.read(shader_code.data(), shader_code.size());
-    return create_shader(name, shader_code.data(), shader_code.size(), stage);
-}
-
-void VulkanRenderer::_create_descriptor_set_layouts(void)
-{
-    // Create and add per view descriptor set layout
-    {
-        DescriptorSetLayoutBinding camera_data_binding =
-        {
-            .binding = 0,
-            .descriptor_type = DescriptorType::UNIFORM_BUFFER,
-            .descriptor_count = 1,
-            .shader_stages = ShaderStage::SHADER_STAGE_VERTEX
-        };
-
-        DescriptorSetLayoutBinding light_data_binding =
-        {
-            .binding = 1,
-            .descriptor_type = DescriptorType::UNIFORM_BUFFER,
-            .descriptor_count = 1,
-            .shader_stages = ShaderStage::SHADER_STAGE_FRAGMENT
-        };
-
-        DescriptorSetLayoutInfo dsl_info{};
-        dsl_info.layout_bindings.push_back(camera_data_binding);
-        dsl_info.layout_bindings.push_back(light_data_binding);
-
-        _per_view_descriptor_set_layout = create_descriptor_set_layout("per view", dsl_info);
-    }
-
-    // Create and add per material descriptor set layout
-    {
-        DescriptorSetLayoutBinding diffuse_texture_binding =
-        {
-            .binding = 0,
-            .descriptor_type = DescriptorType::COMBINED_IMAGE_SAMPLER,
-            .descriptor_count = 1,
-            .shader_stages = ShaderStage::SHADER_STAGE_FRAGMENT
-        };
-
-        DescriptorSetLayoutInfo dsl_info{};
-        dsl_info.layout_bindings.push_back(diffuse_texture_binding);
-
-        _per_material_descriptor_set_layout = create_descriptor_set_layout("per view", dsl_info);
-    }
-}
-
-ShaderSet* VulkanRenderer::_load_shader_set(const Shader& vertex_shader, const Shader& fragment_shader)
-{
-    ShaderSetInfo shader_set_info{};
-    shader_set_info.shaders[ShaderIndex::SHADER_INDEX_VERTEX]   = &vertex_shader;
-    shader_set_info.shaders[ShaderIndex::SHADER_INDEX_FRAGMENT] = &fragment_shader;
-    shader_set_info.vertex_attribute_infos.push_back({ .location = 0, .offset = 0 });
-    shader_set_info.vertex_attribute_infos.push_back({ .location = 1, .offset = 12 });
-    shader_set_info.vertex_attribute_infos.push_back({ .location = 2, .offset = 24 });
-    shader_set_info.layouts[DescriptorFrequency::VIEW] = _per_view_descriptor_set_layout;
-    shader_set_info.layouts[DescriptorFrequency::MATERIAL] = _per_material_descriptor_set_layout;
-
-    PushConstantRange range =
-    {
-        .shader_stages = ShaderStage::SHADER_STAGE_VERTEX | ShaderStage::SHADER_STAGE_FRAGMENT,
-        .offset = 0,
-        .size = 68
-    };
-
-    shader_set_info.push_constant_ranges.push_back(range);
-
-    return create_shader_set("light", shader_set_info);
-}
-
-GPUTexture* VulkanRenderer::_create_depth_buffer(VkExtent2D extent)
-{
-    TextureInfo info{ extent.width, extent.height, 1, {}, 1, 1, Format::D24_S8, ImageLayout::UNDEFINED,  MSAASamples::MSAA_1X, ImageUsage::DEPTH_STENCIL };
-    auto* texture = create_texture("depth buffer", info);
-    return texture;
-}
-
-void VulkanRenderer::_create_framebuffers(void)
-{
-    VkExtent2D swapchain_extent = _swapchain->get_extent();
-    auto& swapchain_images = _swapchain->get_back_buffer_textures();
-
-    _forward_framebuffers.clear();
-    _forward_framebuffers.resize(swapchain_images.size());
-
-    TextureInfo backbuffer_info{};
-    backbuffer_info.depth = 0;
-    backbuffer_info.mips = 0;
-    backbuffer_info.layers = 0;
-    backbuffer_info.format = _swapchain->get_format();
-    backbuffer_info.layout = ImageLayout::UNDEFINED;
-    backbuffer_info.samples = MSAASamples::MSAA_1X;
-    backbuffer_info.usage = ImageUsage::COLOUR_ATTACHMENT | ImageUsage::TRANSFER_DST;
-
-    for(size_t idx = 0; idx < swapchain_images.size(); ++idx)
-    {
-        std::stringstream ss;
-        ss << "Backbuffer " << idx;
-
-        GPUTexture* colour_target = _register_swapchain_image(ss.str(), backbuffer_info, swapchain_images[idx]); 
-        GPUTexture* depth_buffer = _create_depth_buffer(swapchain_extent);
-
-        FramebufferInfo fb_info = {};
-        fb_info.width  = swapchain_extent.width;
-        fb_info.height = swapchain_extent.height;
-        fb_info.depth  = 1;
-        fb_info.render_pass = _forward_render_pass;
-        fb_info.depth_target = depth_buffer;
-        fb_info.render_targets.push_back(colour_target);
-
-        _forward_framebuffers[idx] = create_framebuffer("forward framebuffer", fb_info);
-    }
-}
-
-RenderPass* VulkanRenderer::_build_forward_render_pass(const ShaderSet& shader_set)
-{
-    AttachmentInfo colour_attachment = {};
-    colour_attachment.format = _swapchain->get_format();
-    colour_attachment.load_op = LoadOp::CLEAR;
-    colour_attachment.store_op = StoreOp::STORE;
-    colour_attachment.final_layout = ImageLayout::PRESENT;
-
-    AttachmentInfo depth_stencil_attachment = {};
-    depth_stencil_attachment.format = Format::D24_S8;
-    depth_stencil_attachment.samples = MSAASamples::MSAA_1X;
-    depth_stencil_attachment.load_op = LoadOp::CLEAR;
-    depth_stencil_attachment.store_op = StoreOp::STORE;
-    depth_stencil_attachment.final_layout = ImageLayout::DEPTH_STENCIL_ATTACHMENT;
-
-    SubPassDescription subpass_info = {};
-    subpass_info.colour_attachment_infos[0] = 0;
-    subpass_info.depth_stencil_attachment   = 1;
-    subpass_info.colour_attachment_infos_count = 1;
-    subpass_info.shader_set = &shader_set;
-
-    SubPassDependency dep_info = {};
-    dep_info.src_sync = Synchronisation{ PipelineStage::PIPELINE_STAGE_BOTTOM_OF_PIPE, MemoryAccess::MEMORY_READ };
-    dep_info.dst_sync = Synchronisation{ PipelineStage::PIPELINE_STAGE_COLOUR_OUTPUT,  MemoryAccess::COLOUR_ATTACHMENT_READ | MemoryAccess::COLOUR_ATTACHMENT_WRITE };
-
-    RenderPassInfo render_pass_info = {};
-    render_pass_info.attachment_infos[0] = colour_attachment;
-    render_pass_info.attachment_infos[1] = depth_stencil_attachment;
-    render_pass_info.attachment_infos_count = 2;
-    render_pass_info.subpasses[0] = subpass_info;
-    render_pass_info.subpasses_count = 1;
-    render_pass_info.subpass_dependencies[0] = dep_info;
-    render_pass_info.subpass_dependency_count = 1;
-
-    auto* render_pass = create_render_pass("forward render pass", render_pass_info);
-    return render_pass;
-}
-
-void VulkanRenderer::_setup_frame_datas(void)
-{
-    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
-    {
-        _frame_datas[idx].swapchain_idx = 0xdeadbeef;
-        _frame_datas[idx].acquire_sem = new Semaphore(*_device_context, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        _frame_datas[idx].present_sem = new Semaphore(*_device_context, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
-        _frame_datas[idx].other_sem = new Semaphore(*_device_context, VK_PIPELINE_STAGE_TRANSFER_BIT);
-        _frame_datas[idx].submit_fen  = new Fence(true, *_device_context);
-        _frame_datas[idx].command_buffer = new VulkanCommandBuffer(_device_context->create_command_buffer(_command_pool));
-        _frame_datas[idx].other_buffer = new VulkanCommandBuffer(_device_context->create_command_buffer(_command_pool));
-
-        BufferInfo info =
-        {
-            .element_count = 1,
-            .element_size = sizeof(LightUniformData),
-            .usage = BufferUsage::UNIFORM_BUFFER
-        };
-        _frame_datas[idx].per_view_data.light_data_uniform_buffer = create_buffer("point lights buffer", info);
-
-        info.element_count = 1;
-        info.element_size = sizeof(CameraData);
-        _frame_datas[idx].per_view_data.camera_data_uniform_buffer = create_buffer("camera buffer", info);
-
-        DescriptorSetInfo ds_info =
-        {
-            .layout = _per_view_descriptor_set_layout,
-            .set = 0
-        };
-        _frame_datas[idx].per_view_data.descriptor_set = create_descriptor_set("per view descriptor set", ds_info);
-
-        _frame_datas[idx].per_view_data.descriptor_set->add_uniform_buffer_binding(0, _frame_datas[idx].per_view_data.camera_data_uniform_buffer);
-        _frame_datas[idx].per_view_data.descriptor_set->add_uniform_buffer_binding(1, _frame_datas[idx].per_view_data.light_data_uniform_buffer);
-        write_descriptor_bindings(_frame_datas[idx].per_view_data.descriptor_set);
-    }
-}
-
-// TODO take into data
-void VulkanRenderer::_setup_forward(void)
-{
-    std::string shaders_path = "shaders/forward/";
-    std::vector<char> shader_code;
-
-    _create_descriptor_set_layouts();
-    _setup_frame_datas();
-
-    Shader* vertex_shader = _load_shader("light.vert.spv", shaders_path, ShaderStage::SHADER_STAGE_VERTEX);
-    Shader* fragment_shader = _load_shader("light.frag.spv", shaders_path, ShaderStage::SHADER_STAGE_FRAGMENT);
-    ShaderSet* shader_set = _load_shader_set(*vertex_shader, *fragment_shader);
-    _forward_render_pass = _build_forward_render_pass(*shader_set);
-    _create_framebuffers();
 }
 
 void VulkanRenderer::_process_pre_render_tasks(void)
@@ -626,32 +520,11 @@ void VulkanRenderer::_process_pre_render_tasks(void)
     }
 }
 
-void VulkanRenderer::_update_uniform_buffers(void)
+std::unordered_map<View*, std::unordered_map<RenderStrategy*, std::vector<DrawItem*>>> VulkanRenderer::_sort_draw_items(void)
 {
-    if(_lights_dirty)
-    {
-        for(auto& fr : _frame_datas)
-        {
-            load_buffer(*fr.per_view_data.light_data_uniform_buffer, &_light_uniform_data, sizeof(LightUniformData), 0);
-        }
-
-        _lights_dirty = false;
-    }
-
-    if(_camera_data_dirty)
-    {
-        for(auto& fr : _frame_datas)
-        {
-           load_buffer(*fr.per_view_data.camera_data_uniform_buffer, &_camera_data, sizeof(CameraData), 0);
-        }
-
-        _camera_data_dirty = false;
-    }
-}
-
-std::unordered_map<RenderPass*, std::vector<DrawItem*>> VulkanRenderer::_sort_draw_items(void)
-{
-    std::unordered_map<RenderPass*, std::vector<DrawItem*>> by_render_pass;
+    std::unordered_map<View*, 
+        std::unordered_map<
+            RenderStrategy*, std::vector<DrawItem*>>> sorted_items;
 
     //// Sort the draw items
     //std::sort(_draw_items.begin(), _draw_items.end(), [this](DrawItem& item1, DrawItem& item2)
@@ -662,99 +535,106 @@ std::unordered_map<RenderPass*, std::vector<DrawItem*>> VulkanRenderer::_sort_dr
     //    return mat1.render_pass_h < mat2.render_pass_h;
     //});
 
-    for(int i = 0; i < _draw_items.size(); ++i)
+    for(size_t i = 0; i < _draw_items.size(); ++i)
     {
         DrawItem& draw_item = _draw_items[i];
         Material* m = draw_item.material;
-        by_render_pass[m->get_material_info().render_pass].push_back(&_draw_items[i]);
+        View* v = draw_item.view;
+
+        sorted_items[v][m->get_material_info().render_strategy].push_back(&_draw_items[i]);
     }
 
-    return by_render_pass;
+    return sorted_items;
 }
 
 void VulkanRenderer::_process_draw_items(void)
 {
     FrameData& frame_res = _frame_datas[_current_frame];
-    Framebuffer* fb = _forward_framebuffers[frame_res.swapchain_idx];
-    CommandBuffer* cmd = frame_res.command_buffer;
+    CommandBuffer* cmd = frame_res.draw_cmd;
 
     ViewportInfo vp = { 0, 0, (float)_swapchain->get_extent().width, (float)_swapchain->get_extent().height, 0.0f, 1.0f };
     ViewportInfo sc = vp;
+    RenderArea ra = { static_cast<uint32_t>(vp.width), static_cast<uint32_t>(vp.height) };
 
     cmd->set_viewport({vp});
     cmd->set_scissor({sc});
 
-    auto by_render_pass = _sort_draw_items();
+    auto sorted_items = _sort_draw_items();
 
     DescriptorSet* current_view_set{ nullptr };
-    const DescriptorSet* current_material_set{ nullptr };
+    DescriptorSet* current_material_set{ nullptr };
 
-    for(auto& it : by_render_pass)
+    std::vector<const DescriptorSet*> to_bind;
+    to_bind.reserve(2);
+
+    for(auto& view_it : sorted_items)
     {
-        RenderPass* rp = it.first;
+        auto* view = view_it.first;
 
-        PerPassData ppd;
-        ppd.framebuffer = fb;
-        ppd.colour_clear = { 0.3f, 0.3f, 0.3f, 1.0f };
-        ppd.depth_clear.depth = 1.0f;
-        ppd.depth_clear.stencil =  0;
-        ppd.render_area = { vp.width, vp.height };
-
-        rp->begin(*cmd, ppd);
-
-        for(auto sp : rp->get_subpasses())
+        if(auto* view_descriptor_set = &view->get_descriptor_set(); view_descriptor_set != current_view_set)
         {
-            //SubPass* sp = _subpasses.get(sp_h);
-            auto& ss = sp->get_shader_set();
-            auto& pl = ss.get_pipeline_layout();
-
-            if(frame_res.per_view_data.descriptor_set != current_view_set)
-            {
-                // New view, bind descriptor set
-                //DescriptorSet* ds = _descriptor_pool->get_descriptor_set(frame_res.per_view_data.descriptor_set);
-                cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, { frame_res.per_view_data.descriptor_set });
-                current_view_set = frame_res.per_view_data.descriptor_set;
-                // TODO: Batch binding
-                // TODO: Multiple views
-            }
-
-            // Draw all items
-            for(auto di_p : it.second)
-            {
-                Material* mat = di_p->material;
-                if(&mat->get_descriptor_set() != current_material_set)
-                {
-                    // New material, bind descriptor set
-                    //DescriptorSet* ds = _descriptor_pool->get_descriptor_set(mat->get_descriptor_set());
-                    current_material_set = &mat->get_descriptor_set();
-                    std::vector<const DescriptorSet*> sets = { current_material_set };
-                    cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, sets);
-                    // TODO: Batch binding
-                }
-
-                cmd->push_constant(pl, di_p->per_draw_data.stages, 0, di_p->per_draw_data.bytes, di_p->per_draw_data.data);
-
-                Mesh* mesh = di_p->mesh;
-                GPUBuffer* vertex_buffer = mesh->get_vertex_buffer();
-                GPUBuffer* index_buffer = mesh->get_index_buffer();
-
-                cmd->bind_vertex_buffer(*vertex_buffer);
-
-                if(index_buffer)
-                {
-                    cmd->bind_index_buffer(*index_buffer);
-                    cmd->draw_indexed(index_buffer->elements_count(), 1, 0, 0, 0);
-                }
-                else
-                {
-                    cmd->draw(vertex_buffer->elements_count(), 1, 0, 0);
-                }
-            }
-
-            rp->next_subpass(*cmd);
+            current_view_set = view_descriptor_set;
+            to_bind.push_back(current_view_set);
         }
 
-        rp->end(*cmd);
+        for(auto& render_strategy_it : view_it.second)
+        {
+            auto* render_strategy = render_strategy_it.first;
+
+            for(auto& draw_pass : render_strategy->get_draw_passes())
+            {
+                auto* fb = frame_res.find_framebuffer(draw_pass.get_named_framebuffer());
+                PerPassData ppd = _create_per_pass_data(*fb, draw_pass.get_colour_clear(), draw_pass.get_depth_stencil_clear(), ra);
+
+                draw_pass.begin(*cmd, ppd);
+
+                for(auto& sp : draw_pass.get_subpasses())
+                {
+                    auto& ss = sp.get_pipeline().get_shader_set();
+                    auto& pl = ss.get_pipeline_layout();
+
+                    // Draw all items
+                    for(auto di_p : render_strategy_it.second)
+                    {
+                        Material* mat = di_p->material;
+                        if(&mat->get_descriptor_set() != current_material_set)
+                        {
+                            // New material, bind descriptor set
+                            current_material_set = &mat->get_descriptor_set();
+                            to_bind.push_back(current_material_set);
+                        }
+
+                        if(to_bind.size() > 0)
+                        {
+                            cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, to_bind);
+                            to_bind.clear();
+                        }
+
+                        cmd->push_constant(pl, di_p->per_draw_data.stages, 0, di_p->per_draw_data.bytes, di_p->per_draw_data.data);
+
+                        Mesh* mesh = di_p->mesh;
+                        GPUBuffer* vertex_buffer = mesh->get_vertex_buffer();
+                        GPUBuffer* index_buffer = mesh->get_index_buffer();
+
+                        cmd->bind_vertex_buffer(*vertex_buffer);
+
+                        if(index_buffer)
+                        {
+                            cmd->bind_index_buffer(*index_buffer);
+                            cmd->draw_indexed(index_buffer->elements_count(), 1, 0, 0, 0);
+                        }
+                        else
+                        {
+                            cmd->draw(vertex_buffer->elements_count(), 1, 0, 0);
+                        }
+                    }
+
+                    draw_pass.next_subpass(*cmd);
+                }
+
+                draw_pass.end(*cmd);
+            }
+        }
     }
 
     _draw_items.clear();
@@ -763,8 +643,7 @@ void VulkanRenderer::_process_draw_items(void)
 GPUBuffer* VulkanRenderer::create_buffer(const std::string& name, const BufferInfo& info)
 {
     VkMemoryPropertyFlags memory_flags;
-    if((info.usage & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE ||
-       (info.usage & BufferUsage::INDEX_BUFFER)  != BufferUsage::NONE)
+    if((info.usage & BufferUsage::VERTEX_BUFFER) != BufferUsage::NONE || (info.usage & BufferUsage::INDEX_BUFFER)  != BufferUsage::NONE)
     {
         memory_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     }
@@ -774,9 +653,9 @@ GPUBuffer* VulkanRenderer::create_buffer(const std::string& name, const BufferIn
     }
 
     VulkanBufferInfo vk_buffer_info = _device_context->create_buffer(info, memory_flags);
-    auto rend_handle = _buffers.acquire();
-    VulkanBuffer* rend_buffer = _buffers.get(rend_handle);
-    rend_buffer = new(rend_buffer) VulkanBuffer(name, rend_handle, info, vk_buffer_info);
+    auto rend_handle = _buffers.allocate(name, info, vk_buffer_info);
+    auto* rend_buffer = _buffers.get(rend_handle);
+    static_cast<RendObject*>(rend_buffer)->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Buffer: " + name, VK_OBJECT_TYPE_BUFFER, (uint64_t)vk_buffer_info.buffer);
@@ -785,16 +664,16 @@ GPUBuffer* VulkanRenderer::create_buffer(const std::string& name, const BufferIn
     return rend_buffer;
 }
 
-DescriptorSet* VulkanRenderer::create_descriptor_set(const std::string& name, const DescriptorSetInfo& info)
+DescriptorSet* VulkanRenderer::create_descriptor_set(const std::string& name, const DescriptorSetLayout& layout)
 {
-    VkDescriptorSetLayout vk_layout = static_cast<const VulkanDescriptorSetLayout*>(info.layout)->vk_handle();
-    VulkanDescriptorSetInfo set_info = _device_context->create_descriptor_set(_descriptor_pool, vk_layout);
-    auto rend_handle = _descriptor_sets.acquire();
-    DescriptorSet* rend_set = _descriptor_sets.get(rend_handle);
-    rend_set = new(rend_set) VulkanDescriptorSet(name, info, rend_handle, set_info);
+    auto vk_layout = static_cast<const VulkanDescriptorSetLayout&>(layout).vk_handle();
+    auto set_info = _device_context->create_descriptor_set(_descriptor_pool, vk_layout);
+    auto rend_handle = _descriptor_sets.allocate(name, layout, set_info);
+    auto* rend_set = _descriptor_sets.get(rend_handle);
+    rend_set->_rend_handle = rend_handle;
 
 #ifdef DEBUG
-    _device_context->set_debug_name("Descriptor Set: " + name, VK_OBJECT_TYPE_DESCRIPTOR_SET, (uint64_t)set_info.set);
+    _device_context->set_debug_name(rend_set->name(), VK_OBJECT_TYPE_DESCRIPTOR_SET, (uint64_t)set_info.set);
 #endif
 
     return rend_set;
@@ -802,10 +681,10 @@ DescriptorSet* VulkanRenderer::create_descriptor_set(const std::string& name, co
 
 DescriptorSetLayout* VulkanRenderer::create_descriptor_set_layout(const std::string& name, const DescriptorSetLayoutInfo& info)
 {
-    VkDescriptorSetLayout vk_layout = _device_context->create_descriptor_set_layout(info);
-    auto rend_handle = _descriptor_set_layouts.acquire();
-    DescriptorSetLayout* rend_layout = _descriptor_set_layouts.get(rend_handle);
-    rend_layout = new(rend_layout) VulkanDescriptorSetLayout(name, rend_handle, vk_layout);
+    auto vk_layout = _device_context->create_descriptor_set_layout(info);
+    auto rend_handle = _descriptor_set_layouts.allocate(name, vk_layout, info);
+    auto* rend_layout = _descriptor_set_layouts.get(rend_handle);
+    rend_layout->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Descriptor Set Layout: " + name, VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT, (uint64_t)vk_layout);
@@ -814,60 +693,49 @@ DescriptorSetLayout* VulkanRenderer::create_descriptor_set_layout(const std::str
     return rend_layout;
 }
 
-Framebuffer* VulkanRenderer::create_framebuffer(const std::string& name, const FramebufferInfo& info)
+void VulkanRenderer::create_framebuffer(const std::string& name, const FramebufferInfo& info)
 {
-    VkFramebuffer vk_framebuffer = _device_context->create_framebuffer(info);
-    auto rend_handle = _framebuffers.acquire();
-    Framebuffer* rend_framebuffer = _framebuffers.get(rend_handle);
-    rend_framebuffer = new(rend_framebuffer) VulkanFramebuffer(name, info, rend_handle, vk_framebuffer);
+    FramebufferInfo copy_info = info;
 
-#ifdef DEBUG
-    _device_context->set_debug_name("Framebuffer: " + name, VK_OBJECT_TYPE_FRAMEBUFFER, (uint64_t)vk_framebuffer);
-#endif
-
-    return rend_framebuffer;
-}
-
-Material* VulkanRenderer::create_material(const std::string& name, const MaterialInfo& info)
-{
-    std::stringstream ss;
-    ss << "Material " << name << " descriptor set";
-
-    auto* sp = info.render_pass->get_subpasses()[0];
-
-    DescriptorSetInfo ds_info{};
-    ds_info.layout = &sp->get_shader_set().get_descriptor_set_layout(DescriptorFrequency::MATERIAL);
-    ds_info.set    = DescriptorFrequency::MATERIAL;
-
-    auto* descriptor_set = static_cast<VulkanDescriptorSet*>(create_descriptor_set(ss.str(), ds_info));
-
-    if(info.albedo_texture != nullptr)
+    if(info.use_size_ratio)
     {
-        descriptor_set->add_texture_binding((int)MaterialBindingSlot::ALBEDO, info.albedo_texture);
+        get_size_by_ratio(info.size_ratio, copy_info.width, copy_info.height);
+        copy_info.depth = 1;
     }
 
-    write_descriptor_bindings(descriptor_set);
+    //if(!info.named_depth_target.empty())
+    //{
+    //    auto* depth_target = get_texture(info.named_depth_target);
+    //    copy_info.depth_target = &depth_target->get_info();
+    //}
 
-    auto rend_handle = _materials.acquire();
-    auto* material = _materials.get(rend_handle);
-    material = new(material) Material(name, info, descriptor_set, rend_handle);
-    return material;
-}
+    for(size_t fidx = 0; fidx < _frame_datas.size(); ++fidx)
+    {
+        copy_info.render_targets.clear();
 
-Mesh* VulkanRenderer::create_mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer)
-{
-    auto rend_handle = _meshes.acquire();
-    Mesh* mesh = _meshes.get(rend_handle);
-    mesh = new(mesh) Mesh(name, vertex_buffer, index_buffer, rend_handle);
-    return mesh;
+        for(size_t rtidx = 0; rtidx < copy_info.named_render_targets.size(); ++rtidx)
+        {
+            auto& rt_name = copy_info.named_render_targets[rtidx];
+            const bool is_swapchain_attachment = rt_name == C_BACKBUFFER_NAME;
+
+            auto& rt_texture_info = is_swapchain_attachment
+                ? _swapchain->get_backbuffer_texture_info() // Doesn't matter which we get -- we just need the image info
+                : _frame_datas[fidx].find_render_target(copy_info.named_render_targets[rtidx])->get_info();
+
+            copy_info.render_targets.push_back(rt_texture_info);
+        }
+
+        auto* framebuffer = _create_framebuffer(name, copy_info);
+        _frame_datas[fidx].framebuffers.push_back(framebuffer);
+    }
 }
 
 Pipeline* VulkanRenderer::create_pipeline(const std::string& name, const PipelineInfo& info)
 {
-    VkPipeline vk_pipeline = _device_context->create_pipeline(info);
-    auto rend_handle = _pipelines.acquire();
-    Pipeline* rend_pipeline = _pipelines.get(rend_handle);
-    rend_pipeline = new(rend_pipeline) VulkanPipeline(name, info, rend_handle, vk_pipeline);
+    auto vk_pipeline = _device_context->create_pipeline(info);
+    auto rend_handle = _pipelines.allocate(name, info, vk_pipeline);
+    auto* rend_pipeline = _pipelines.get(rend_handle);
+    rend_pipeline->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Pipeline: " + name, VK_OBJECT_TYPE_PIPELINE, (uint64_t)vk_pipeline);
@@ -878,10 +746,10 @@ Pipeline* VulkanRenderer::create_pipeline(const std::string& name, const Pipelin
 
 PipelineLayout* VulkanRenderer::create_pipeline_layout(const std::string& name, const PipelineLayoutInfo& info)
 {
-    VkPipelineLayout vk_pipeline_layout = _device_context->create_pipeline_layout(info);
-    auto rend_handle = _pipeline_layouts.acquire();
-    VulkanPipelineLayout* rend_pipeline_layout = _pipeline_layouts.get(rend_handle);
-    rend_pipeline_layout = new(rend_pipeline_layout) VulkanPipelineLayout(name, rend_handle, vk_pipeline_layout);
+    auto vk_pipeline_layout = _device_context->create_pipeline_layout(info);
+    auto rend_handle = _pipeline_layouts.allocate(name, vk_pipeline_layout);
+    auto* rend_pipeline_layout = _pipeline_layouts.get(rend_handle);
+    rend_pipeline_layout->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Pipeline Layout: " + name, VK_OBJECT_TYPE_PIPELINE_LAYOUT, (uint64_t)vk_pipeline_layout);
@@ -892,25 +760,38 @@ PipelineLayout* VulkanRenderer::create_pipeline_layout(const std::string& name, 
 
 RenderPass* VulkanRenderer::create_render_pass(const std::string& name, const RenderPassInfo& info)
 {
+    RenderPassInfo copy_info = info;
+
+    for(size_t attachment_idx = 0; attachment_idx < info.attachment_infos.size(); ++attachment_idx)
+    {
+        auto& attachment_info = copy_info.attachment_infos[attachment_idx];
+
+        if(attachment_info.format == rend::Format::SWAPCHAIN)
+        {
+            attachment_info.format = _swapchain->get_format();
+        }
+    }
+
     // Create render pass
-    VkRenderPass vk_render_pass = _device_context->create_render_pass(info);
-    auto rend_handle = _render_passes.acquire();
-    VulkanRenderPass* rend_render_pass = _render_passes.get(rend_handle);
-    rend_render_pass = new(rend_render_pass) VulkanRenderPass(name, info, vk_render_pass, rend_handle);
+    auto vk_render_pass = _device_context->create_render_pass(copy_info);
+    auto rend_handle = _render_passes.allocate(name, copy_info, vk_render_pass);
+    auto* rend_render_pass = _render_passes.get(rend_handle);
+    rend_render_pass->_rend_handle = rend_handle;
 
     // Create subpasses associated with this render pass
-    std::vector<SubPass*> subpasses;
-    for(int i = 0; i < info.subpasses_count; ++i)
-    {
-        std::stringstream ss;
-        ss << name << " , Subpass " << i;
+    //std::vector<SubPass*> subpasses;
+    //for(int i = 0; i < info.subpasses_count; ++i)
+    //{
+    //    std::stringstream ss;
+    //    ss << name << " , Subpass " << i;
 
-        SubPassInfo sp_info{};
-        sp_info.render_pass = rend_render_pass;
-        sp_info.subpass_index = i;
-        sp_info.shader_set = info.subpasses[i].shader_set;
-        rend_render_pass->add_subpass(ss.str(), sp_info);
-    }
+    //    SubPassInfo sp_info{};
+    //    sp_info.render_pass = rend_render_pass;
+    //    sp_info.subpass_index = i;
+    //    sp_info.shader_set = info.subpasses[i].shader_set;
+    //    SubPass*
+    //    rend_render_pass->add_subpass(ss.str(), sp_info);
+    //}
 
 #ifdef DEBUG
     _device_context->set_debug_name("Render Pass: " + name, VK_OBJECT_TYPE_RENDER_PASS, (uint64_t)vk_render_pass);
@@ -919,12 +800,28 @@ RenderPass* VulkanRenderer::create_render_pass(const std::string& name, const Re
     return rend_render_pass;
 }
 
+void VulkanRenderer::create_render_target(const std::string& name, const TextureInfo& info)
+{
+    if(info.format == rend::Format::SWAPCHAIN)
+    {
+        // Swapchain images already created
+        return;
+    }
+
+    for(size_t i = 0; i < _frame_datas.size(); ++i)
+    {
+        auto& frame = _frame_datas[i];
+        auto* render_target = create_texture(name, info);
+        frame.render_targets.push_back(render_target);
+    }
+}
+
 Shader* VulkanRenderer::create_shader(const std::string& name, const void* code, uint32_t size_bytes, ShaderStage type)
 {
-    VkShaderModule vk_shader = _device_context->create_shader(code, size_bytes);
-    auto rend_handle = _shaders.acquire();
-    VulkanShader* rend_shader = _shaders.get(rend_handle);
-    rend_shader = new(rend_shader) VulkanShader(name, size_bytes, type, rend_handle, vk_shader);
+    auto vk_shader = _device_context->create_shader(code, size_bytes);
+    auto rend_handle = _shaders.allocate(name, size_bytes, type, vk_shader);
+    auto* rend_shader = _shaders.get(rend_handle);
+    rend_shader->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Shader: " + name, VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)vk_shader);
@@ -933,74 +830,28 @@ Shader* VulkanRenderer::create_shader(const std::string& name, const void* code,
     return rend_shader;
 }
 
-ShaderSet* VulkanRenderer::create_shader_set(const std::string& name, const ShaderSetInfo& info)
-{
-    std::vector<DescriptorSetLayout*> layouts;
-    for(int i = 0; i < info.layouts.size(); ++i)
-    {
-        if(info.layouts[i] != nullptr)
-        {
-            layouts.push_back(info.layouts[i]);
-        }
-    }
-
-    PipelineLayoutInfo pl_info{};
-    pl_info.descriptor_set_layouts = layouts;
-    pl_info.push_constant_ranges = info.push_constant_ranges;
-
-    auto* pipeline_layout = create_pipeline_layout(name + " pipeline layout", pl_info);
-    auto rend_handle = _shader_sets.acquire();
-    auto* rend_shader_set = _shader_sets.get(rend_handle);
-
-    rend_shader_set = new(rend_shader_set) ShaderSet(name, info, rend_handle, pipeline_layout);
-    return rend_shader_set;
-}
-
-SubPass* VulkanRenderer::create_sub_pass(const std::string& name, const SubPassInfo& info)
-{
-    PipelineInfo pl_info{};
-
-    pl_info.shaders[0] = &info.shader_set->get_shader(ShaderIndex::SHADER_INDEX_VERTEX);
-    pl_info.shaders[1] = &info.shader_set->get_shader(ShaderIndex::SHADER_INDEX_FRAGMENT);
-    pl_info.vertex_binding_info.index = 0;
-    pl_info.vertex_binding_info.stride = 32; // TODO: Figure out how to work out vertex bindings properly
-
-    const auto& va_infos = info.shader_set->get_vertex_attribute_infos();
-    pl_info.vertex_attribute_info_count = va_infos.size();
-
-    for(size_t i = 0; i < va_infos.size(); ++i)
-    {
-        pl_info.vertex_attribute_infos[i] = va_infos[i];
-        pl_info.vertex_attribute_infos[i].binding = &pl_info.vertex_binding_info;
-    }
-
-    // TODO: Make this dynamic
-    pl_info.colour_blending_info.blend_attachments[0].blend_enabled = true;
-    pl_info.colour_blending_info.blend_attachments[0].colour_src_factor = BlendFactor::ONE;
-    pl_info.colour_blending_info.blend_attachments[0].colour_dst_factor = BlendFactor::ZERO;
-    pl_info.colour_blending_info.blend_attachments_count = 1;
-
-    pl_info.dynamic_states = DynamicState::VIEWPORT | DynamicState::SCISSOR;
-    pl_info.viewport_info_count = 1;
-    pl_info.scissor_info_count = 1;
-
-    pl_info.layout = &info.shader_set->get_pipeline_layout();
-    pl_info.render_pass = info.render_pass;
-
-    Pipeline* pipeline = create_pipeline("Pipeline: " + name, pl_info);
-    auto rend_handle = _sub_passes.acquire();
-    auto* sub_pass = _sub_passes.get(rend_handle);
-    sub_pass = new(sub_pass) SubPass(name, info, pipeline, rend_handle);
-
-    return sub_pass;
-}
-
 GPUTexture* VulkanRenderer::create_texture(const std::string& name, const TextureInfo& info)
 {
-    VulkanImageInfo vk_image_info = _device_context->create_texture(info);
-    auto rend_handle = _textures.acquire();
-    VulkanTexture* rend_texture = _textures.get(rend_handle);
-    rend_texture = new(rend_texture) VulkanTexture(name, rend_handle, info, vk_image_info); 
+    RendHandle rend_handle;
+
+    VulkanImageInfo vk_image_info;
+
+    if(info.use_size_ratio)
+    {
+        TextureInfo newinfo = info;
+        get_size_by_ratio(info.size_ratio, newinfo.width, newinfo.height);
+        newinfo.depth = 1;
+        vk_image_info = _device_context->create_texture(newinfo);
+        rend_handle = _textures.allocate(name, newinfo, vk_image_info);
+    }
+    else
+    {
+        vk_image_info = _device_context->create_texture(info);
+        rend_handle = _textures.allocate(name, info, vk_image_info);
+    }
+
+    auto* rend_texture = _textures.get(rend_handle);
+    rend_texture->_rend_handle = rend_handle;
 
 #ifdef DEBUG
     _device_context->set_debug_name("Texture: " + name, VK_OBJECT_TYPE_IMAGE, (uint64_t)vk_image_info.image);
@@ -1009,18 +860,80 @@ GPUTexture* VulkanRenderer::create_texture(const std::string& name, const Textur
     return rend_texture;
 }
 
-GPUTexture* VulkanRenderer::_register_swapchain_image(const std::string& name, const TextureInfo& info, VkImage image)
+Framebuffer* VulkanRenderer::_create_framebuffer(const std::string& name, const FramebufferInfo& info)
 {
-    VulkanImageInfo vk_image_info = _device_context->register_swapchain_image(image, vulkan_helpers::convert_format(info.format));
-    auto rend_handle = _textures.acquire(); 
-    VulkanTexture* rend_texture = _textures.get(rend_handle);
-    rend_texture = new(rend_texture) VulkanTexture(name, rend_handle, info, vk_image_info);
+    auto vk_framebuffer = _device_context->create_framebuffer(info);
+    auto rend_handle = _framebuffers.allocate(name, info, vk_framebuffer);
+    auto* rend_framebuffer = _framebuffers.get(rend_handle);
+    rend_framebuffer->_rend_handle = rend_handle;
 
 #ifdef DEBUG
-    _device_context->set_debug_name("Swapchain Image: " + name, VK_OBJECT_TYPE_IMAGE, (uint64_t)vk_image_info.image);
+    _device_context->set_debug_name("framebuffer: " + name, VK_OBJECT_TYPE_FRAMEBUFFER, (uint64_t)vk_framebuffer);
 #endif
 
-    return rend_texture;
+    return rend_framebuffer;
+}
+
+PerPassData VulkanRenderer::_create_per_pass_data(const Framebuffer& fb, const ColourClear& colour_clear, const DepthStencilClear& depth_clear, const RenderArea& render_area)
+{
+    auto& frame_data = _frame_datas[_current_frame];
+
+    PerPassData ppd =
+    {
+        .framebuffer = &fb,
+        .attachments = {},
+        .attachments_count = 0,
+        .colour_clear = colour_clear,
+        .depth_clear = depth_clear,
+        .render_area = render_area
+    };
+
+    //auto& colour_attachments = fb.get_colour_attachment_names();
+    //auto& depth_attachment = fb.get_depth_stencil_attachment_name();
+    auto& attachment_names = fb.get_attachment_names();
+
+    for(; ppd.attachments_count < attachment_names.size(); ++ppd.attachments_count)
+    {
+        auto& attachment_name = attachment_names[ppd.attachments_count];
+
+        auto* attachment = attachment_name == Renderer::C_BACKBUFFER_NAME
+            ? &_swapchain->get_backbuffer(frame_data.swapchain_acquisition->image_idx)
+            : _frame_datas[_current_frame].find_render_target(attachment_name);
+
+        ppd.attachments[ppd.attachments_count] = attachment;
+    }
+
+    //if(depth_attachment.empty())
+    //{
+    //    ppd.attachments[ppd.attachments_count++] = get_texture(depth_attachment);
+    //}
+
+    return ppd;
+}
+
+VulkanBuffer* VulkanRenderer::_create_staging_buffer(void)
+{
+    static int _staging_buffers_creation_count = 0;
+    const size_t STAGING_BUFFER_BYTES = 32 * 1080 * 1080;
+    static const BufferInfo STAGING_BUFFER_INFO{ 1, STAGING_BUFFER_BYTES, BufferUsage::TRANSFER_SRC };
+
+    VulkanBufferInfo vk_info = _device_context->create_buffer(STAGING_BUFFER_INFO, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+
+    auto buffer_handle = _staging_buffers.acquire();
+    auto* buffer = _staging_buffers.get(buffer_handle);
+    buffer = new(buffer) VulkanBuffer("staging buffer " + std::to_string(++_staging_buffers_creation_count), STAGING_BUFFER_INFO, vk_info);
+    buffer->_rend_handle = buffer_handle;
+
+    return buffer;
+}
+
+void VulkanRenderer::_destroy_staging_buffer(VulkanBuffer* buffer)
+{
+    auto& vk_buffer_info = buffer->vk_buffer_info();
+    _device_context->destroy_buffer(vk_buffer_info);
+
+    auto handle = buffer->_rend_handle;
+    _staging_buffers.release(handle);
 }
 
 void VulkanRenderer::destroy_buffer(GPUBuffer* buffer)
@@ -1029,7 +942,7 @@ void VulkanRenderer::destroy_buffer(GPUBuffer* buffer)
     auto& buffer_info = vulkan_buffer->vk_buffer_info();
     auto rend_handle = vulkan_buffer->rend_handle();
     _device_context->destroy_buffer(buffer_info);
-    _buffers.release(rend_handle);
+    _buffers.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_descriptor_set(DescriptorSet* set) 
@@ -1037,7 +950,7 @@ void VulkanRenderer::destroy_descriptor_set(DescriptorSet* set)
     auto* vulkan_set = static_cast<VulkanDescriptorSet*>(set);
     auto rend_handle = vulkan_set->rend_handle();
     _device_context->destroy_descriptor_set(vulkan_set->vk_set_info());
-    _descriptor_sets.release(rend_handle);
+    _descriptor_sets.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_descriptor_set_layout(DescriptorSetLayout* layout) 
@@ -1045,7 +958,7 @@ void VulkanRenderer::destroy_descriptor_set_layout(DescriptorSetLayout* layout)
     auto* vulkan_layout = static_cast<VulkanDescriptorSetLayout*>(layout);
     auto rend_handle = vulkan_layout->rend_handle();
     _device_context->destroy_descriptor_set_layout(vulkan_layout->vk_handle());
-    _descriptor_set_layouts.release(rend_handle);
+    _descriptor_set_layouts.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_framebuffer(Framebuffer* framebuffer)
@@ -1053,21 +966,7 @@ void VulkanRenderer::destroy_framebuffer(Framebuffer* framebuffer)
     auto* vulkan_framebuffer = static_cast<VulkanFramebuffer*>(framebuffer);
     auto rend_handle = vulkan_framebuffer->rend_handle();
     _device_context->destroy_framebuffer(vulkan_framebuffer->vk_handle());
-    _framebuffers.release(rend_handle);
-}
-
-void VulkanRenderer::destroy_material(Material* material)
-{
-    auto rend_handle = material->rend_handle();
-    delete material;
-    _materials.release(rend_handle);
-}
-
-void VulkanRenderer::destroy_mesh(Mesh* mesh)
-{
-    auto rend_handle = mesh->rend_handle();
-    delete mesh;
-    _meshes.release(rend_handle);
+    _framebuffers.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_pipeline(Pipeline* pipeline)
@@ -1075,7 +974,7 @@ void VulkanRenderer::destroy_pipeline(Pipeline* pipeline)
     auto* vulkan_pipeline = static_cast<VulkanPipeline*>(pipeline);
     auto rend_handle = pipeline->rend_handle();
     _device_context->destroy_pipeline(vulkan_pipeline->vk_handle());
-    _pipelines.release(rend_handle);
+    _pipelines.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_pipeline_layout(PipelineLayout* pipeline_layout)
@@ -1083,7 +982,7 @@ void VulkanRenderer::destroy_pipeline_layout(PipelineLayout* pipeline_layout)
     auto* vulkan_pipeline_layout = static_cast<VulkanPipelineLayout*>(pipeline_layout);
     auto rend_handle = pipeline_layout->rend_handle();
     _device_context->destroy_pipeline_layout(vulkan_pipeline_layout->vk_handle());
-    _pipeline_layouts.release(rend_handle);
+    _pipeline_layouts.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_render_pass(RenderPass* render_pass)
@@ -1091,7 +990,7 @@ void VulkanRenderer::destroy_render_pass(RenderPass* render_pass)
     auto* vulkan_render_pass = static_cast<VulkanRenderPass*>(render_pass);
     auto rend_handle = render_pass->rend_handle();
     _device_context->destroy_render_pass(vulkan_render_pass->vk_handle());
-    _render_passes.release(rend_handle);
+    _render_passes.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_shader(Shader* shader)
@@ -1099,21 +998,7 @@ void VulkanRenderer::destroy_shader(Shader* shader)
     auto* vulkan_shader = static_cast<VulkanShader*>(shader);
     auto rend_handle = shader->rend_handle();
     _device_context->destroy_shader(vulkan_shader->vk_handle());
-    _shaders.release(rend_handle);
-}
-
-void VulkanRenderer::destroy_shader_set(ShaderSet* shader_set)
-{
-    auto rend_handle = shader_set->rend_handle();
-    delete shader_set;
-    _shader_sets.release(rend_handle);
-}
-
-void VulkanRenderer::destroy_sub_pass(SubPass* sub_pass)
-{
-    auto rend_handle = sub_pass->rend_handle();
-    delete sub_pass;
-    _sub_passes.release(rend_handle);
+    _shaders.deallocate(rend_handle);
 }
 
 void VulkanRenderer::destroy_texture(GPUTexture* texture)
@@ -1123,20 +1008,70 @@ void VulkanRenderer::destroy_texture(GPUTexture* texture)
     const auto& vk_image_info = vulkan_texture->vk_image_info();
     if(vk_image_info.is_swapchain)
     {
-        // Must unregister swapchain images, cannot destroy them in the normal manner
-        _unregister_swapchain_image(texture);
+        // Swapchain manages backbuffer textures
         return;
     }
 
     auto rend_handle = vulkan_texture->rend_handle();
-    _device_context->destroy_texture(vulkan_texture->vk_image_info());
-    _textures.release(rend_handle);
+    _device_context->destroy_texture(vk_image_info);
+    _textures.deallocate(rend_handle);
 }
 
-void VulkanRenderer::_unregister_swapchain_image(GPUTexture* texture)
+void VulkanRenderer::_resize(void)
 {
-    auto* vulkan_texture = static_cast<VulkanTexture*>(texture);
-    auto rend_handle = vulkan_texture->rend_handle();
-    _device_context->unregister_swapchain_image(vulkan_texture->vk_image_info());
-    _textures.release(rend_handle);
+#if DEBUG
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Resize");
+#endif
+
+    _device_context->get_device()->wait_idle();
+    _swapchain->recreate();
+
+    // Register new swapchain images
+    //std::vector<VulkanTexture*> backbuffer_textures;
+    //auto& backbuffer_images = _swapchain->get_back_buffer_textures();
+    //for(size_t idx = 0; idx < backbuffer_images.size(); ++idx)
+    //{
+    //    backbuffer_textures.push_back(_register_swapchain_image("backbuffer " + idx, _backbuffer_textures[0]->get_info(), backbuffer_images[idx]));
+    //}
+
+    // Swap newly registered swapchain textures with old ones
+    //_backbuffer_textures.swap(backbuffer_textures);
+
+    // Unregister all the old swapchain textures
+    //for(auto* backbuffer_texture : backbuffer_textures)
+    //{
+    //    _unregister_swapchain_image(backbuffer_texture);
+    //}
+
+    // Resize the frame resources
+    for(uint32_t fidx = 0; fidx < _FRAMES_IN_FLIGHT; ++fidx)
+    {
+        auto& frame = _frame_datas[fidx];
+        std::vector<GPUTexture*> render_targets;
+        std::vector<Framebuffer*> framebuffers;
+        render_targets.reserve(frame.render_targets.size());
+        framebuffers.reserve(frame.framebuffers.size());
+
+        for(size_t rtidx = 0; rtidx < frame.render_targets.size(); ++rtidx)
+        {
+            std::string name = frame.render_targets[rtidx]->name();
+            TextureInfo texture_info = frame.render_targets[rtidx]->get_info();
+            destroy_texture(frame.render_targets[rtidx]);
+            render_targets.push_back(create_texture(name, texture_info));
+        }
+
+        for(size_t fbidx = 0; fbidx < frame.framebuffers.size(); ++fbidx)
+        {
+            std::string name = frame.framebuffers[fbidx]->name();
+            FramebufferInfo fb_info = frame.framebuffers[fbidx]->get_info();
+            destroy_framebuffer(frame.framebuffers[fbidx]);
+            get_size_by_ratio(fb_info.size_ratio, fb_info.width, fb_info.height);
+            framebuffers.push_back(_create_framebuffer(name, fb_info));
+        }
+
+        frame.render_targets.swap(render_targets);
+        frame.framebuffers.swap(framebuffers);
+    }
+
+    _need_resize = false;
 }

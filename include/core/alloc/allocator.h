@@ -3,16 +3,19 @@
 
 #include <utility>
 
-#include "core/containers/data_array_base.h"
-
 namespace rend
 {
+
+class Renderer;
+class VulkanBuffer;
+class VulkanDeviceContext;
+class VulkanRenderer;
+struct BufferInfo;
 
 template<class T>
 class Allocator
 {
     public:
-
         template<typename... Args>
         [[nodiscard]]
         T* allocate(Args&&... args)

@@ -2,9 +2,9 @@
 
 using namespace rend;
 
-VulkanPipelineLayout::VulkanPipelineLayout(const std::string& name, RendHandle rend_handle, VkPipelineLayout vk_handle)
+VulkanPipelineLayout::VulkanPipelineLayout(const std::string& name, VkPipelineLayout vk_handle)
     :
-        PipelineLayout(name, rend_handle),
+        PipelineLayout(name),
         _vk_handle(vk_handle)
 {
 }

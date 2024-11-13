@@ -11,7 +11,7 @@ namespace rend
 class Shader : public GPUResource, public RendObject
 {
 public:
-    Shader(const std::string& name, size_t size_bytes, ShaderStage type, RendHandle rend_handle);
+    Shader(const std::string& name, size_t size_bytes, ShaderStage type);
     virtual ~Shader(void) = default;
     Shader(const Shader&)            = delete;
     Shader(Shader&&)                 = delete;

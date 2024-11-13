@@ -4,10 +4,9 @@
 
 using namespace rend;
 
-Mesh::Mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer, RendHandle rend_handle)
+Mesh::Mesh(const std::string& name, GPUBuffer* vertex_buffer, GPUBuffer* index_buffer)
     :
         GPUResource(name),
-        RendObject(rend_handle),
         _vertex_buffer(vertex_buffer),
         _index_buffer(index_buffer)
 {

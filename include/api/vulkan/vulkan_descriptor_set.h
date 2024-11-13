@@ -10,13 +10,17 @@
 namespace rend
 {
 
+class DescriptorSetLayout;
+
 class VulkanDescriptorSet : public DescriptorSet
 {
 public:
-    VulkanDescriptorSet(const std::string& name, const DescriptorSetInfo& info, RendHandle rend_handle, const VulkanDescriptorSetInfo& vk_set_info);
+    VulkanDescriptorSet(const std::string& name, const DescriptorSetLayout& layout, const VulkanDescriptorSetInfo& vk_set_info);
     ~VulkanDescriptorSet(void) = default;
 
     const VulkanDescriptorSetInfo& vk_set_info(void) const;
+
+    void write_bindings(void) const override;
 
 private:
     VulkanDescriptorSetInfo _vk_set_info{};

@@ -9,27 +9,33 @@
 #include "api/vulkan/vulkan_render_pass.h"
 #include "api/vulkan/vulkan_texture.h"
 #include "core/descriptor_set.h"
+#include "core/draw_item.h"
 #include "core/framebuffer.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
+#include "core/logging/log_defs.h"
+#include "core/logging/log_manager.h"
 #include "core/pipeline.h"
 #include "core/rend_defs.h"
 #include "core/rend_service.h"
 #include "core/render_pass.h"
+#include "core/logging/log_defs.h"
+#include "core/logging/log_manager.h"
 
 #include <iostream>
 
 using namespace rend;
 
-VulkanCommandBuffer::VulkanCommandBuffer(VkCommandBuffer vk_handle)
+VulkanCommandBuffer::VulkanCommandBuffer(const std::string& name, VkCommandBuffer vk_handle)
     :
+        CommandBuffer(name),
         _vk_handle(vk_handle)
 {
 }
 
-bool VulkanCommandBuffer::recorded(void) const
+CommandBufferState VulkanCommandBuffer::get_state(void) const
 {
-    return _recorded;
+    return _state;
 }
 
 VkCommandBuffer VulkanCommandBuffer::vk_handle(void) const
@@ -52,22 +58,21 @@ void VulkanCommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, con
         vk_descriptor_sets[i] = desc_set_info.set;
     }
 
-    uint32_t first_set = descriptor_sets.front()->set();
+    uint32_t first_set = descriptor_sets.front()->get_index();
 
     vkCmdBindDescriptorSets(_vk_handle, vk_bind_point, vk_pipeline_layout, first_set, descriptor_sets.size(), vk_descriptor_sets, 0, nullptr);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline)
 {
     VkPipeline vk_pipeline = static_cast<const VulkanPipeline&>(pipeline).vk_handle();
     vkCmdBindPipeline(_vk_handle, vulkan_helpers::convert_pipeline_bind_point(bind_point), vk_pipeline);
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::bind_vertex_buffer(const GPUBuffer& vertex_buffer)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Binding vertex buffer: " + vertex_buffer.name());
+
     //TODO: Update to bind more than 1 buffer
     //TODO: Handle non-0 offsets
     //TODO: Handle non-0 first binding
@@ -75,19 +80,17 @@ void VulkanCommandBuffer::bind_vertex_buffer(const GPUBuffer& vertex_buffer)
     auto& vertex_buffer_info = static_cast<const VulkanBuffer&>(vertex_buffer).vk_buffer_info();
 
     vkCmdBindVertexBuffers(_vk_handle, 0, 1, &vertex_buffer_info.buffer, &offset);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::bind_index_buffer(const GPUBuffer& index_buffer)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Binding index buffer: " + index_buffer.name());
+
     //TODO: Handle non-0 offsets
     VkDeviceSize offset = 0;
     auto& index_buffer_info = static_cast<const VulkanBuffer&>(index_buffer).vk_buffer_info();
 
     vkCmdBindIndexBuffer(_vk_handle, index_buffer_info.buffer, offset, VK_INDEX_TYPE_UINT32);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::blit(const GPUTexture& src, const GPUTexture& dst)
@@ -120,8 +123,6 @@ void VulkanCommandBuffer::blit(const GPUTexture& src, const GPUTexture& dst)
         &b,
         VK_FILTER_LINEAR
     );
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst, const BufferBufferCopyInfo& info)
@@ -137,8 +138,6 @@ void VulkanCommandBuffer::copy(const GPUBuffer& src, const GPUBuffer& dst, const
     auto& dst_buffer_info = static_cast<const VulkanBuffer&>(dst).vk_buffer_info();
 
     vkCmdCopyBuffer(_vk_handle, src_buffer_info.buffer, dst_buffer_info.buffer, 1, &copy);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst, const BufferImageCopyInfo& info)
@@ -170,7 +169,6 @@ void VulkanCommandBuffer::copy(const GPUBuffer& src, const GPUTexture& dst, cons
         1,
         &copy
     );
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::copy(const GPUTexture& src, const GPUTexture& dst, const ImageImageCopyInfo& info)
@@ -188,22 +186,18 @@ void VulkanCommandBuffer::copy(const GPUTexture& src, const GPUTexture& dst, con
         1,
         &copy
     );
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::draw(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Draw");
     vkCmdDraw(_vk_handle, vertex_count, instance_count, first_vertex, first_instance);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::draw_indexed(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Draw indexed");
     vkCmdDrawIndexed(_vk_handle, index_count, instance_count, first_index, vertex_offset, first_instance);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::push_constant(const PipelineLayout& layout, ShaderStages stages, uint32_t offset, size_t size, const void* data)
@@ -286,13 +280,13 @@ void VulkanCommandBuffer::transition_image(
     }
 
     pipeline_barrier(barrier_info);
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::reset(void)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Reset");
     vkResetCommandBuffer(_vk_handle, 0);
-    _recorded = false;
+    _state = CommandBufferState::INITIAL;
 }
 
 void VulkanCommandBuffer::set_viewport(const std::vector<ViewportInfo>& viewports)
@@ -309,8 +303,6 @@ void VulkanCommandBuffer::set_viewport(const std::vector<ViewportInfo>& viewport
     }
 
     vkCmdSetViewport(_vk_handle, 0, viewports.size(), &vk_viewports[0]);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::set_scissor(const std::vector<ViewportInfo>& scissors)
@@ -325,12 +317,17 @@ void VulkanCommandBuffer::set_scissor(const std::vector<ViewportInfo>& scissors)
     }
 
     vkCmdSetScissor(_vk_handle, 0, scissors.size(), &vk_scissors[0]);
-
-    _recorded = true;
 }
 
-void VulkanCommandBuffer::begin(void)
+bool VulkanCommandBuffer::begin(void)
 {
+    if(_state != CommandBufferState::INITIAL)
+    {
+        return false;
+    }
+
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | Begin");
+
     VkCommandBufferBeginInfo info =
     {
         .sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -341,52 +338,64 @@ void VulkanCommandBuffer::begin(void)
 
     vkBeginCommandBuffer(_vk_handle, &info);
 
-    _recorded = true;
+    _state = CommandBufferState::RECORDING;
+
+    return true;
 }
 
 void VulkanCommandBuffer::end(void)
 {
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "COMMAND BUFFER | " + name() + " | End");
     vkEndCommandBuffer(_vk_handle);
-    _recorded = true;
+    _state = CommandBufferState::EXECUTABLE;
 }
 
-void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const Framebuffer& framebuffer, const RenderArea render_area, const ColourClear clear_colour, const DepthStencilClear clear_depth_stencil)
+void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data)
 {
     VkClearValue vk_clear_values[2];
-    vk_clear_values[0].color        = { clear_colour.r, clear_colour.g, clear_colour.b, clear_colour.a };
-    vk_clear_values[1].depthStencil = { clear_depth_stencil.depth, clear_depth_stencil.stencil };
+    vk_clear_values[0].color        = { per_pass_data.colour_clear.r, per_pass_data.colour_clear.g, per_pass_data.colour_clear.b, per_pass_data.colour_clear.a };
+    vk_clear_values[1].depthStencil = { per_pass_data.depth_clear.depth, per_pass_data.depth_clear.stencil };
 
     VkRect2D vk_render_area{};
-    vk_render_area.extent.width  = render_area.w;
-    vk_render_area.extent.height = render_area.h;
+    vk_render_area.extent.width  = per_pass_data.render_area.w;
+    vk_render_area.extent.height = per_pass_data.render_area.h;
+
+    VkImageView vk_image_views[rend::constants::max_framebuffer_attachments];
+    for(size_t i = 0; i < per_pass_data.attachments_count; ++i)
+    {
+        auto& image_info = static_cast<const VulkanTexture*>(per_pass_data.attachments[i])->vk_image_info();
+        vk_image_views[i] = image_info.view;
+    }
+
+    VkRenderPassAttachmentBeginInfo attachment_begin_info =
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO,
+        .pNext = nullptr,
+        .attachmentCount = per_pass_data.attachments_count,
+        .pAttachments = vk_image_views
+    };
 
     // TODO Get clear values from Framebuffer per attachment
     VkRenderPassBeginInfo vk_render_pass_begin_info{};
     vk_render_pass_begin_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    vk_render_pass_begin_info.pNext           = nullptr;
+    vk_render_pass_begin_info.pNext           = &attachment_begin_info;
     vk_render_pass_begin_info.renderPass      = static_cast<const VulkanRenderPass&>(render_pass).vk_handle();
-    vk_render_pass_begin_info.framebuffer     = static_cast<const VulkanFramebuffer&>(framebuffer).vk_handle();
+    vk_render_pass_begin_info.framebuffer     = static_cast<const VulkanFramebuffer*>(per_pass_data.framebuffer)->vk_handle();
     vk_render_pass_begin_info.renderArea      = vk_render_area;
     vk_render_pass_begin_info.clearValueCount = 2;
     vk_render_pass_begin_info.pClearValues    = vk_clear_values;
 
     vkCmdBeginRenderPass(_vk_handle, &vk_render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::end_render_pass(void)
 {
     vkCmdEndRenderPass(_vk_handle);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::next_subpass(void)
 {
     vkCmdNextSubpass(_vk_handle, VK_SUBPASS_CONTENTS_INLINE);
-
-    _recorded = true;
 }
 
 void VulkanCommandBuffer::pipeline_barrier(const PipelineBarrierInfo& info)
@@ -424,6 +433,4 @@ void VulkanCommandBuffer::pipeline_barrier(const PipelineBarrierInfo& info)
        0, nullptr,
        info.image_memory_barrier_count, vk_image_memory_barriers
     );
-
-    _recorded = true;
 }

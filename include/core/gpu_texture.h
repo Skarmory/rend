@@ -2,34 +2,23 @@
 #define REND_CORE_GPU_TEXTURE_H
 
 #include "core/gpu_resource.h"
+#include "core/i_gpu_loadable.h"
 #include "core/rend_defs.h"
 #include "core/rend_object.h"
+#include "core/texture_info.h"
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace rend
 {
 
-struct TextureInfo
-{
-    uint32_t width{ 0 };
-    uint32_t height{ 0 };
-    uint32_t depth{ 0 };
-    SizeRatio size_ratio{}; // Overrides width, height, sets to some ratio of the full screen
-    uint32_t mips{ 0 };
-    uint32_t layers{ 0 };
-    Format format{ Format::R8G8B8A8 };
-    ImageLayout layout{ ImageLayout::UNDEFINED };
-    MSAASamples samples{ MSAASamples::MSAA_1X };
-    ImageUsage usage{ ImageUsage::NONE };
-};
-
-class GPUTexture : public GPUResource, public RendObject
+class GPUTexture : public GPUResource, public RendObject, public IGPULoadable
 {
 public:
-    GPUTexture(const std::string& name, const TextureInfo& info, RendHandle rend_handle);
-    virtual ~GPUTexture(void) = default;
+    GPUTexture(const std::string& name, const TextureInfo& info);
+    virtual ~GPUTexture(void);
 
     GPUTexture(const GPUTexture&)            = delete;
     GPUTexture(GPUTexture&&)                 = delete;
@@ -47,8 +36,17 @@ public:
     MSAASamples samples(void) const;
     ImageUsage  usage(void) const;
 
+    const TextureInfo& get_info(void) const;
+
+    void* data(void);
+    uint32_t bytes(void) const;
+
+    void store_data(char* data, size_t size_bytes) override;
+    void load_to_gpu(void) override;
+
 protected:
-    TextureInfo     _info{};
+    TextureInfo _info{};
+    char* _data{ nullptr };
 };
 
 }

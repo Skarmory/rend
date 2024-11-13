@@ -23,6 +23,8 @@ public:
 
     void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
     void create_surface(const Window& window);
+    VkDebugUtilsMessengerEXT create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info);
+    void destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger);
 
     VkInstance get_handle(void) const;
     VkSurfaceKHR surface(void) const;

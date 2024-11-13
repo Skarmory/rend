@@ -1,15 +1,16 @@
 #ifndef REND_DEFS_H
 #define REND_DEFS_H
 
-#include "rend_constants.h"
+#include "core/bit_field.h"
+#include "core/rend_constants.h"
 
 #include <limits>
 #include <cstdint>
+#include <string>
 #include <type_traits>
 #include <vector>
 
 #define UU(x) ((void)x)
-#define BIT(x) (static_cast<uint32_t>(1 << x))
 
 namespace rend
 {
@@ -89,6 +90,12 @@ enum class SizeRatio
     HALF
 };
 
+const std::string SizeRatioNames[] =
+{
+    "FULL",
+    "HALF"
+};
+
 enum class Format
 {
     R8G8B8A8,
@@ -100,6 +107,17 @@ enum class Format
     SWAPCHAIN
 };
 
+const std::string FormatNames[] =
+{
+    "R8G8B8A8",
+    "B8G8R8A8",
+    "R16G16B16A16_SFLOAT",
+    "R32G32B32_SFLOAT",
+    "R32G32_SFLOAT",
+    "D24_S8",
+    "SWAPCHAIN"
+};
+
 enum class MSAASamples
 {
     MSAA_1X,
@@ -109,6 +127,17 @@ enum class MSAASamples
     MSAA_16X,
     MSAA_32X,
     MSAA_64X
+};
+
+const std::string MSAASamplesNames[] =
+{
+    "MSAA_1X",
+    "MSAA_2X",
+    "MSAA_4X",
+    "MSAA_8X",
+    "MSAA_16X",
+    "MSAA_32X",
+    "MSAA_64X"
 };
 
 enum ShaderStage
@@ -143,10 +172,23 @@ enum class LoadOp
     DONT_CARE
 };
 
+const std::string LoadOpNames[] =
+{
+    "LOAD",
+    "CLEAR",
+    "DONT_CARE"
+};
+
 enum class StoreOp
 {
     STORE,
     DONT_CARE
+};
+
+const std::string StoreOpNames[] =
+{
+    "STORE",
+    "DONT_CARE"
 };
 
 enum class ImageLayout
@@ -159,6 +201,18 @@ enum class ImageLayout
     TRANSFER_SRC,
     TRANSFER_DST,
     PRESENT
+};
+
+const std::string ImageLayoutNames[] =
+{
+    "UNDEFINED",
+    "GENERAL",
+    "COLOUR_ATTACHMENT",
+    "DEPTH_STENCIL_ATTACHMENT",
+    "SHADER_READ_ONLY",
+    "TRANSFER_SRC",
+    "TRANSFER_DST",
+    "PRESENT"
 };
 
 enum PipelineStage
@@ -512,18 +566,19 @@ struct PushConstantRange
     uint32_t     size{ 0 };
 };
 
+struct VertexAttributeInfo
+{
+    uint32_t     location{ 0 };
+    uint32_t     size{ 0 };
+    uint32_t     align{ 0 };
+    rend::Format format{ rend::Format::R32G32B32_SFLOAT };
+};
+
 struct VertexBindingInfo
 {
     uint32_t index{ 0 };
     uint32_t stride{ 0 };
-};
-
-struct VertexAttributeInfo
-{
-    uint32_t            location{ 0 };
-    uint32_t            offset{ 0 };
-    VertexBindingInfo*  binding{ nullptr };
-    rend::Format        format{ rend::Format::R32G32B32_SFLOAT };
+    std::vector<VertexAttributeInfo> attributes;
 };
 
 struct ViewportInfo
@@ -589,7 +644,7 @@ struct DepthStencilInfo
 struct ColourBlendAttachment
 {
     bool             blend_enabled{ false };
-    ColourComponents colour_write_mask{ COLOUR_COMPONENT_R | COLOUR_COMPONENT_G | COLOUR_COMPONENT_B | COLOUR_COMPONENT_R };
+    ColourComponents colour_write_mask{ COLOUR_COMPONENT_R | COLOUR_COMPONENT_G | COLOUR_COMPONENT_B | COLOUR_COMPONENT_A };
     BlendFactor      colour_src_factor{ BlendFactor::ONE };
     BlendFactor      colour_dst_factor{ BlendFactor::ZERO };
     BlendOp          colour_blend_op{ BlendOp::ADD };

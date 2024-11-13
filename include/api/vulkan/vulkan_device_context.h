@@ -3,6 +3,8 @@
 
 #include "core/rend_defs.h"
 #include "core/containers/data_array.h"
+#include "api/vulkan/device_features.h"
+#include "api/vulkan/queue_family.h"
 #include "api/vulkan/vulkan_buffer_info.h"
 #include "api/vulkan/vulkan_descriptor_set_info.h"
 #include "api/vulkan/vulkan_image_info.h"
@@ -15,10 +17,13 @@ namespace rend
 {
 
 class DescriptorSet;
+class Fence;
 class GPUBuffer;
 class GPUTexture;
 class LogicalDevice;
 class PhysicalDevice;
+class Semaphore;
+class VulkanCommandBuffer;
 class VulkanInstance;
 class Window;
 struct BufferInfo;
@@ -34,7 +39,7 @@ struct VulkanInitInfo;
 class VulkanDeviceContext
 {
 public:
-    VulkanDeviceContext(const VulkanInitInfo& rend_info, const Window& window);
+    VulkanDeviceContext(VulkanInitInfo& rend_info, const Window& window);
     ~VulkanDeviceContext(void);
     VulkanDeviceContext(const VulkanDeviceContext&)            = delete;
     VulkanDeviceContext(VulkanDeviceContext&&)                 = delete;
@@ -84,12 +89,13 @@ public:
     void  unmap_buffer_memory(GPUBuffer& buffer);
     void* map_image_memory(GPUTexture& texture, size_t bytes);
     void  unmap_image_memory(GPUTexture& texture);
+    void queue_submit(const VulkanCommandBuffer& cmd, QueueType queue, const std::vector<Semaphore*>& wait_for_semaphores, const std::vector<Semaphore*>& signal_semaphores, const Fence* signal_fence);
 
     void set_debug_name(const std::string& name, VkObjectType type, uint64_t handle);
 
 private:
-    PhysicalDevice* _find_physical_device(const VkPhysicalDeviceFeatures& features);
-
+    static VkBool32 _validation_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT types, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void* userdata);
+    PhysicalDevice* _find_physical_device(const std::vector<DeviceFeature>& features);
     VkImageView  _create_image_view(VkImage image, VkFormat format, VkImageViewType type, VkImageAspectFlags aspect, uint32_t mips, uint32_t layers);
     VkSampler    _create_sampler(void);
 
@@ -98,6 +104,7 @@ private:
     VulkanInstance*              _vulkan_instance{ nullptr };
     LogicalDevice*               _logical_device{ nullptr };
     PhysicalDevice*              _chosen_gpu{ nullptr };
+    VkDebugUtilsMessengerEXT     _validation_messenger{ VK_NULL_HANDLE };
 };
 
 }

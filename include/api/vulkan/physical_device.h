@@ -1,6 +1,7 @@
 #ifndef REND_PHYSICAL_DEVICE_H
 #define REND_PHYSICAL_DEVICE_H
 
+#include "api/vulkan/device_features.h"
 #include "api/vulkan/queue_family.h"
 
 #include <vulkan.h>
@@ -23,7 +24,7 @@ public:
     PhysicalDevice& operator=(const PhysicalDevice&) = delete;
     PhysicalDevice& operator=(PhysicalDevice&&)      = delete;
 
-    LogicalDevice* create_logical_device(const VkQueueFlags queue_flags);
+    LogicalDevice* create_logical_device(const VkQueueFlags queue_flags, const std::vector<DeviceFeature>& desired_features);
 
     uint32_t                                get_index(void) const;
     VkPhysicalDevice                        get_handle(void) const;
@@ -32,7 +33,7 @@ public:
     VkSurfaceCapabilitiesKHR                get_surface_capabilities(const VulkanInstance& vk_instance) const;
     const VkPhysicalDeviceMemoryProperties& get_memory_properties(void) const;
 
-    bool has_features(const VkPhysicalDeviceFeatures& features) const;
+    bool has_features(const std::vector<DeviceFeature>& features) const;
     bool has_queues(VkQueueFlags queue_flags) const;
 
 private:
@@ -44,7 +45,6 @@ private:
     int32_t                          _physical_device_index{ -1 };
     VkPhysicalDevice                 _vk_physical_device{ VK_NULL_HANDLE };
     VkPhysicalDeviceProperties       _vk_physical_device_properties{};
-    VkPhysicalDeviceFeatures         _vk_physical_device_features{};
     VkPhysicalDeviceMemoryProperties _vk_physical_device_memory_properties{};
 
     std::vector<VkSurfaceFormatKHR>  _vk_surface_formats;

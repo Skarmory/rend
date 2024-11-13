@@ -1,6 +1,7 @@
 #ifndef REND_CORE_DESCRIPTOR_SET_H
 #define REND_CORE_DESCRIPTOR_SET_H
 
+#include "core/descriptor_frequency.h"
 #include "core/descriptor_set_binding.h"
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
@@ -15,31 +16,24 @@ class DescriptorSetLayout;
 class GPUBuffer;
 class GPUTexture;
 
-struct DescriptorSetInfo
-{
-    const DescriptorSetLayout* layout{ nullptr };
-    uint32_t                   set{ 0 };
-};
-
 class DescriptorSet : public GPUResource, public RendObject
 {
-public:
-    DescriptorSet(const std::string& name, const DescriptorSetInfo& info, RendHandle rend_handle);
+public /*methods*/:
+    DescriptorSet(const std::string& name, const DescriptorSetLayout& info);
     virtual ~DescriptorSet(void) = default;
     DescriptorSet(const DescriptorSet&)            = delete;
     DescriptorSet(DescriptorSet&&)                 = delete;
     DescriptorSet& operator=(const DescriptorSet&) = delete;
     DescriptorSet& operator=(DescriptorSet&&)      = delete;
 
-    void add_uniform_buffer_binding(uint32_t slot, GPUBuffer* buffer);
-    void add_texture_binding(uint32_t slot, GPUTexture* texture);
+    DescriptorFrequency                      get_index(void) const;
+    const std::vector<DescriptorSetBinding>& get_bindings(void) const;
 
-    uint32_t                                 set(void) const;
-    const std::vector<DescriptorSetBinding>& bindings(void) const;
+    void bind_resource(const DescriptorSetBinding& descriptor);
+    virtual void write_bindings(void) const = 0;
 
-private:
-    uint32_t                          _set{ 0 };
-    const DescriptorSetLayout*        _layout{ nullptr };
+private /*variables*/:
+    const DescriptorSetLayout&        _layout;
     std::vector<DescriptorSetBinding> _bindings;
 };
 

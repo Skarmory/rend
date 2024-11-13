@@ -2,9 +2,9 @@
 
 using namespace rend;
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const std::string& name, RendHandle rend_handle, VkDescriptorSetLayout vk_handle)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const std::string& name, VkDescriptorSetLayout vk_handle, const DescriptorSetLayoutInfo& info)
     :
-        DescriptorSetLayout(name, rend_handle),
+        DescriptorSetLayout(name, info),
         _vk_handle(vk_handle)
 {
 }

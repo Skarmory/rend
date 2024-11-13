@@ -2,9 +2,9 @@
 
 using namespace rend;
 
-VulkanBuffer::VulkanBuffer(const std::string& name, RendHandle rend_handle, const BufferInfo& info, const VulkanBufferInfo& vk_buffer_info)
+VulkanBuffer::VulkanBuffer(const std::string& name, const BufferInfo& info, const VulkanBufferInfo& vk_buffer_info)
     :
-        GPUBuffer(name, rend_handle, info),
+        GPUBuffer(name, info),
         _vk_buffer_info(vk_buffer_info)
 {
 }

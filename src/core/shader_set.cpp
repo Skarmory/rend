@@ -2,10 +2,9 @@
 
 using namespace rend;
 
-ShaderSet::ShaderSet(const std::string& name, const ShaderSetInfo& info, RendHandle rend_handle, PipelineLayout* layout)
+ShaderSet::ShaderSet(const std::string& name, const ShaderSetInfo& info, PipelineLayout* layout)
     :
         GPUResource(name),
-        RendObject(rend_handle),
         _info(info),
         _pipeline_layout(layout)
 {
@@ -15,14 +14,9 @@ ShaderSet::~ShaderSet(void)
 {
 }
 
-const Shader& ShaderSet::get_shader(ShaderIndex index) const
+const Shader* ShaderSet::get_shader(ShaderIndex index) const
 {
-    return *_info.shaders[index];
-}
-
-const std::vector<VertexAttributeInfo>& ShaderSet::get_vertex_attribute_infos(void) const
-{
-    return _info.vertex_attribute_infos;
+    return _info.shaders[index];
 }
 
 const PipelineLayout& ShaderSet::get_pipeline_layout(void) const
@@ -33,4 +27,9 @@ const PipelineLayout& ShaderSet::get_pipeline_layout(void) const
 const DescriptorSetLayout& ShaderSet::get_descriptor_set_layout(DescriptorFrequency freq) const
 {
     return *_info.layouts[freq];
+}
+
+const std::vector<VertexBindingInfo>& ShaderSet::get_vertex_bindings(void) const
+{
+    return _info.binding_info;
 }

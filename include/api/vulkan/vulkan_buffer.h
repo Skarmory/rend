@@ -12,7 +12,7 @@ struct VulkanBufferInfo;
 class VulkanBuffer : public GPUBuffer
 {
     public:
-        VulkanBuffer(const std::string& name, RendHandle rend_handle, const BufferInfo& info, const VulkanBufferInfo& vk_buffer_info);
+        VulkanBuffer(const std::string& name, const BufferInfo& info, const VulkanBufferInfo& vk_buffer_info);
         ~VulkanBuffer(void) = default;
 
         const VulkanBufferInfo& vk_buffer_info(void) const;

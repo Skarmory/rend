@@ -96,8 +96,8 @@ public:
         return &static_cast<DataItemType*>(_data)[_get_idx(handle)];
     }
 
-    DataArrayIterator<DataItemType> begin(void) { return DataArrayIterator<DataItemType>(*this, 0); }
-    DataArrayIterator<DataItemType> end(void)   { return DataArrayIterator<DataItemType>(*this, _count); }
+    DataArrayIterator<DataItemType> begin(void) const { return DataArrayIterator<DataItemType>(*this, 0); }
+    DataArrayIterator<DataItemType> end(void) const { return DataArrayIterator<DataItemType>(*this, _count); }
 
     DataArrayConstIterator<DataItemType> cbegin(void) const { return DataArrayConstIterator<DataItemType>(*this, 0); }
     DataArrayConstIterator<DataItemType> cend(void)   const { return DataArrayConstIterator<DataItemType>(*this, _count); }
