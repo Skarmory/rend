@@ -35,7 +35,7 @@ class RingBuffer
             _capacity = other._capacity;
         }
 
-        RingBuffer(const RingBuffer&& other)
+        RingBuffer(RingBuffer&& other)
         {
             if(&other != this)
             {
@@ -60,7 +60,7 @@ class RingBuffer
             _capacity = other._capacity;
         }
 
-        T& operator=(const RingBuffer&& other)
+        T& operator=(RingBuffer&& other)
         {
             if(&other != this)
             {
