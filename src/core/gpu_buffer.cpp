@@ -5,6 +5,8 @@
 #include "core/logging/log_helper_funcs.h"
 #include "core/logging/log_manager.h"
 
+#include <cassert>
+
 using namespace rend;
 
 GPUBuffer::GPUBuffer(const std::string& name, const BufferInfo& info)
@@ -51,12 +53,12 @@ size_t GPUBuffer::bytes(void) const
 
 void GPUBuffer::store_data(char* data, size_t size_bytes)
 {
+    assert(size_bytes <= bytes() && "GPUBuffer, attempt to store data larger than buffer");
     memcpy(_data, data, size_bytes);
 }
 
 void GPUBuffer::load_to_gpu(void)
 {
     auto& rr = Renderer::get_instance();
-    //rr.load_buffer(*this, _data.data(), _data.size(), 0);
     rr.load_buffer(*this);
 }

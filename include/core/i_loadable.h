@@ -1,12 +1,12 @@
-#ifndef REND_CORE_I_GPU_LOADABLE_H
-#define REND_CORE_I_GPU_LOADABLE_H
+#ifndef REND_CORE_I_LOADABLE_H
+#define REND_CORE_I_LOADABLE_H
 
 #include <vector>
 
 namespace rend
 {
 
-class IGPULoadable
+class ILoadable
 {
     public:
         /**

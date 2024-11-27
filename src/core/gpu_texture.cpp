@@ -2,6 +2,8 @@
 
 #include "core/renderer.h"
 
+#include <cassert>
+
 using namespace rend;
 
 GPUTexture::GPUTexture(const std::string& name, const TextureInfo& info)
@@ -9,7 +11,7 @@ GPUTexture::GPUTexture(const std::string& name, const TextureInfo& info)
       GPUResource(name),
       _info(info)
 {
-    _data = (char*)malloc(info.width * info.height * (info.depth == 0 ? 1 : info.depth) * info.layers);
+    _data = (char*)malloc(bytes());
 }
 
 GPUTexture::~GPUTexture(void)
@@ -79,17 +81,17 @@ void* GPUTexture::data(void)
 
 uint32_t GPUTexture::bytes(void) const
 {
-    return (_info.width * _info.height * (_info.depth == 0 ? 1 : _info.depth) * _info.layers);
+    return (_info.width * _info.height * (_info.depth == 0 ? 1 : _info.depth) * _info.layers) * 4;
 }
 
 void GPUTexture::store_data(char* data, size_t size_bytes)
 {
+    assert(size_bytes <= bytes() && "GPUTexture, attempt to store data larger than texture buffer");
     memcpy(_data, data, size_bytes);
 }
 
 void GPUTexture::load_to_gpu(void)
 {
     auto& rr = rend::Renderer::get_instance();
-    //rr.load_texture(*this, _data.data(), _data.size(), 0);
     rr.load_texture(*this);
 }

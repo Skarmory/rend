@@ -2,7 +2,7 @@
 #define REND_CORE_GPU_BUFFER_H
 
 #include "core/gpu_resource.h"
-#include "core/i_gpu_loadable.h"
+#include "core/i_loadable.h"
 #include "core/rend_defs.h"
 #include "core/rend_object.h"
 
@@ -21,7 +21,7 @@ struct BufferInfo
     BufferUsage usage{ BufferUsage::NONE };
 };
 
-class GPUBuffer : public GPUResource, public RendObject, public IGPULoadable
+class GPUBuffer : public GPUResource, public RendObject, public ILoadable
 {
 public:
     GPUBuffer(const std::string& name, const BufferInfo& info);

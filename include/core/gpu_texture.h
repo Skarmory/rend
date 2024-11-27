@@ -2,7 +2,7 @@
 #define REND_CORE_GPU_TEXTURE_H
 
 #include "core/gpu_resource.h"
-#include "core/i_gpu_loadable.h"
+#include "core/i_loadable.h"
 #include "core/rend_defs.h"
 #include "core/rend_object.h"
 #include "core/texture_info.h"
@@ -14,7 +14,7 @@
 namespace rend
 {
 
-class GPUTexture : public GPUResource, public RendObject, public IGPULoadable
+class GPUTexture : public GPUResource, public RendObject, public ILoadable
 {
 public:
     GPUTexture(const std::string& name, const TextureInfo& info);
