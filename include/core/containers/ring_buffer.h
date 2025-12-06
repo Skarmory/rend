@@ -25,11 +25,11 @@ class RingBuffer
         {
             free(_data);
         }
-        
+
         // Copy
         RingBuffer(const RingBuffer& other)
         {
-            _data = other.data;
+            _data = other._data;
             _current_idx = other._current_idx;
             _count = other._count;
             _capacity = other._capacity;
@@ -39,22 +39,22 @@ class RingBuffer
         {
             if(&other != this)
             {
-                _data = other.data;
+                _data = other._data;
                 _current_idx = other._current_idx;
                 _count = other._count;
                 _capacity = other._capacity;
 
-                other.data = nullptr;
+                other._data = nullptr;
                 other._current_idx = 0;
                 other._count = 0;
-                other.capacity = 0;
+                other._capacity = 0;
             }
         }
 
         // Move
         T& operator=(const RingBuffer& other)
         {
-            _data = other.data;
+            _data = other._data;
             _current_idx = other._current_idx;
             _count = other._count;
             _capacity = other._capacity;
@@ -64,15 +64,15 @@ class RingBuffer
         {
             if(&other != this)
             {
-                _data = other.data;
+                _data = other._data;
                 _current_idx = other._current_idx;
                 _count = other._count;
                 _capacity = other._capacity;
 
-                other.data = nullptr;
+                other._data = nullptr;
                 other._current_idx = 0;
                 other._count = 0;
-                other.capacity = 0;
+                other._capacity = 0;
             }
         }
 
