@@ -70,7 +70,7 @@ VkSwapchainKHR Swapchain::vk_handle(void) const
 
 const VulkanTexture& Swapchain::get_backbuffer(uint32_t backbuffer_idx) const
 {
-    auto handle = _backbuffer_resources.backbuffer_handles[backbuffer_idx]; 
+    auto handle = _backbuffer_resources.backbuffer_handles[backbuffer_idx];
     return *_backbuffer_resources.backbuffer_textures.get(handle);
 }
 
@@ -79,13 +79,18 @@ TextureInfo Swapchain::get_backbuffer_texture_info(void) const
     return _backbuffer_texture_info;
 }
 
-StatusCode Swapchain::acquire(SwapchainAcquire** out_acquire)
+const SwapchainPresent& Swapchain::get_present_resources(const SwapchainAcquire& acquire) const
 {
-    *out_acquire = &_backbuffer_resources.swapchain_acquires.next();
+    return _backbuffer_resources.swapchain_presents[acquire.image_idx];
+}
 
+StatusCode Swapchain::acquire(SwapchainAcquire& acquire_resource)
+{
     VkResult result = _ctx->get_device()->acquire_next_image(
-        this, std::numeric_limits<uint64_t>::max(), (*out_acquire)->acquire_semaphore, nullptr, &_image_idx
+        this, std::numeric_limits<uint64_t>::max(), acquire_resource.acquire_semaphore, nullptr, &_image_idx
     );
+
+    acquire_resource.image_idx = _image_idx;
 
 #if DEBUG
     core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "SWAPCHAIN | Acquired image index: " + std::to_string(_image_idx));
@@ -103,20 +108,20 @@ StatusCode Swapchain::acquire(SwapchainAcquire** out_acquire)
         }
     }
 
-    (*out_acquire)->image_idx = _image_idx;
-
     return StatusCode::SUCCESS;
 }
 
-StatusCode Swapchain::present(const SwapchainAcquire& acquisition, QueueType type /*, const std::vector<Semaphore*>& wait_sems*/)
+StatusCode Swapchain::present(QueueType type /*, const std::vector<Semaphore*>& wait_sems*/)
 {
     std::vector<VkResult> results(1);
 
 #if DEBUG
-    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "SWAPCHAIN | Presenting image index: " + std::to_string(acquisition.image_idx));
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "SWAPCHAIN | Presenting image index: " + std::to_string(_image_idx));
 #endif
 
-    if(_ctx->get_device()->queue_present(type, { acquisition.present_semaphore }, { this }, { acquisition.image_idx }, results))
+    auto& presentation = _backbuffer_resources.swapchain_presents[_image_idx];
+
+    if(_ctx->get_device()->queue_present(type, { presentation.semaphore }, { this }, { _image_idx }, results))
     {
         return StatusCode::FAILURE;
     }
@@ -202,7 +207,7 @@ StatusCode Swapchain::_create(void)
     // Set up backbuffer textures as rend objects
     for(uint32_t i = 0; i < _backbuffer_resources.vk_swapchain_images.size(); ++i)
     {
-        SwapchainAcquire acquisition;
+        SwapchainPresent presentation;
 
         const std::string number_name = std::to_string(i);
         const std::string resize_count_name = std::to_string(_create_count);
@@ -212,16 +217,10 @@ StatusCode Swapchain::_create(void)
         name = backbuffer_name + number_name + " resize#" + resize_count_name;
         _backbuffer_resources.backbuffer_handles.push_back(_register_swapchain_image(name, _backbuffer_resources.vk_swapchain_images[i]));
 
-        name = backbuffer_name + number_name + " acquire semaphore";
-        acquisition.acquire_semaphore = new Semaphore(name, *_ctx, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
         name = backbuffer_name + number_name + " present semaphore";
-        acquisition.present_semaphore = new Semaphore(name, *_ctx, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+        presentation.semaphore = new Semaphore(name, *_ctx, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
-        name = backbuffer_name + number_name + " acquire fence";
-        acquisition.acquire_fence = new Fence(name, true, *_ctx);
-
-        _backbuffer_resources.swapchain_acquires.add(acquisition);
+        _backbuffer_resources.swapchain_presents.push_back(presentation);
     }
 
     return StatusCode::SUCCESS;
@@ -235,20 +234,14 @@ void Swapchain::_clean_up_images(void)
 
     for(uint32_t i = 0; i < _backbuffer_resources.backbuffer_handles.size(); ++i)
     {
+        SwapchainPresent& present = _backbuffer_resources.swapchain_presents[i];
+        delete present.semaphore;
+
         _unregister_swapchain_image(_backbuffer_resources.backbuffer_handles[i]);
     }
 
-    for(uint32_t i = 0; i < _backbuffer_resources.swapchain_acquires.count(); ++i)
-    {
-        SwapchainAcquire& acquire = _backbuffer_resources.swapchain_acquires.next();
-
-        delete acquire.acquire_fence;
-        delete acquire.acquire_semaphore;
-        delete acquire.present_semaphore;
-    }
-
     _backbuffer_resources.backbuffer_handles.clear();
-    _backbuffer_resources.swapchain_acquires.clear();
+    _backbuffer_resources.swapchain_presents.clear();
     _backbuffer_resources.vk_swapchain_images.clear();
 }
 
@@ -286,7 +279,7 @@ VkPresentModeKHR Swapchain::_find_present_mode(const std::vector<VkPresentModeKH
 
         if(present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
         {
-            chosen = present_mode; 
+            chosen = present_mode;
         }
     }
 

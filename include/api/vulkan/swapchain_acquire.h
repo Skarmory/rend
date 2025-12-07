@@ -13,7 +13,6 @@ struct SwapchainAcquire
 {
     uint32_t     image_idx{ 0 };
     Semaphore*   acquire_semaphore{ nullptr };
-    Semaphore*   present_semaphore{ nullptr };
     Fence*       acquire_fence{ nullptr };
     //Fence*       submit_fence{ nullptr };
     //BufferHandle backbuffer_handle{ NULL_HANDLE };

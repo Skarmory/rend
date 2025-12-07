@@ -211,6 +211,12 @@ void VulkanRenderer::configure(void)
 #if DEBUG
         _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].load_cmd)->vk_handle());
 #endif
+
+        name = name_prefix + " acquire semaphore";
+        _frame_datas[idx].acquire.acquire_semaphore = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+        name = name_prefix + " acquire fence";
+        _frame_datas[idx].acquire.acquire_fence = new Fence(name, true, *_device_context);
     }
 }
 
@@ -223,22 +229,9 @@ void VulkanRenderer::start_frame(void)
     auto& frame_res = _frame_datas[_current_frame];
     frame_res.frame = _frame_counter;
 
-    // Release staging buffers from previous usage of this FrameData
-    for(auto* staging_buffer : frame_res.staging_buffers_used)
-    {
-        _staging_buffers.release(staging_buffer->rend_handle());
-    }
-
-    frame_res.staging_buffers_used.clear();
-}
-
-void VulkanRenderer::end_frame(void)
-{
-    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Ending frame: " + std::to_string(_frame_counter));
-    FrameData& frame_res = _frame_datas[_current_frame];
-
     // Wait for previous submit of this frame to be complete
     frame_res.submit_fen->wait();
+    frame_res.submit_fen->reset();
 
     if(_need_resize)
     {
@@ -247,7 +240,7 @@ void VulkanRenderer::end_frame(void)
 
     // Acquire next swapchain image
     StatusCode code = StatusCode::SUCCESS;
-    while((code = _swapchain->acquire(&frame_res.swapchain_acquisition)) != StatusCode::SUCCESS)
+    while((code = _swapchain->acquire(frame_res.acquire)) != StatusCode::SUCCESS)
     {
         if(code == StatusCode::SWAPCHAIN_ACQUIRE_ERROR)
         {
@@ -261,42 +254,53 @@ void VulkanRenderer::end_frame(void)
         }
     }
 
-    std::vector<Semaphore*> draw_wait_sems;
-    draw_wait_sems.push_back(frame_res.swapchain_acquisition->acquire_semaphore);
-
-    if(!_pre_render_queue.empty())
+    // Release staging buffers from previous usage of this FrameData
+    for(auto* staging_buffer : frame_res.staging_buffers_used)
     {
-        auto* load_cmd = static_cast<VulkanCommandBuffer*>(frame_res.load_cmd);
-        load_cmd->reset();
-        load_cmd->begin();
-        _process_pre_render_tasks();
-        load_cmd->end();
-
-        _device_context->queue_submit(*load_cmd, QueueType::GRAPHICS, {}, { frame_res.load_sem }, nullptr);
-
-        draw_wait_sems.push_back(frame_res.load_sem);
+        _staging_buffers.release(staging_buffer->rend_handle());
     }
+
+    frame_res.staging_buffers_used.clear();
+
+    auto* load_cmd = static_cast<VulkanCommandBuffer*>(frame_res.load_cmd);
+    load_cmd->reset();
+    load_cmd->begin();
 
     auto* draw_cmd = static_cast<VulkanCommandBuffer*>(frame_res.draw_cmd);
     draw_cmd->reset();
     draw_cmd->begin();
+}
+
+void VulkanRenderer::end_frame(void)
+{
+    core::logging::LogManager::write(core::logging::C_RENDERER_LOG_CHANNEL_NAME, "RENDERER | Ending frame: " + std::to_string(_frame_counter));
+    FrameData& frame_res = _frame_datas[_current_frame];
+
+    std::vector<Semaphore*> draw_wait_sems;
+    draw_wait_sems.push_back(frame_res.acquire.acquire_semaphore);
+
+    if(!_pre_render_queue.empty())
+    {
+        _process_pre_render_tasks();
+        auto* load_cmd = static_cast<VulkanCommandBuffer*>(frame_res.load_cmd);
+        load_cmd->end();
+        _device_context->queue_submit(*load_cmd, QueueType::GRAPHICS, {}, { frame_res.load_sem }, nullptr);
+        draw_wait_sems.push_back(frame_res.load_sem);
+    }
+
+    auto* draw_cmd = static_cast<VulkanCommandBuffer*>(frame_res.draw_cmd);
     _process_draw_items();
     draw_cmd->end();
-
-    frame_res.submit_fen->reset(); 
 
     _device_context->queue_submit(
         *draw_cmd,
         QueueType::GRAPHICS,
         draw_wait_sems,
-        { frame_res.swapchain_acquisition->present_semaphore },
+        { _swapchain->get_present_resources(frame_res.acquire).semaphore },
         frame_res.submit_fen
     );
 
-    _swapchain->present(
-        *frame_res.swapchain_acquisition,
-        QueueType::GRAPHICS
-    );
+    _swapchain->present(QueueType::GRAPHICS);
 }
 
 void VulkanRenderer::resize(void)
@@ -897,7 +901,7 @@ PerPassData VulkanRenderer::_create_per_pass_data(const Framebuffer& fb, const C
         auto& attachment_name = attachment_names[ppd.attachments_count];
 
         auto* attachment = attachment_name == Renderer::C_BACKBUFFER_NAME
-            ? &_swapchain->get_backbuffer(frame_data.swapchain_acquisition->image_idx)
+            ? &_swapchain->get_backbuffer(frame_data.acquire.image_idx)
             : _frame_datas[_current_frame].find_render_target(attachment_name);
 
         ppd.attachments[ppd.attachments_count] = attachment;

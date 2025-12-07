@@ -3,6 +3,7 @@
 
 #include "api/vulkan/queue_family.h"
 #include "api/vulkan/swapchain_acquire.h"
+#include "api/vulkan/swapchain_present.h"
 #include "core/containers/data_pool.h"
 #include "core/containers/ring_buffer.h"
 #include "core/rend_defs.h"
@@ -41,10 +42,11 @@ public:
     VkSwapchainKHR vk_handle(void) const;
     const VulkanTexture& get_backbuffer(uint32_t backbuffer_idx) const;
     TextureInfo get_backbuffer_texture_info(void) const;
+    const SwapchainPresent& get_present_resources(const SwapchainAcquire& acquire) const;
 
     // Mutators
-    StatusCode acquire(SwapchainAcquire** out_acquire);
-    StatusCode present(const SwapchainAcquire& acquisition, QueueType type /*, const std::vector<Semaphore*>& wait_sems */);
+    StatusCode acquire(SwapchainAcquire& acquire_resource);
+    StatusCode present(QueueType type /*, const std::vector<Semaphore*>& wait_sems */);
 
 private:
     StatusCode         _create(void);
@@ -71,7 +73,7 @@ private:
     {
         std::vector<VkImage>               vk_swapchain_images;
         std::vector<TextureHandle>         backbuffer_handles;
-        rend::RingBuffer<SwapchainAcquire> swapchain_acquires;
+        std::vector<SwapchainPresent>      swapchain_presents;
         rend::DataPool<VulkanTexture, 8>   backbuffer_textures;
     } _backbuffer_resources;
 };

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "api/vulkan/swapchain_acquire.h"
+
 #include "core/draw_item.h"
 #include "core/rend_defs.h"
 
@@ -24,10 +26,9 @@ struct FrameData
     GPUTexture*    backbuffer_texture{ nullptr };
     CommandBuffer* draw_cmd{ nullptr };
     CommandBuffer* load_cmd{ nullptr };
-    //Semaphore*     present_sem{ nullptr };
     Semaphore*     load_sem{ nullptr };
     Fence*         submit_fen{ nullptr };
-    SwapchainAcquire* swapchain_acquisition;
+    SwapchainAcquire acquire;
 
     std::vector<Framebuffer*> framebuffers;
     std::vector<GPUTexture*>  render_targets;
