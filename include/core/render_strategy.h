@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "core/descriptor_frequency.h"
+#include "core/descriptor_update_rate.h"
 #include "core/draw_pass.h"
 #include "core/gpu_resource.h"
 #include "core/rend_object.h"
@@ -26,7 +26,7 @@ class RenderStrategy : public GPUResource, public RendObject
         ~RenderStrategy(void);
 
         std::vector<DrawPass>& get_draw_passes(void);
-        const DescriptorSetLayout& get_descriptor_set_layout(DescriptorFrequency freq);
+        const DescriptorSetLayout& get_descriptor_set_layout(DescriptorUpdateRate update_rate);
 
     private:
         std::vector<DrawPass> _draw_passes;

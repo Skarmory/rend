@@ -116,6 +116,8 @@ VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
             _staging_buffers.release(buffers[i]->_rend_handle);
         }
     }
+
+    create_descriptor_set_layout("null", {});
 }
 
 VulkanRenderer::~VulkanRenderer(void)
@@ -530,15 +532,6 @@ std::unordered_map<View*, std::unordered_map<RenderStrategy*, std::vector<DrawIt
         std::unordered_map<
             RenderStrategy*, std::vector<DrawItem*>>> sorted_items;
 
-    //// Sort the draw items
-    //std::sort(_draw_items.begin(), _draw_items.end(), [this](DrawItem& item1, DrawItem& item2)
-    //{
-    //    const MaterialInfo& mat1 = this->get_material(item1.material)->get_info();
-    //    const MaterialInfo& mat2 = this->get_material(item2.material)->get_info();
-
-    //    return mat1.render_pass_h < mat2.render_pass_h;
-    //});
-
     for(size_t i = 0; i < _draw_items.size(); ++i)
     {
         DrawItem& draw_item = _draw_items[i];
@@ -551,6 +544,7 @@ std::unordered_map<View*, std::unordered_map<RenderStrategy*, std::vector<DrawIt
     return sorted_items;
 }
 
+// TODO: All this is prototype code and needs to be refactored once we get to making a scene graph
 void VulkanRenderer::_process_draw_items(void)
 {
     FrameData& frame_res = _frame_datas[_current_frame];
@@ -568,18 +562,9 @@ void VulkanRenderer::_process_draw_items(void)
     DescriptorSet* current_view_set{ nullptr };
     DescriptorSet* current_material_set{ nullptr };
 
-    std::vector<const DescriptorSet*> to_bind;
-    to_bind.reserve(2);
-
     for(auto& view_it : sorted_items)
     {
         auto* view = view_it.first;
-
-        if(auto* view_descriptor_set = &view->get_descriptor_set(); view_descriptor_set != current_view_set)
-        {
-            current_view_set = view_descriptor_set;
-            to_bind.push_back(current_view_set);
-        }
 
         for(auto& render_strategy_it : view_it.second)
         {
@@ -597,6 +582,13 @@ void VulkanRenderer::_process_draw_items(void)
                     auto& ss = sp.get_pipeline().get_shader_set();
                     auto& pl = ss.get_pipeline_layout();
 
+                    if(auto* view_descriptor_set = &view->get_descriptor_set(); view_descriptor_set != current_view_set)
+                    {
+                        // Bind the per-frame data
+                        current_view_set = view_descriptor_set;
+                        cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, { current_view_set });
+                    }
+
                     // Draw all items
                     for(auto di_p : render_strategy_it.second)
                     {
@@ -605,13 +597,7 @@ void VulkanRenderer::_process_draw_items(void)
                         {
                             // New material, bind descriptor set
                             current_material_set = &mat->get_descriptor_set();
-                            to_bind.push_back(current_material_set);
-                        }
-
-                        if(to_bind.size() > 0)
-                        {
-                            cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, to_bind);
-                            to_bind.clear();
+                            cmd->bind_descriptor_sets(PipelineBindPoint::GRAPHICS, pl, { current_material_set });
                         }
 
                         cmd->push_constant(pl, di_p->per_draw_data.stages, 0, di_p->per_draw_data.bytes, di_p->per_draw_data.data);

@@ -24,9 +24,9 @@ const PipelineLayout& ShaderSet::get_pipeline_layout(void) const
     return *_pipeline_layout;
 }
 
-const DescriptorSetLayout& ShaderSet::get_descriptor_set_layout(DescriptorFrequency freq) const
+const DescriptorSetLayout& ShaderSet::get_descriptor_set_layout(DescriptorUpdateRate update_rate) const
 {
-    return *_info.layouts[freq];
+    return *_info.layouts[update_rate];
 }
 
 const std::vector<VertexBindingInfo>& ShaderSet::get_vertex_bindings(void) const

@@ -1,7 +1,7 @@
 #ifndef REND_CORE_DESCRIPTOR_SET_H
 #define REND_CORE_DESCRIPTOR_SET_H
 
-#include "core/descriptor_frequency.h"
+#include "core/descriptor_update_rate.h"
 #include "core/descriptor_set_binding.h"
 #include "core/gpu_resource.h"
 #include "core/rend_defs.h"
@@ -26,7 +26,8 @@ public /*methods*/:
     DescriptorSet& operator=(const DescriptorSet&) = delete;
     DescriptorSet& operator=(DescriptorSet&&)      = delete;
 
-    DescriptorFrequency                      get_index(void) const;
+    // The update rate syncs up with the shader layout set.
+    DescriptorUpdateRate                     get_update_rate(void) const;
     const std::vector<DescriptorSetBinding>& get_bindings(void) const;
 
     void bind_resource(const DescriptorSetBinding& descriptor);

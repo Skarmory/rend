@@ -11,9 +11,9 @@ DescriptorSet::DescriptorSet(const std::string& name, const DescriptorSetLayout&
 {
 }
 
-DescriptorFrequency DescriptorSet::get_index(void) const
+DescriptorUpdateRate DescriptorSet::get_update_rate(void) const
 {
-    return _layout.get_frequency();
+    return _layout.get_update_rate();
 }
 
 const std::vector<DescriptorSetBinding>& DescriptorSet::get_bindings(void) const

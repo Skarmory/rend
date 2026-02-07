@@ -45,8 +45,7 @@ VkCommandBuffer VulkanCommandBuffer::vk_handle(void) const
 
 void VulkanCommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, const PipelineLayout& pipeline_layout, const std::vector<const DescriptorSet*> descriptor_sets)
 {
-    //TODO: Figure out a good array size
-    const int c_descriptor_set_max = 16;
+    const int c_descriptor_set_max = 8;
 
     VkPipelineBindPoint vk_bind_point   = vulkan_helpers::convert_pipeline_bind_point(bind_point);
     VkPipelineLayout vk_pipeline_layout = static_cast<const VulkanPipelineLayout&>(pipeline_layout).vk_handle();
@@ -58,7 +57,7 @@ void VulkanCommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, con
         vk_descriptor_sets[i] = desc_set_info.set;
     }
 
-    uint32_t first_set = descriptor_sets.front()->get_index();
+    uint32_t first_set = descriptor_sets.front()->get_update_rate();
 
     vkCmdBindDescriptorSets(_vk_handle, vk_bind_point, vk_pipeline_layout, first_set, descriptor_sets.size(), vk_descriptor_sets, 0, nullptr);
 }

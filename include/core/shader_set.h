@@ -1,7 +1,7 @@
 #ifndef REND_CORE_SHADER_SET_H
 #define REND_CORE_SHADER_SET_H
 
-#include "core/descriptor_frequency.h"
+#include "core/descriptor_update_rate.h"
 #include "core/descriptor_set_binding.h"
 #include "core/descriptor_set_layout_binding.h"
 #include "core/rend_defs.h"
@@ -21,11 +21,9 @@ class Shader;
 
 struct ShaderSetInfo
 {
-    std::array<const Shader*, SHADER_STAGE_COUNT> shaders;
+    std::array<const Shader*, SHADER_STAGE_COUNT> shaders{};
     std::vector<VertexBindingInfo> binding_info;
-    //std::vector<VertexAttributeInfo>                             vertex_attribute_infos;
-    //std::array<std::vector<DescriptorSetLayoutBinding>, DESCRIPTOR_FREQUENCY_COUNT> layout_bindings;
-    std::array<DescriptorSetLayout*, DESCRIPTOR_FREQUENCY_COUNT> layouts;
+    std::array<DescriptorSetLayout*, (int)DescriptorUpdateRate::Count> layouts{ nullptr, nullptr, nullptr, nullptr, nullptr };
     std::vector<PushConstantRange> push_constant_ranges;
 
 };
@@ -38,7 +36,7 @@ public:
 
     [[nodiscard]] const Shader* get_shader(ShaderIndex index) const;
     [[nodiscard]] const PipelineLayout& get_pipeline_layout(void) const;
-    [[nodiscard]] const DescriptorSetLayout& get_descriptor_set_layout(DescriptorFrequency freq) const;
+    [[nodiscard]] const DescriptorSetLayout& get_descriptor_set_layout(DescriptorUpdateRate update_rate) const;
     [[nodiscard]] const std::vector<VertexBindingInfo>& get_vertex_bindings(void) const;
 
 private:

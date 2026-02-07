@@ -30,9 +30,9 @@ std::vector<DrawPass>& RenderStrategy::get_draw_passes(void)
     return _draw_passes;
 }
 
-const DescriptorSetLayout& RenderStrategy::get_descriptor_set_layout(DescriptorFrequency freq)
+const DescriptorSetLayout& RenderStrategy::get_descriptor_set_layout(DescriptorUpdateRate update_rate)
 {
     auto& pipeline = _draw_passes[0].get_subpasses()[0].get_pipeline();
-    auto& descriptor_set_layout = pipeline.get_shader_set().get_descriptor_set_layout(freq);
+    auto& descriptor_set_layout = pipeline.get_shader_set().get_descriptor_set_layout(update_rate);
     return descriptor_set_layout;
 }

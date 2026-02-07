@@ -451,13 +451,15 @@ VkRenderPass VulkanDeviceContext::create_render_pass(const RenderPassInfo& info)
 
 VkPipelineLayout VulkanDeviceContext::create_pipeline_layout(const PipelineLayoutInfo& info)
 {
-    std::vector<VkDescriptorSetLayout> vk_descriptor_set_layouts;
-    vk_descriptor_set_layouts.reserve(info.descriptor_set_layouts.size());
+    std::array<VkDescriptorSetLayout, (int)DescriptorUpdateRate::Count> vk_descriptor_set_layouts;
+    //vk_descriptor_set_layouts.reserve(info.descriptor_set_layouts.size());
 
-    for(auto* desc_set_layout : info.descriptor_set_layouts)
+    assert(info.descriptor_set_layouts.size() == vk_descriptor_set_layouts.size());
+
+    //for(auto* desc_set_layout : info.descriptor_set_layouts)
+    for(int idx = 0; idx < (int)DescriptorUpdateRate::Count; ++idx)
     {
-        auto* vulkan_desc_set = static_cast<VulkanDescriptorSetLayout*>(desc_set_layout);
-        vk_descriptor_set_layouts.push_back(vulkan_desc_set->vk_handle());
+        vk_descriptor_set_layouts[idx] = static_cast<VulkanDescriptorSetLayout*>(info.descriptor_set_layouts[idx])->vk_handle();
     }
 
     std::vector<VkPushConstantRange> vk_push_constant_ranges;

@@ -124,13 +124,16 @@ RenderStrategy* Renderer::create_render_strategy(const std::string& name, const 
 
 ShaderSet* Renderer::create_shader_set(const std::string& name, const ShaderSetInfo& info)
 {
-    std::vector<DescriptorSetLayout*> layouts;
+    std::array<DescriptorSetLayout*, (int)DescriptorUpdateRate::Count> layouts{};
     for(size_t i = 0; i < info.layouts.size(); ++i)
     {
-        if(info.layouts[i] != nullptr)
+        auto* layout = info.layouts[i];
+        if(layout == nullptr)
         {
-            layouts.push_back(info.layouts[i]);
+            layout = get_descriptor_set_layout("null");
         }
+
+        layouts[i] = layout;
     }
 
     PipelineLayoutInfo pl_info{};

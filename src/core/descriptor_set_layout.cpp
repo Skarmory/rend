@@ -14,9 +14,9 @@ const DescriptorSetLayoutInfo& DescriptorSetLayout::get_info(void) const
     return _info;
 }
 
-DescriptorFrequency DescriptorSetLayout::get_frequency(void) const
+DescriptorUpdateRate DescriptorSetLayout::get_update_rate(void) const
 {
-    return _info.frequency;
+    return _info.update_rate;
 }
 
 const DescriptorSetLayoutBinding* DescriptorSetLayout::get_layout_binding(uint32_t binding_slot) const
