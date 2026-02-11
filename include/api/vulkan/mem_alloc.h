@@ -1,7 +1,6 @@
 #ifndef REND_MEM_ALLOC_H
 #define REND_MEM_ALLOC_H
 
-#include <cstddef>
 #include <cstdint>
 
 namespace rend

@@ -2,34 +2,63 @@
 
 #include "core/command_buffer.h"
 #include "core/descriptor_set.h"
-#include "core/descriptor_pool.h"
-#include "core/device_context.h"
 #include "core/material.h"
 #include "core/rend.h"
 #include "core/rend_defs.h"
 #include "core/sub_pass.h"
 #include "core/window.h"
 
+#include "core/descriptor_set_layout.h"
+#include "core/draw_item.h"
+#include "core/frame.h"
+#include "core/framebuffer.h"
+#include "core/gpu_buffer.h"
+#include "core/gpu_texture.h"
+#include "core/mesh.h"
+#include "core/pipeline.h"
+#include "core/pipeline_layout.h"
+#include "core/renderer.h"
+#include "core/render_pass.h"
+#include "core/render_strategy.h"
+#include "core/rend_object.h"
+#include "core/shader.h"
+#include "core/texture_info.h"
+#include "core/view.h"
+
 #include "core/logging/log_defs.h"
 #include "core/logging/log_manager.h"
 
-#include "api/vulkan/extensions.h"
 #include "api/vulkan/fence.h"
-#include "api/vulkan/layers.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/swapchain.h"
 #include "api/vulkan/vulkan_command_buffer.h"
 #include "api/vulkan/vulkan_device_context.h"
-#include "api/vulkan/vulkan_helper_funcs.h"
-#include "api/vulkan/vulkan_instance.h"
 #include "api/vulkan/vulkan_semaphore.h"
+#include "api/vulkan/device_features.h"
+#include "api/vulkan/queue_family.h"
+#include "api/vulkan/vulkan_buffer.h"
+#include "api/vulkan/vulkan_buffer_info.h"
+#include "api/vulkan/vulkan_descriptor_set.h"
+#include "api/vulkan/vulkan_descriptor_set_layout.h"
+#include "api/vulkan/vulkan_framebuffer.h"
+#include "api/vulkan/vulkan_image_info.h"
+#include "api/vulkan/vulkan_pipeline.h"
+#include "api/vulkan/vulkan_pipeline_layout.h"
+#include "api/vulkan/vulkan_render_pass.h"
+#include "api/vulkan/vulkan_shader.h"
+#include "api/vulkan/vulkan_texture.h"
 
-#include <assert.h>
 #include <cstring>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <sstream>
-#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <__stddef_null.h>
+#include <cstdint>
+#include <functional>
+#include <queue>
+#include <unordered_map>
+#include <vector>
 
 using namespace rend;
 
@@ -56,7 +85,7 @@ namespace
     }
 }
 
-VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
+void VulkanRenderer::initialise(const RendInitInfo& init_info)
 {
     auto& logger = core::logging::LogManager::get_instance();
     logger.add_log_file(core::logging::C_RENDERER_LOG_FILE_NAME);
@@ -103,7 +132,6 @@ VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
     _command_pool = _device_context->create_command_pool();
 
     {
-
         // TODO Improve buffer creation to avoid this
         std::vector<VulkanBuffer*> buffers;
         for(size_t i = 0; i < _staging_buffers.capacity(); ++i)
@@ -117,10 +145,41 @@ VulkanRenderer::VulkanRenderer(const RendInitInfo& init_info)
         }
     }
 
-    create_descriptor_set_layout("null", {});
+    (void)create_descriptor_set_layout("null", {});
+
+    // Setup resources for each frame in flight
+    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
+    {
+        const std::string name_prefix = "frame " + std::to_string(idx);
+        std::string name{};
+
+        name = name_prefix + " load semaphore";
+        _frame_datas[idx].load_sem = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+        name = name_prefix + " submit fence";
+        _frame_datas[idx].submit_fen = new Fence(name, true, *_device_context);
+
+        name = name_prefix + " draw command buffer";
+        _frame_datas[idx].draw_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
+#if DEBUG
+        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].draw_cmd)->vk_handle());
+#endif
+
+        name = name_prefix + " load command buffer";
+        _frame_datas[idx].load_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
+#if DEBUG
+        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].load_cmd)->vk_handle());
+#endif
+
+        name = name_prefix + " acquire semaphore";
+        _frame_datas[idx].acquire.acquire_semaphore = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+        name = name_prefix + " acquire fence";
+        _frame_datas[idx].acquire.acquire_fence = new Fence(name, true, *_device_context);
+    }
 }
 
-VulkanRenderer::~VulkanRenderer(void)
+void VulkanRenderer::uninitialise(void)
 {
     _device_context->get_device()->wait_idle();
 
@@ -186,40 +245,6 @@ VulkanRenderer::~VulkanRenderer(void)
     delete _swapchain;
     delete _device_context;
     delete _window;
-}
-
-void VulkanRenderer::configure(void)
-{
-    // Setup resources for each frame in flight
-    for(uint32_t idx = 0; idx < _FRAMES_IN_FLIGHT; ++idx)
-    {
-        const std::string name_prefix = "frame " + std::to_string(idx);
-        std::string name{};
-
-        name = name_prefix + " load semaphore";
-        _frame_datas[idx].load_sem = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-        name = name_prefix + " submit fence";
-        _frame_datas[idx].submit_fen = new Fence(name, true, *_device_context);
-
-        name = name_prefix + " draw command buffer";
-        _frame_datas[idx].draw_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
-#if DEBUG
-        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].draw_cmd)->vk_handle());
-#endif
-
-        name = name_prefix + " load command buffer";
-        _frame_datas[idx].load_cmd = new VulkanCommandBuffer(name, _device_context->create_command_buffer(_command_pool));
-#if DEBUG
-        _device_context->set_debug_name(name, VK_OBJECT_TYPE_COMMAND_BUFFER, (uint64_t)static_cast<VulkanCommandBuffer*>(_frame_datas[idx].load_cmd)->vk_handle());
-#endif
-
-        name = name_prefix + " acquire semaphore";
-        _frame_datas[idx].acquire.acquire_semaphore = new Semaphore(name, *_device_context, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
-        name = name_prefix + " acquire fence";
-        _frame_datas[idx].acquire.acquire_fence = new Fence(name, true, *_device_context);
-    }
 }
 
 void VulkanRenderer::start_frame(void)

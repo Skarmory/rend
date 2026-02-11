@@ -3,15 +3,14 @@
 #include "api/vulkan/extension_funcs.h"
 
 #include "core/window.h"
-#include "core/rend_service.h"
 
 #include <GLFW/glfw3.h>
 
-#include <cassert>
+#include <cstdint>
 #include <iostream>
-
-#include <string>
 #include <sstream>
+#include <stdexcept>
+#include <vector>
 
 using namespace rend;
 
@@ -34,9 +33,9 @@ VulkanInstance::VulkanInstance(const std::vector<const char*>& extensions, const
         .pNext = nullptr,
         .flags = 0,
         .pApplicationInfo = &app_info,
-        .enabledLayerCount = layers.size(),
+        .enabledLayerCount = static_cast<uint32_t>(layers.size()),
         .ppEnabledLayerNames = layers.data(),
-        .enabledExtensionCount = extensions.size(),
+        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data()
     };
 
@@ -47,9 +46,8 @@ VulkanInstance::VulkanInstance(const std::vector<const char*>& extensions, const
         throw std::runtime_error(error_string.str());
     }
 
-    pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(_vk_instance, "vkSetDebugUtilsObjectNameEXT");
-    pfnCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkCreateDebugUtilsMessengerEXT");
-    pfnDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkDestroyDebugUtilsMessengerEXT");
+    _ext_funcs.pfnCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkCreateDebugUtilsMessengerEXT");
+    _ext_funcs.pfnDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(_vk_instance, "vkDestroyDebugUtilsMessengerEXT");
 }
 
 VulkanInstance::~VulkanInstance(void)
@@ -58,7 +56,7 @@ VulkanInstance::~VulkanInstance(void)
     vkDestroyInstance(_vk_instance, nullptr);
 }
 
-void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices)
+void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices) const
 {
     uint32_t device_count = 0;
     vkEnumeratePhysicalDevices(_vk_instance, &device_count, nullptr);
@@ -72,16 +70,16 @@ void VulkanInstance::create_surface(const Window& window)
     glfwCreateWindowSurface(_vk_instance, window.get_handle(), nullptr, &_vk_surface);
 }
 
-VkDebugUtilsMessengerEXT VulkanInstance::create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info)
+VkDebugUtilsMessengerEXT VulkanInstance::create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info) const
 {
     VkDebugUtilsMessengerEXT messenger;
-    pfnCreateDebugUtilsMessengerEXT(_vk_instance, &create_info, NULL, &messenger);
+    _ext_funcs.pfnCreateDebugUtilsMessengerEXT(_vk_instance, &create_info, NULL, &messenger);
     return messenger;
 }
 
-void VulkanInstance::destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger)
+void VulkanInstance::destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger) const
 {
-    pfnDestroyDebugUtilsMessengerEXT(_vk_instance, messenger, NULL);
+    _ext_funcs.pfnDestroyDebugUtilsMessengerEXT(_vk_instance, messenger, NULL);
 }
 
 VkInstance VulkanInstance::get_handle(void) const

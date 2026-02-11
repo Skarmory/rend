@@ -465,6 +465,7 @@ VkDynamicState vulkan_helpers::convert_dynamic_state(DynamicState state)
         case DynamicState::STENCIL_COMPARE_MASK: return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
         case DynamicState::STENCIL_WRITE_MASK: return VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
         case DynamicState::STENCIL_REFERENCE: return VK_DYNAMIC_STATE_STENCIL_REFERENCE;
+        case DynamicState::NONE: break;
     };
 
     return VK_DYNAMIC_STATE_MAX_ENUM;
@@ -483,22 +484,13 @@ ImageLayout vulkan_helpers::convert_image_layout(VkImageLayout layout)
         case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return ImageLayout::TRANSFER_DST;
         case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: return ImageLayout::PRESENT;
 
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-        case VK_IMAGE_LAYOUT_PREINITIALIZED:
-        case VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR:
-        case VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV:
-        case VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT:
-        case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR:
-        case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR:
-        case VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR:
-        case VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR:
-            std::cerr << "Unsupported VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
-            assert("Invalid conversion" || true);
-            return ImageLayout::UNDEFINED;
         case VK_IMAGE_LAYOUT_MAX_ENUM:
             std::cerr << "Invalid VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
+            assert("Invalid conversion" || true);
+            return ImageLayout::UNDEFINED;
+
+        default:
+            std::cerr << "Unsupported VkImageLayout (" << stringify(layout) << ") for conversion" << std::endl;
             assert("Invalid conversion" || true);
             return ImageLayout::UNDEFINED;
     }
@@ -615,9 +607,8 @@ VkDescriptorType vulkan_helpers::convert_descriptor_type(DescriptorType type)
         case DescriptorType::UNIFORM_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
         case DescriptorType::STORAGE_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
         case DescriptorType::INPUT_ATTACHMENT: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+        default: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
     }
-
-    return VK_DESCRIPTOR_TYPE_MAX_ENUM;
 }
 
 VkImageCopy vulkan_helpers::convert_image_copy(const ImageImageCopyInfo& copy)
@@ -634,7 +625,7 @@ VkImageCopy vulkan_helpers::convert_image_copy(const ImageImageCopyInfo& copy)
     return vk_copy;
 }
 
-VkVertexInputAttributeDescription vulkan_helpers::convert_vertex_attribute_info(const VertexAttributeInfo& info, int binding)
+VkVertexInputAttributeDescription vulkan_helpers::convert_vertex_attribute_info(const VertexAttributeInfo& info, uint32_t binding)
 {
     VkVertexInputAttributeDescription vk_vertex_attribute =
     {

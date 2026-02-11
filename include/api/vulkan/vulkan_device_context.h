@@ -2,7 +2,6 @@
 #define REND_VULKAN_DEVICE_CONTEXT_H
 
 #include "core/rend_defs.h"
-#include "core/containers/data_array.h"
 #include "api/vulkan/device_features.h"
 #include "api/vulkan/queue_family.h"
 #include "api/vulkan/vulkan_buffer_info.h"

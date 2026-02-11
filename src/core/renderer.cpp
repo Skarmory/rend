@@ -1,37 +1,46 @@
 #include "core/renderer.h"
 
-#include "core/descriptor_set.h"
-#include "core/descriptor_pool.h"
+#include "api/vulkan/vulkan_renderer.h"
+#include "core/descriptor_set_layout.h"
+#include "core/descriptor_update_rate.h"
+#include "core/draw_item.h"
+#include "core/gpu_buffer.h"
+#include "core/material.h"
+#include "core/mesh.h"
+#include "core/pipeline_layout.h"
+#include "core/presentation_mode.h"
 #include "core/rend.h"
+#include "core/rend_object.h"
+#include "core/render_strategy.h"
+#include "core/shader_set.h"
+#include "core/view.h"
 #include "core/window.h"
 
-#include "api/vulkan/vulkan_renderer.h"
-
-#include <assert.h>
+#include <array>
+#include <cassert>
+#include <functional>
+#include <string>
 
 using namespace rend;
 
 Renderer* Renderer::_renderer =  nullptr;
 
-void Renderer::initialise(const RendInitInfo& init_info)
+void Renderer::create(const RendInitInfo& init_info)
 {
     assert(_renderer == nullptr);
 
     switch(init_info.api)
     {
         case API::API_VULKAN:
-            _renderer = new VulkanRenderer(init_info);
+            _renderer = new VulkanRenderer;
+            _renderer->initialise(init_info);
             break;
     }
 }
 
-Renderer::~Renderer(void)
+void Renderer::destroy(void)
 {
-
-}
-
-void Renderer::shutdown(void)
-{
+    _renderer->uninitialise();
     delete _renderer;
 }
 

@@ -314,10 +314,9 @@ enum class DescriptorType
     STORAGE_BUFFER,
     UNIFORM_BUFFER_DYNAMIC,
     STORAGE_BUFFER_DYNAMIC,
-    INPUT_ATTACHMENT
+    INPUT_ATTACHMENT,
+    COUNT
 };
-
-const uint32_t c_descriptor_types_count = static_cast<uint32_t>( DescriptorType::INPUT_ATTACHMENT ) + 1;
 
 enum class StencilOp
 {
@@ -688,12 +687,12 @@ struct BufferImageCopyInfo
 
 struct ImageImageCopyInfo
 {
-    uint32_t src_offset_x{ 0 };
-    uint32_t src_offset_y{ 0 };
-    uint32_t src_offset_z{ 0 };
-    uint32_t dst_offset_x{ 0 };
-    uint32_t dst_offset_y{ 0 };
-    uint32_t dst_offset_z{ 0 };
+    int32_t src_offset_x{ 0 };
+    int32_t src_offset_y{ 0 };
+    int32_t src_offset_z{ 0 };
+    int32_t dst_offset_x{ 0 };
+    int32_t dst_offset_y{ 0 };
+    int32_t dst_offset_z{ 0 };
     uint32_t extent_x{ 0 };
     uint32_t extent_y{ 0 };
     uint32_t extent_z{ 0 };

@@ -7,6 +7,7 @@ namespace rend::core::logging
 {
     static const std::string C_RENDERER_LOG_FILE_NAME{ "renderer.log" };
     static const std::string C_RENDERER_LOG_CHANNEL_NAME{ "renderer_channel" };
+    static const std::string C_DEVICE_LOG_CHANNEL_NAME{ "device_channel" };
 
 }
 

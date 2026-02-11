@@ -8,21 +8,23 @@
 #include "api/vulkan/vulkan_pipeline_layout.h"
 #include "api/vulkan/vulkan_render_pass.h"
 #include "api/vulkan/vulkan_texture.h"
+
+#include "core/command_buffer.h"
 #include "core/descriptor_set.h"
 #include "core/draw_item.h"
-#include "core/framebuffer.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
 #include "core/logging/log_defs.h"
 #include "core/logging/log_manager.h"
 #include "core/pipeline.h"
+#include "core/pipeline_layout.h"
 #include "core/rend_defs.h"
-#include "core/rend_service.h"
 #include "core/render_pass.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
+#include "core/rend_constants.h"
 
-#include <iostream>
+#include <cstdint>
+#include <string>
+#include <vector>
 
 using namespace rend;
 
@@ -50,7 +52,7 @@ void VulkanCommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, con
     VkPipelineBindPoint vk_bind_point   = vulkan_helpers::convert_pipeline_bind_point(bind_point);
     VkPipelineLayout vk_pipeline_layout = static_cast<const VulkanPipelineLayout&>(pipeline_layout).vk_handle();
 
-    VkDescriptorSet vk_descriptor_sets[c_descriptor_set_max];
+    VkDescriptorSet vk_descriptor_sets[c_descriptor_set_max]{};
     for(size_t i = 0; i < descriptor_sets.size(); ++i)
     {
         auto& desc_set_info = static_cast<const VulkanDescriptorSet*>(descriptor_sets[i])->vk_set_info();
@@ -59,7 +61,7 @@ void VulkanCommandBuffer::bind_descriptor_sets(PipelineBindPoint bind_point, con
 
     uint32_t first_set = descriptor_sets.front()->get_update_rate();
 
-    vkCmdBindDescriptorSets(_vk_handle, vk_bind_point, vk_pipeline_layout, first_set, descriptor_sets.size(), vk_descriptor_sets, 0, nullptr);
+    vkCmdBindDescriptorSets(_vk_handle, vk_bind_point, vk_pipeline_layout, first_set, static_cast<uint32_t>(descriptor_sets.size()), vk_descriptor_sets, 0, nullptr);
 }
 
 void VulkanCommandBuffer::bind_pipeline(PipelineBindPoint bind_point, const Pipeline& pipeline)
@@ -203,10 +205,10 @@ void VulkanCommandBuffer::push_constant(const PipelineLayout& layout, ShaderStag
 {
     VkPipelineLayout vk_layout = static_cast<const VulkanPipelineLayout&>(layout).vk_handle();
     VkShaderStageFlags shader_stage_flags = vulkan_helpers::convert_shader_stages(stages);
-    vkCmdPushConstants(_vk_handle, vk_layout, shader_stage_flags, offset, size, data);
+    vkCmdPushConstants(_vk_handle, vk_layout, shader_stage_flags, offset, static_cast<uint32_t>(size), data);
 }
 
-void VulkanCommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout)
+void VulkanCommandBuffer::transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout) const
 {
     transition_image(texture, texture.layout(), texture.mips(), texture.layers(), src_stages, dst_stages, new_layout);
     texture.layout(new_layout);
@@ -219,7 +221,7 @@ void VulkanCommandBuffer::transition_image(
     uint32_t layers,
     PipelineStages src_stages,
     PipelineStages dst_stages,
-    ImageLayout new_layout)
+    ImageLayout new_layout) const
 {
     ImageMemoryBarrier image_memory_barrier{};
     image_memory_barrier.old_layout = layout;
@@ -301,21 +303,21 @@ void VulkanCommandBuffer::set_viewport(const std::vector<ViewportInfo>& viewport
         vk_viewports[i].maxDepth = viewports[i].max_depth;
     }
 
-    vkCmdSetViewport(_vk_handle, 0, viewports.size(), &vk_viewports[0]);
+    vkCmdSetViewport(_vk_handle, 0, static_cast<uint32_t>(viewports.size()), &vk_viewports[0]);
 }
 
 void VulkanCommandBuffer::set_scissor(const std::vector<ViewportInfo>& scissors)
 {
-    VkRect2D vk_scissors[4];
+    VkRect2D vk_scissors[4]{};
     for(size_t i = 0; i < scissors.size(); ++i)
     {
-        vk_scissors[i].offset.x      = scissors[i].x;
-        vk_scissors[i].offset.y      = scissors[i].y;
-        vk_scissors[i].extent.width  = scissors[i].width;
-        vk_scissors[i].extent.height = scissors[i].height;
+        vk_scissors[i].offset.x      = static_cast<int32_t>(scissors[i].x);
+        vk_scissors[i].offset.y      = static_cast<int32_t>(scissors[i].y);
+        vk_scissors[i].extent.width  = static_cast<uint32_t>(scissors[i].width);
+        vk_scissors[i].extent.height = static_cast<uint32_t>(scissors[i].height);
     }
 
-    vkCmdSetScissor(_vk_handle, 0, scissors.size(), &vk_scissors[0]);
+    vkCmdSetScissor(_vk_handle, 0, static_cast<uint32_t>(scissors.size()), &vk_scissors[0]);
 }
 
 bool VulkanCommandBuffer::begin(void)
@@ -349,17 +351,17 @@ void VulkanCommandBuffer::end(void)
     _state = CommandBufferState::EXECUTABLE;
 }
 
-void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data)
+void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data) const
 {
-    VkClearValue vk_clear_values[2];
-    vk_clear_values[0].color        = { per_pass_data.colour_clear.r, per_pass_data.colour_clear.g, per_pass_data.colour_clear.b, per_pass_data.colour_clear.a };
+    VkClearValue vk_clear_values[2]{};
+    vk_clear_values[0].color = { { per_pass_data.colour_clear.r, per_pass_data.colour_clear.g, per_pass_data.colour_clear.b, per_pass_data.colour_clear.a } };
     vk_clear_values[1].depthStencil = { per_pass_data.depth_clear.depth, per_pass_data.depth_clear.stencil };
 
     VkRect2D vk_render_area{};
     vk_render_area.extent.width  = per_pass_data.render_area.w;
     vk_render_area.extent.height = per_pass_data.render_area.h;
 
-    VkImageView vk_image_views[rend::constants::max_framebuffer_attachments];
+    VkImageView vk_image_views[rend::constants::max_framebuffer_attachments]{};
     for(size_t i = 0; i < per_pass_data.attachments_count; ++i)
     {
         auto& image_info = static_cast<const VulkanTexture*>(per_pass_data.attachments[i])->vk_image_info();
@@ -370,7 +372,7 @@ void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const
     {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO,
         .pNext = nullptr,
-        .attachmentCount = per_pass_data.attachments_count,
+        .attachmentCount = (uint32_t)per_pass_data.attachments_count,
         .pAttachments = vk_image_views
     };
 
@@ -387,19 +389,19 @@ void VulkanCommandBuffer::begin_render_pass(const RenderPass& render_pass, const
     vkCmdBeginRenderPass(_vk_handle, &vk_render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void VulkanCommandBuffer::end_render_pass(void)
+void VulkanCommandBuffer::end_render_pass(void) const
 {
     vkCmdEndRenderPass(_vk_handle);
 }
 
-void VulkanCommandBuffer::next_subpass(void)
+void VulkanCommandBuffer::next_subpass(void) const
 {
     vkCmdNextSubpass(_vk_handle, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void VulkanCommandBuffer::pipeline_barrier(const PipelineBarrierInfo& info)
+void VulkanCommandBuffer::pipeline_barrier(const PipelineBarrierInfo& info) const
 {
-    VkImageMemoryBarrier vk_image_memory_barriers[8];
+    VkImageMemoryBarrier vk_image_memory_barriers[8]{};
     for(size_t barrier_idx{ 0 }; barrier_idx < info.image_memory_barrier_count; ++barrier_idx)
     {
         auto& image_info = static_cast<VulkanTexture*>(info.image_memory_barriers[barrier_idx].image)->vk_image_info();

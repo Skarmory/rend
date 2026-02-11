@@ -43,7 +43,7 @@ VkBufferUsageFlags      convert_buffer_usage_flags(BufferUsage usage);
 VkImageUsageFlags       convert_image_usage_flags(ImageUsage usage);
 VkDescriptorType        convert_descriptor_type(DescriptorType type);
 VkImageCopy             convert_image_copy(const ImageImageCopyInfo& copy);
-VkVertexInputAttributeDescription convert_vertex_attribute_info(const VertexAttributeInfo& info, int binding);
+VkVertexInputAttributeDescription convert_vertex_attribute_info(const VertexAttributeInfo& info, uint32_t binding);
 VkVertexInputBindingDescription convert_vertex_binding_info(const VertexBindingInfo& info);
 
 ImageLayout             convert_image_layout(VkImageLayout layout);

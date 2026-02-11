@@ -44,14 +44,14 @@ public:
 
     // Vulkan-specific
     VkCommandBuffer vk_handle(void) const;
-    void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
-    void transition_image(GPUTexture& texture, ImageLayout layout, uint32_t mips, uint32_t layers, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout);
+    void transition_image(GPUTexture& texture, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout) const;
+    void transition_image(GPUTexture& texture, ImageLayout layout, uint32_t mips, uint32_t layers, PipelineStages src_stages, PipelineStages dst_stages, ImageLayout new_layout) const;
     bool begin(void);
     void end(void);
-    void begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data);
-    void end_render_pass(void);
-    void next_subpass(void);
-    void pipeline_barrier(const PipelineBarrierInfo& info);
+    void begin_render_pass(const RenderPass& render_pass, const PerPassData& per_pass_data) const;
+    void end_render_pass(void) const;
+    void next_subpass(void) const;
+    void pipeline_barrier(const PipelineBarrierInfo& info) const;
 
 private:
     VkCommandBuffer _vk_handle{ VK_NULL_HANDLE };

@@ -12,13 +12,14 @@ void rend::rend_initialise(const RendInitInfo& init_info)
 {
     glfwInit();
     logging::LogManager::initialise();
-    Renderer::initialise(init_info);
-    Renderer::get_instance().configure();
+    Renderer::create(init_info);
+    Renderer::get_instance().initialise(init_info);
 }
 
 void rend::rend_uninitialise(void)
 {
-    Renderer::get_instance().shutdown();
+    Renderer::get_instance().uninitialise();
+    Renderer::destroy();
     logging::LogManager::uninitialise();
     glfwTerminate();
 }

@@ -1,8 +1,6 @@
 #ifndef REND_API_VULKAN_VULKAN_RENDERER_H
 #define REND_API_VULKAN_VULKAN_RENDERER_H
 
-#include "api/vulkan/vulkan_renderer.fdecl.h"
-
 #include "api/vulkan/vulkan_buffer.h"
 #include "api/vulkan/vulkan_descriptor_set.h"
 #include "api/vulkan/vulkan_descriptor_set_layout.h"
@@ -12,8 +10,27 @@
 #include "api/vulkan/vulkan_render_pass.h"
 #include "api/vulkan/vulkan_shader.h"
 #include "api/vulkan/vulkan_texture.h"
+
+#include "core/containers/data_array.h"
 #include "core/containers/data_pool.h"
+#include "core/descriptor_set.h"
+#include "core/descriptor_set_layout.h"
+#include "core/draw_item.h"
+#include "core/framebuffer.h"
+#include "core/gpu_buffer.h"
+#include "core/gpu_texture.h"
+#include "core/pipeline.h"
+#include "core/pipeline_layout.h"
+#include "core/rend.h"
+#include "core/render_pass.h"
+#include "core/render_strategy.h"
 #include "core/renderer.h"
+#include "core/rend_defs.h"
+#include "core/shader.h"
+#include "core/texture_info.h"
+#include "core/view.h"
+
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -30,8 +47,8 @@ class Window;
 class VulkanRenderer : public Renderer
 {
 public:
-    VulkanRenderer(const RendInitInfo& init_info);
-    ~VulkanRenderer(void);
+    VulkanRenderer(void) = default;
+    ~VulkanRenderer(void) = default;
     VulkanRenderer(const VulkanRenderer&)            = delete;
     VulkanRenderer(VulkanRenderer&&)                 = delete;
     VulkanRenderer& operator=(const VulkanRenderer&) = delete;
@@ -39,7 +56,8 @@ public:
 
     void resize(void);
 
-    void configure(void) override;
+    void initialise(const RendInitInfo& init_info) override;
+    void uninitialise(void) override;
     void start_frame(void) override;
     void end_frame(void) override;
     void get_size_by_ratio(SizeRatio ratio, uint32_t& width, uint32_t& height) override;
@@ -49,7 +67,6 @@ public:
     void load_texture(GPUTexture& texture) override;
     void transition(GPUTexture& texture, PipelineStages src, PipelineStages dst, ImageLayout final_layout);
     void write_descriptor_bindings(const DescriptorSet& descriptor_set);
-    void submit_command_buffer(CommandBuffer* command_buffer);
 
     [[nodiscard]] GPUBuffer*           get_buffer(const std::string& name) const override;
     [[nodiscard]] DescriptorSetLayout* get_descriptor_set_layout(const std::string& name) const override;

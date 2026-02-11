@@ -1,6 +1,9 @@
 #include "api/vulkan/swapchain.h"
 
-#include "api/vulkan/fence.h"
+#include "core/rend_defs.h"
+#include "core/texture_info.h"
+#include "api/vulkan/queue_family.h"
+#include "api/vulkan/vulkan_image_info.h"
 #include "api/vulkan/logical_device.h"
 #include "api/vulkan/physical_device.h"
 #include "api/vulkan/vulkan_device_context.h"
@@ -8,24 +11,24 @@
 #include "api/vulkan/vulkan_instance.h"
 #include "api/vulkan/vulkan_semaphore.h"
 #include "api/vulkan/vulkan_texture.h"
-#include "core/window.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
-#include <cassert>
+
+#include <cstdint>
 #include <limits>
-#include <sstream>
+#include <string>
+#include <vector>
+#include <vulkan.h>
 
 using namespace rend;
 
 namespace
 {
-    std::string swapchain_params_to_string(const VkSwapchainCreateInfoKHR& create_info)
-    {
-        std::string s = "{ ";
-        s += "min image count: " + create_info.minImageCount;
-        s += " }";
-        return s;
-    }
+    //std::string swapchain_params_to_string(const VkSwapchainCreateInfoKHR& create_info)
+    //{
+    //    std::string s = "{ ";
+    //    s += "min image count: " + std::to_string(create_info.minImageCount);
+    //    s += " }";
+    //    return s;
+    //}
 }
 
 Swapchain::Swapchain(uint32_t desired_images, VulkanDeviceContext& ctx)
@@ -305,7 +308,7 @@ TextureHandle Swapchain::_register_swapchain_image(const std::string& name, VkIm
     VulkanImageInfo vk_image_info = _ctx->register_swapchain_image(image, _surface_format.format);
     auto rend_handle = _backbuffer_resources.backbuffer_textures.acquire();
     auto* backbuffer_texture = _backbuffer_resources.backbuffer_textures.get(rend_handle);
-    backbuffer_texture = new(backbuffer_texture) VulkanTexture(name, _backbuffer_texture_info, vk_image_info);
+    new(backbuffer_texture) VulkanTexture(name, _backbuffer_texture_info, vk_image_info);
 
 #ifdef DEBUG
     _ctx->set_debug_name(name, VK_OBJECT_TYPE_IMAGE, (uint64_t)vk_image_info.image);

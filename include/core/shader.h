@@ -5,6 +5,8 @@
 #include "core/rend_defs.h"
 #include "core/rend_object.h"
 
+#include <string>
+
 namespace rend
 {
 
@@ -21,8 +23,8 @@ public:
     ShaderStage     type(void) const;
 
 private:
-    size_t          _bytes{ 0 };
-    ShaderStage     _type{ ShaderStage::SHADER_STAGE_NONE };
+    size_t      _bytes{ 0 };
+    ShaderStage _type{ ShaderStage::SHADER_STAGE_NONE };
 };
 
 }

@@ -4,8 +4,12 @@
 #include "core/framebuffer.h"
 #include "core/gpu_buffer.h"
 #include "core/gpu_texture.h"
+#include "core/rend_defs.h"
 #include "core/render_pass.h"
 #include "core/texture_info.h"
+
+#include <string>
+#include <cstdint>
 
 using namespace rend::core::logging;
 
@@ -21,6 +25,20 @@ namespace
             case rend::BufferUsage::VERTEX_BUFFER: return "VERTEX_BUFFER";
             case rend::BufferUsage::INDEX_BUFFER: return "INDEX_BUFFER";
             case rend::BufferUsage::UNIFORM_BUFFER: return "UNIFORM_BUFFER";
+            default: return "";
+        }
+    }
+
+    std::string image_usage_to_string(rend::ImageUsage usage)
+    {
+        switch (usage)
+        {
+            case rend::ImageUsage::NONE: return "NONE";
+            case rend::ImageUsage::TRANSFER_SRC: return "TRANSFER_SRC";
+            case rend::ImageUsage::TRANSFER_DST: return "TRANSFER_DST";
+            case rend::ImageUsage::SAMPLED: return "SAMPLED";
+            case rend::ImageUsage::DEPTH_STENCIL: return "DEPTH_STENCIL";
+            case rend::ImageUsage::COLOUR_ATTACHMENT: return "COLOUR_ATTACHMENT";
             default: return "";
         }
     }
@@ -204,4 +222,15 @@ std::string rend::core::logging::to_string(const rend::RGBA& rgba)
 
 std::string rend::core::logging::to_string(const rend::TextureInfo& info)
 {
+    std::string s = "{ ";
+    s += "w: " + std::to_string(info.width) + ", ";
+    s += "h: " + std::to_string(info.height) + ", ";
+    s += "d: " + std::to_string(info.depth) + ", ";
+    s += "mips: " + std::to_string(info.mips) + ", ";
+    s += "layers: " + std::to_string(info.layers) + ", ";
+    s += "format: " + FormatNames[static_cast<uint32_t>(info.format)] + ", ";
+    s += "layout: " + ImageLayoutNames[static_cast<uint32_t>(info.layout)] + ", ";
+    s += "msaa: " + MSAASamplesNames[static_cast<uint32_t>(info.samples)] + ", ";
+    s += "usage: " + ::image_usage_to_string(info.usage) + ", ";
+    return s;
 }

@@ -14,11 +14,12 @@ namespace rend
 
 class CommandBuffer;
 class Semaphore;
-class SwapchainAcquire;
 class Fence;
 class Framebuffer;
 class GPUBuffer;
 class GPUTexture;
+
+struct SwapchainAcquire;
 
 struct FrameData
 {

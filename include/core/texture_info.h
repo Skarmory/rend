@@ -3,6 +3,8 @@
 
 #include "core/rend_defs.h"
 
+#include <cstdint>
+
 namespace rend
 {
     struct TextureInfo

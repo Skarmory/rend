@@ -5,12 +5,16 @@
 
 namespace rend
 {
-    extern "C"
+    struct InstanceExtensionFuncs
     {
-        extern PFN_vkSetDebugUtilsObjectNameEXT pfnSetDebugUtilsObjectNameEXT;
-        extern PFN_vkCreateDebugUtilsMessengerEXT pfnCreateDebugUtilsMessengerEXT;
-        extern PFN_vkDestroyDebugUtilsMessengerEXT pfnDestroyDebugUtilsMessengerEXT;
-    }
+        PFN_vkCreateDebugUtilsMessengerEXT pfnCreateDebugUtilsMessengerEXT{ nullptr };
+        PFN_vkDestroyDebugUtilsMessengerEXT pfnDestroyDebugUtilsMessengerEXT{ nullptr };
+    };
+
+    struct DeviceExtensionFuncs
+    {
+        PFN_vkSetDebugUtilsObjectNameEXT pfnSetDebugUtilsObjectNameEXT{ nullptr };
+    };
 }
 
 #endif

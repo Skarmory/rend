@@ -1,7 +1,7 @@
 #ifndef REND_API_VULKAN_VULKAN_INSTANCE_H
 #define REND_API_VULKAN_VULKAN_INSTANCE_H
 
-#include "core/rend_defs.h"
+#include "api/vulkan/extension_funcs.h"
 
 #include <vector>
 #include <vulkan.h>
@@ -21,10 +21,10 @@ public:
     VulkanInstance operator=(const VulkanInstance&) = delete;
     VulkanInstance operator=(VulkanInstance&&)      = delete;
 
-    void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices);
+    void enumerate_physical_devices(std::vector<VkPhysicalDevice>& devices) const;
     void create_surface(const Window& window);
-    VkDebugUtilsMessengerEXT create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info);
-    void destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger);
+    VkDebugUtilsMessengerEXT create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
+    void destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger) const;
 
     VkInstance get_handle(void) const;
     VkSurfaceKHR surface(void) const;
@@ -32,6 +32,7 @@ public:
 private:
     VkInstance   _vk_instance{ VK_NULL_HANDLE };
     VkSurfaceKHR _vk_surface{ VK_NULL_HANDLE };
+    InstanceExtensionFuncs _ext_funcs{};
 };
 
 }

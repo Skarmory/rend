@@ -2,22 +2,24 @@
 #define REND_CORE_RENDERER_H
 
 #include "core/containers/data_array.h"
-#include "core/containers/data_pool.h"
 #include "core/descriptor_set_layout.h"
-#include "core/draw_pass.h"
+#include "core/draw_item.h"
 #include "core/frame.h"
 #include "core/material.h"
 #include "core/mesh.h"
 #include "core/presentation_mode.h"
+#include "core/rend_defs.h"
 #include "core/render_strategy.h"
 #include "core/shader_set.h"
-#include "core/sub_pass.h"
 #include "core/view.h"
 
 #include <functional>
 #include <queue>
 #include <string>
 #include <vector>
+#include <array>
+#include <cstdint>
+#include <string_view>
 
 namespace rend
 {
@@ -47,8 +49,8 @@ struct TextureInfo;
 class Renderer
 {
 public:
-    static void initialise(const RendInitInfo& init_info);
-    static void shutdown(void);
+    static void create(const RendInitInfo& init_info);
+    static void destroy(void);
     static Renderer& get_instance(void);
 
     Window* get_window(void) const;
@@ -59,7 +61,8 @@ public:
     //void set_camera(const CameraData& camera);
     PresentationMode get_presentation_mode(void) const;
 
-    virtual void configure(void) = 0;
+    virtual void initialise(const RendInitInfo& init_info) = 0;
+    virtual void uninitialise(void) = 0;
     virtual void start_frame(void) = 0;
     virtual void end_frame(void) = 0;
     //virtual void resize(void) = 0;
@@ -111,11 +114,11 @@ public:
                           void                 destroy_view(View* view);
 
 protected:
-    virtual ~Renderer(void);
+    virtual ~Renderer(void) = default;
     virtual void _resize(void) = 0;
 
 protected:
-    static constexpr std::string C_BACKBUFFER_NAME = "backbuffer";
+    static constexpr std::string_view C_BACKBUFFER_NAME = "backbuffer";
 
     Window*                               _window{ nullptr };
     std::queue<std::function<void(void)>> _pre_render_queue;

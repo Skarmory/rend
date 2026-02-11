@@ -1,8 +1,6 @@
 #ifndef REND_API_VULKAN_DEVICE_FEATURES_H
 #define REND_API_VULKAN_DEVICE_FEATURES_H
 
-#include "core/bit_field.h"
-
 #include <cstdint>
 #include <vector>
 #include <vulkan.h>

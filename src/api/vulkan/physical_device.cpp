@@ -360,7 +360,7 @@ bool PhysicalDevice::_find_queue_families(VkSurfaceKHR surface)
     queue_family_properties.resize(count);
     vkGetPhysicalDeviceQueueFamilyProperties(_vk_physical_device, &count, queue_family_properties.data());
 
-    for(size_t queue_family_index{ 0 }; queue_family_index < queue_family_properties.size(); ++queue_family_index)
+    for(auto queue_family_index{ 0 }; queue_family_index < queue_family_properties.size(); ++queue_family_index)
     {
         VkBool32 supports_present;
         vkGetPhysicalDeviceSurfaceSupportKHR(_vk_physical_device, queue_family_index, surface, &supports_present);

@@ -1,22 +1,33 @@
 #include "api/vulkan/logical_device.h"
 
-#include "core/command_buffer.h"
+#include "core/logging/log_manager.h"
+#include "core/logging/log_defs.h"
 
+#include "api/vulkan/device_features.h"
 #include "api/vulkan/extensions.h"
 #include "api/vulkan/fence.h"
 #include "api/vulkan/physical_device.h"
+#include "api/vulkan/queue_family.h"
 #include "api/vulkan/swapchain.h"
 #include "api/vulkan/vulkan_semaphore.h"
 
 #include <array>
 #include <cassert>
-#include <iostream>
+#include <cstdint>
+#include <limits>
 #include <set>
+#include <string>
+#include <vector>
 
 using namespace rend;
 
 LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueFamily* const graphics_family, const QueueFamily* const transfer_family, const std::vector<DeviceFeature>& features)
 {
+    auto& logger = core::logging::LogManager::get_instance();
+    logger.add_log_file(core::logging::C_RENDERER_LOG_FILE_NAME);
+    logger.add_log_channel(core::logging::C_DEVICE_LOG_CHANNEL_NAME);
+    logger.bind_file_to_channel(core::logging::C_RENDERER_LOG_FILE_NAME, core::logging::C_DEVICE_LOG_CHANNEL_NAME);
+
     // Step 1: Construct queue creation info
     float priority = 1.0f;
 
@@ -49,7 +60,7 @@ LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueF
     device_features.vk_1_1_features.pNext = &device_features.vk_1_2_features;
     device_features.vk_1_2_features.pNext = nullptr;
 
-    VkPhysicalDeviceFeatures2 vk_device_features_2;
+    VkPhysicalDeviceFeatures2 vk_device_features_2{};
     vk_device_features_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     vk_device_features_2.pNext = &device_features.vk_1_1_features;
     vk_device_features_2.features = device_features.vk_1_0_features;
@@ -82,6 +93,8 @@ LogicalDevice::LogicalDevice(const PhysicalDevice* physical_device, const QueueF
     _physical_device = physical_device;
     _graphics_family = graphics_family;
     _transfer_family = transfer_family;
+
+    _ext_funcs.pfnSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetDeviceProcAddr(_vk_device, "vkSetDebugUtilsObjectNameEXT");
 }
 
 LogicalDevice::~LogicalDevice(void)
@@ -121,7 +134,7 @@ const PhysicalDevice& LogicalDevice::get_physical_device(void) const
     return *_physical_device;
 }
 
-bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, const Fence* fence)
+bool LogicalDevice::queue_submit(VkCommandBuffer* command_buffers, uint32_t command_buffers_count, QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Semaphore*>& signal_sems, const Fence* fence) const
 {
     //std::vector<VkCommandBuffer> vk_command_buffers;
     std::vector<VkSemaphore>     vk_wait_sems;
@@ -190,22 +203,22 @@ uint32_t LogicalDevice::find_memory_type(uint32_t desired_type, VkMemoryProperty
     return std::numeric_limits<uint32_t>::max();
 }
 
-void LogicalDevice::wait_idle(void)
+void LogicalDevice::wait_idle(void) const
 {
     vkDeviceWaitIdle(_vk_device);
 }
 
-VkResult LogicalDevice::wait_for_fences(std::vector<VkFence>& fences, uint64_t timeout, bool wait_all)
+VkResult LogicalDevice::wait_for_fences(std::vector<VkFence>& fences, uint64_t timeout, bool wait_all) const
 {
-    return vkWaitForFences(_vk_device, fences.size(), fences.data(), wait_all, timeout);
+    return vkWaitForFences(_vk_device, (uint32_t)fences.size(), fences.data(), wait_all, timeout);
 }
 
-void LogicalDevice::reset_fences(std::vector<VkFence>& fences)
+void LogicalDevice::reset_fences(std::vector<VkFence>& fences) const
 {
-    vkResetFences(_vk_device, fences.size(), fences.data());
+    vkResetFences(_vk_device, (uint32_t)fences.size(), fences.data());
 }
 
-VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index)
+VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeout, Semaphore* semaphore, Fence* fence, uint32_t* image_index) const
 {
     return vkAcquireNextImageKHR(
         _vk_device,
@@ -217,7 +230,7 @@ VkResult LogicalDevice::acquire_next_image(Swapchain* swapchain, uint64_t timeou
     );
 }
 
-VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results)
+VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphore*>& wait_sems, const std::vector<Swapchain*>& swapchains, const std::vector<uint32_t>& image_indices, std::vector<VkResult>& results) const
 {
     std::vector<VkSwapchainKHR> vk_swapchains;
     vk_swapchains.reserve(swapchains.size());
@@ -250,7 +263,7 @@ VkResult LogicalDevice::queue_present(QueueType type, const std::vector<Semaphor
     return vkQueuePresentKHR(get_queue(type), &present_info);
 }
 
-VkResult LogicalDevice::get_swapchain_images(VkSwapchainKHR swapchain, std::vector<VkImage>& images)
+VkResult LogicalDevice::get_swapchain_images(VkSwapchainKHR swapchain, std::vector<VkImage>& images) const
 {
     uint32_t count = 0;
     vkGetSwapchainImagesKHR(_vk_device, swapchain, &count, nullptr);
@@ -258,31 +271,31 @@ VkResult LogicalDevice::get_swapchain_images(VkSwapchainKHR swapchain, std::vect
     return vkGetSwapchainImagesKHR(_vk_device, swapchain, &count, images.data());
 }
 
-VkMemoryRequirements LogicalDevice::get_buffer_memory_reqs(VkBuffer buffer)
+VkMemoryRequirements LogicalDevice::get_buffer_memory_reqs(VkBuffer buffer) const
 {
     VkMemoryRequirements memory_reqs = {};
     vkGetBufferMemoryRequirements(_vk_device, buffer, &memory_reqs);
     return memory_reqs;
 }
 
-VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory)
+VkResult LogicalDevice::bind_buffer_memory(VkBuffer buffer, VkDeviceMemory memory) const
 {
     return vkBindBufferMemory(_vk_device, buffer, memory, 0);
 }
 
-VkMemoryRequirements LogicalDevice::get_image_memory_reqs(VkImage image)
+VkMemoryRequirements LogicalDevice::get_image_memory_reqs(VkImage image) const
 {
     VkMemoryRequirements memory_reqs = {};
     vkGetImageMemoryRequirements(_vk_device, image, &memory_reqs);
     return memory_reqs;
 }
 
-VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory)
+VkResult LogicalDevice::bind_image_memory(VkImage image, VkDeviceMemory memory) const
 {
     return vkBindImageMemory(_vk_device, image, memory, 0);
 }
 
-std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool)
+std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector<VkDescriptorSetLayout>& layouts, VkDescriptorPool pool) const
 {
     VkDescriptorSetAllocateInfo alloc_info =
     {
@@ -296,15 +309,20 @@ std::vector<VkDescriptorSet> LogicalDevice::allocate_descriptor_sets(std::vector
     std::vector<VkDescriptorSet> sets(layouts.size());
     VkResult result = vkAllocateDescriptorSets(_vk_device, &alloc_info, sets.data());
 
+    if (result != VK_SUCCESS)
+    {
+        core::logging::LogManager::write(core::logging::C_DEVICE_LOG_CHANNEL_NAME, "DEVICE | vkAllocateDescriptorSets error: " + std::to_string(result));
+    }
+
     return sets;
 }
 
-void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets)
+void LogicalDevice::update_descriptor_sets(std::vector<VkWriteDescriptorSet>& write_sets) const
 {
-    vkUpdateDescriptorSets(_vk_device, write_sets.size(), write_sets.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_vk_device, (uint32_t)write_sets.size(), write_sets.data(), 0, nullptr);
 }
 
-void LogicalDevice::free_descriptor_sets(const VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool)
+void LogicalDevice::free_descriptor_sets(const VkDescriptorSet* sets, uint32_t sets_count, VkDescriptorPool pool) const
 {
     vkFreeDescriptorSets(_vk_device, pool, sets_count, sets);
 }
@@ -331,76 +349,76 @@ std::vector<VkCommandBuffer> LogicalDevice::allocate_command_buffers(uint32_t co
 
 void LogicalDevice::free_command_buffers(std::vector<VkCommandBuffer>& buffers, VkCommandPool pool) const
 {
-    vkFreeCommandBuffers(_vk_device, pool, buffers.size(), buffers.data());
+    vkFreeCommandBuffers(_vk_device, pool, (uint32_t)buffers.size(), buffers.data());
 }
 
-VkDeviceMemory LogicalDevice::allocate_memory(VkMemoryAllocateInfo& alloc_info)
+VkDeviceMemory LogicalDevice::allocate_memory(VkMemoryAllocateInfo& alloc_info) const
 {
     VkDeviceMemory memory = VK_NULL_HANDLE;
     vkAllocateMemory(_vk_device, &alloc_info, nullptr, &memory);
     return memory;
 }
 
-void LogicalDevice::free_memory(VkDeviceMemory memory)
+void LogicalDevice::free_memory(VkDeviceMemory memory) const
 {
     vkFreeMemory(_vk_device, memory, nullptr);
 }
 
-bool LogicalDevice::map_memory(VkDeviceMemory memory, size_t size_bytes, uint64_t offset_bytes, void** mapped)
+bool LogicalDevice::map_memory(VkDeviceMemory memory, size_t size_bytes, uint64_t offset_bytes, void** mapped) const
 {
     auto code = vkMapMemory(_vk_device, memory, offset_bytes, size_bytes, 0, mapped);
     return code == VK_SUCCESS;
 }
 
-void LogicalDevice::unmap_memory(VkDeviceMemory memory)
+void LogicalDevice::unmap_memory(VkDeviceMemory memory) const
 {
     vkUnmapMemory(_vk_device, memory);
 }
 
-VkSwapchainKHR LogicalDevice::create_swapchain(VkSwapchainCreateInfoKHR& create_info)
+VkSwapchainKHR LogicalDevice::create_swapchain(VkSwapchainCreateInfoKHR& create_info) const
 {
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     vkCreateSwapchainKHR(_vk_device, &create_info, nullptr, &swapchain);
     return swapchain;
 }
 
-void LogicalDevice::destroy_swapchain(VkSwapchainKHR swapchain)
+void LogicalDevice::destroy_swapchain(VkSwapchainKHR swapchain) const
 {
     vkDestroySwapchainKHR(_vk_device, swapchain, nullptr);
 }
 
-VkRenderPass LogicalDevice::create_render_pass(VkRenderPassCreateInfo& create_info)
+VkRenderPass LogicalDevice::create_render_pass(VkRenderPassCreateInfo& create_info) const
 {
     VkRenderPass render_pass = VK_NULL_HANDLE;
     vkCreateRenderPass(_vk_device, &create_info, nullptr, &render_pass);
     return render_pass;
 }
 
-void LogicalDevice::destroy_render_pass(VkRenderPass render_pass)
+void LogicalDevice::destroy_render_pass(VkRenderPass render_pass) const
 {
     vkDestroyRenderPass(_vk_device, render_pass, nullptr);
 }
 
-VkFramebuffer LogicalDevice::create_framebuffer(VkFramebufferCreateInfo& create_info)
+VkFramebuffer LogicalDevice::create_framebuffer(VkFramebufferCreateInfo& create_info) const
 {
     VkFramebuffer framebuffer = VK_NULL_HANDLE;
     vkCreateFramebuffer(_vk_device, &create_info, nullptr, &framebuffer);
     return framebuffer;
 }
 
-void LogicalDevice::destroy_framebuffer(VkFramebuffer framebuffer)
+void LogicalDevice::destroy_framebuffer(VkFramebuffer framebuffer) const
 {
     vkDestroyFramebuffer(_vk_device, framebuffer, nullptr);
 }
 
-VkDescriptorPool LogicalDevice::create_descriptor_pool(VkDescriptorPoolCreateInfo& create_info)
+VkDescriptorPool LogicalDevice::create_descriptor_pool(VkDescriptorPoolCreateInfo& create_info) const
 {
     VkDescriptorPool pool = VK_NULL_HANDLE;
     vkCreateDescriptorPool(_vk_device, &create_info, nullptr, &pool);
     return pool;
 }
 
-void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool)
+void LogicalDevice::destroy_descriptor_pool(VkDescriptorPool pool) const
 {
     vkDestroyDescriptorPool(_vk_device, pool, nullptr);
 }
@@ -417,139 +435,151 @@ void LogicalDevice::destroy_command_pool(VkCommandPool pool) const
     vkDestroyCommandPool(_vk_device, pool, nullptr);
 }
 
-void LogicalDevice::reset_command_pool(VkCommandPool pool)
+void LogicalDevice::reset_command_pool(VkCommandPool pool) const
 {
     vkResetCommandPool(_vk_device, pool, 0);
 }
 
-VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(VkDescriptorSetLayoutCreateInfo& create_info)
+VkDescriptorSetLayout LogicalDevice::create_descriptor_set_layout(VkDescriptorSetLayoutCreateInfo& create_info) const
 {
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
     vkCreateDescriptorSetLayout(_vk_device, &create_info, nullptr, &layout);
     return layout;
 }
 
-void LogicalDevice::destroy_descriptor_set_layout(VkDescriptorSetLayout layout)
+void LogicalDevice::destroy_descriptor_set_layout(VkDescriptorSetLayout layout) const
 {
     vkDestroyDescriptorSetLayout(_vk_device, layout, nullptr);
 }
 
-VkImageView LogicalDevice::create_image_view(VkImageViewCreateInfo& create_info)
+VkImageView LogicalDevice::create_image_view(VkImageViewCreateInfo& create_info) const
 {
     VkImageView image_view = VK_NULL_HANDLE;
     vkCreateImageView(_vk_device, &create_info, nullptr, &image_view);
     return image_view;
 }
 
-void LogicalDevice::destroy_image_view(VkImageView image_view)
+void LogicalDevice::destroy_image_view(VkImageView image_view) const
 {
     vkDestroyImageView(_vk_device, image_view, nullptr);
 }
 
-VkBuffer LogicalDevice::create_buffer(VkBufferCreateInfo& info)
+VkBuffer LogicalDevice::create_buffer(VkBufferCreateInfo& info) const
 {
     VkBuffer buffer = VK_NULL_HANDLE;
     vkCreateBuffer(_vk_device, &info, nullptr, &buffer);
     return buffer;
 }
 
-void LogicalDevice::destroy_buffer(VkBuffer buffer)
+void LogicalDevice::destroy_buffer(VkBuffer buffer) const
 {
     vkDestroyBuffer(_vk_device, buffer, nullptr);
 }
 
-VkPipelineLayout LogicalDevice::create_pipeline_layout(VkPipelineLayoutCreateInfo& create_info)
+VkPipelineLayout LogicalDevice::create_pipeline_layout(VkPipelineLayoutCreateInfo& create_info) const
 {
     VkPipelineLayout layout = VK_NULL_HANDLE;
     vkCreatePipelineLayout(_vk_device, &create_info, nullptr, &layout);
     return layout;
 }
 
-void LogicalDevice::destroy_pipeline_layout(VkPipelineLayout layout)
+void LogicalDevice::destroy_pipeline_layout(VkPipelineLayout layout) const
 {
     vkDestroyPipelineLayout(_vk_device, layout, nullptr);
 }
 
-VkPipeline LogicalDevice::create_pipeline(VkGraphicsPipelineCreateInfo& create_info)
+VkPipeline LogicalDevice::create_pipeline(VkGraphicsPipelineCreateInfo& create_info) const
 {
     VkPipeline pipeline = VK_NULL_HANDLE;
     vkCreateGraphicsPipelines(_vk_device, VK_NULL_HANDLE, 1, &create_info, nullptr, &pipeline);
     return pipeline;
 }
 
-void LogicalDevice::destroy_pipeline(VkPipeline pipeline)
+void LogicalDevice::destroy_pipeline(VkPipeline pipeline) const
 {
     vkDestroyPipeline(_vk_device, pipeline, nullptr);
 }
 
-VkEvent LogicalDevice::create_event(const VkEventCreateInfo& create_info)
+VkEvent LogicalDevice::create_event(const VkEventCreateInfo& create_info) const
 {
     VkEvent event = VK_NULL_HANDLE;
     vkCreateEvent(_vk_device, &create_info, nullptr, &event);
     return event;
 }
 
-void LogicalDevice::destroy_event(VkEvent event)
+void LogicalDevice::destroy_event(VkEvent event) const
 {
     vkDestroyEvent(_vk_device, event, nullptr);
 }
 
-VkFence LogicalDevice::create_fence(const VkFenceCreateInfo& create_info)
+VkFence LogicalDevice::create_fence(const VkFenceCreateInfo& create_info) const
 {
     VkFence fence = VK_NULL_HANDLE;
     vkCreateFence(_vk_device, &create_info, nullptr, &fence);
     return fence;
 }
 
-void LogicalDevice::destroy_fence(VkFence fence)
+void LogicalDevice::destroy_fence(VkFence fence) const
 {
     vkDestroyFence(_vk_device, fence, nullptr);
 }
 
-VkSemaphore LogicalDevice::create_semaphore(const VkSemaphoreCreateInfo& create_info)
+VkSemaphore LogicalDevice::create_semaphore(const VkSemaphoreCreateInfo& create_info) const
 {
     VkSemaphore semaphore;
     vkCreateSemaphore(_vk_device, &create_info, nullptr, &semaphore);
     return semaphore;
 }
 
-void LogicalDevice::destroy_semaphore(VkSemaphore semaphore)
+void LogicalDevice::destroy_semaphore(VkSemaphore semaphore) const
 {
     vkDestroySemaphore(_vk_device, semaphore, nullptr);
 }
 
-VkImage LogicalDevice::create_image(VkImageCreateInfo& create_info)
+VkImage LogicalDevice::create_image(VkImageCreateInfo& create_info) const
 {
     VkImage image = VK_NULL_HANDLE;
     vkCreateImage(_vk_device, &create_info, nullptr, &image);
     return image;
 }
 
-void LogicalDevice::destroy_image(VkImage image)
+void LogicalDevice::destroy_image(VkImage image) const
 {
     vkDestroyImage(_vk_device, image, nullptr);
 }
 
-VkSampler LogicalDevice::create_sampler(VkSamplerCreateInfo& create_info)
+VkSampler LogicalDevice::create_sampler(VkSamplerCreateInfo& create_info) const
 {
     VkSampler sampler = VK_NULL_HANDLE;
     vkCreateSampler(_vk_device, &create_info, nullptr, &sampler);
     return sampler;
 }
 
-void LogicalDevice::destroy_sampler(VkSampler sampler)
+void LogicalDevice::destroy_sampler(VkSampler sampler) const
 {
     vkDestroySampler(_vk_device, sampler, nullptr);
 }
 
-VkShaderModule LogicalDevice::create_shader_module(VkShaderModuleCreateInfo& create_info)
+VkShaderModule LogicalDevice::create_shader_module(VkShaderModuleCreateInfo& create_info) const
 {
     VkShaderModule module = VK_NULL_HANDLE;
     vkCreateShaderModule(_vk_device, &create_info, nullptr, &module);
     return module;
 }
 
-void LogicalDevice::destroy_shader_module(VkShaderModule module)
+void LogicalDevice::destroy_shader_module(VkShaderModule module) const
 {
     vkDestroyShaderModule(_vk_device, module, nullptr);
+}
+
+void LogicalDevice::set_debug_name(const std::string& name, VkObjectType type, uint64_t handle) const
+{
+    VkDebugUtilsObjectNameInfoEXT info{};
+    info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    info.pNext = nullptr;
+    info.objectType = type;
+    info.objectHandle = handle;
+    info.pObjectName = name.c_str();
+
+    _ext_funcs.pfnSetDebugUtilsObjectNameEXT(_vk_device, &info);
 }
