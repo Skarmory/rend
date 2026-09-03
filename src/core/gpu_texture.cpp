@@ -1,6 +1,6 @@
-#include "core/gpu_texture.h"
+#include "rend/core/gpu_texture.h"
 
-#include "core/renderer.h"
+#include "rend/core/renderer.h"
 
 #include <cassert>
 

@@ -1,8 +1,8 @@
-#include "api/vulkan/vulkan_helper_funcs.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
 
-#include "api/vulkan/swapchain.h"
-#include "api/vulkan/vulkan_renderer.h"
-#include "core/renderer.h"
+#include "rend/api/vulkan/swapchain.h"
+#include "rend/api/vulkan/vulkan_renderer.h"
+#include "rend/core/renderer.h"
 
 #include <cassert>
 #include <iostream>
@@ -129,10 +129,10 @@ VkShaderStageFlagBits vulkan_helpers::convert_shader_stage(ShaderStage type)
         case ShaderStage::SHADER_STAGE_TESSELLATION_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         case ShaderStage::SHADER_STAGE_GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
         case ShaderStage::SHADER_STAGE_COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
-        case ShaderStage::SHADER_STAGE_NONE: return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        case ShaderStage::SHADER_STAGE_NONE:
+        default:
+            return (VkShaderStageFlagBits)0;
     }
-
-    return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 }
 
 VkShaderStageFlags vulkan_helpers::convert_shader_stages(ShaderStages stages)

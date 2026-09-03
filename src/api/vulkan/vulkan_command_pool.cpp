@@ -1,7 +1,7 @@
-//#include "core/command_pool.h"
+//#include "rend/core/command_pool.h"
 //
-//#include "core/device_context.h"
-//#include "core/rend_service.h"
+//#include "rend/core/device_context.h"
+//#include "rend/core/rend_service.h"
 //
 //#include <new>
 //#include <iostream>

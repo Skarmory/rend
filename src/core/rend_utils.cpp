@@ -1,4 +1,4 @@
-#include "core/rend_utils.h"
+#include "rend/core/rend_utils.h"
 
 bool rend::is_depth_format(rend::Format format)
 {

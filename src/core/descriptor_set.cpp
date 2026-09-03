@@ -1,6 +1,6 @@
-#include "core/descriptor_set.h"
+#include "rend/core/descriptor_set.h"
 
-#include "core/descriptor_set_layout.h"
+#include "rend/core/descriptor_set_layout.h"
 
 using namespace rend;
 

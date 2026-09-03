@@ -1,15 +1,15 @@
-#include "api/vulkan/logical_device.h"
+#include "rend/api/vulkan/logical_device.h"
 
-#include "core/logging/log_manager.h"
-#include "core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
+#include "rend/core/logging/log_defs.h"
 
-#include "api/vulkan/device_features.h"
-#include "api/vulkan/extensions.h"
-#include "api/vulkan/fence.h"
-#include "api/vulkan/physical_device.h"
-#include "api/vulkan/queue_family.h"
-#include "api/vulkan/swapchain.h"
-#include "api/vulkan/vulkan_semaphore.h"
+#include "rend/api/vulkan/device_features.h"
+#include "rend/api/vulkan/extensions.h"
+#include "rend/api/vulkan/fence.h"
+#include "rend/api/vulkan/physical_device.h"
+#include "rend/api/vulkan/queue_family.h"
+#include "rend/api/vulkan/swapchain.h"
+#include "rend/api/vulkan/vulkan_semaphore.h"
 
 #include <array>
 #include <cassert>

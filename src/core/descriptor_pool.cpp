@@ -1,7 +1,7 @@
-//#include "core/descriptor_pool.h"
+//#include "rend/core/descriptor_pool.h"
 //
-//#include "core/device_context.h"
-//#include "core/rend_service.h"
+//#include "rend/core/device_context.h"
+//#include "rend/core/rend_service.h"
 //
 //using namespace rend;
 //

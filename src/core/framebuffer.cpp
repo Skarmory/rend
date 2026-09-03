@@ -1,10 +1,10 @@
-#include "core/framebuffer.h"
+#include "rend/core/framebuffer.h"
 
-#include "core/gpu_texture.h"
-#include "core/renderer.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_helper_funcs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/gpu_texture.h"
+#include "rend/core/renderer.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_helper_funcs.h"
+#include "rend/core/logging/log_manager.h"
 
 using namespace rend;
 

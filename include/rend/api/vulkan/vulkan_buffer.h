@@ -1,0 +1,26 @@
+#ifndef REND_API_VULKAN_VULKAN_BUFFER_H
+#define REND_API_VULKAN_VULKAN_BUFFER_H
+
+#include "rend/api/vulkan/vulkan_buffer_info.h"
+#include "rend/core/gpu_buffer.h"
+
+namespace rend
+{
+
+struct VulkanBufferInfo;
+
+class VulkanBuffer : public GPUBuffer
+{
+    public:
+        VulkanBuffer(const std::string& name, const BufferInfo& info, const VulkanBufferInfo& vk_buffer_info);
+        ~VulkanBuffer(void) = default;
+
+        const VulkanBufferInfo& vk_buffer_info(void) const;
+
+    private:
+        VulkanBufferInfo _vk_buffer_info{};
+};
+
+}
+
+#endif

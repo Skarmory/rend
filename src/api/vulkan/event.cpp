@@ -1,7 +1,7 @@
-#include "api/vulkan/event.h"
+#include "rend/api/vulkan/event.h"
 
-#include "api/vulkan/vulkan_helper_funcs.h"
-#include "api/vulkan/vulkan_device_context.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
+#include "rend/api/vulkan/vulkan_device_context.h"
 
 using namespace rend;
 

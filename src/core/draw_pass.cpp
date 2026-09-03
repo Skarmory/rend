@@ -1,12 +1,12 @@
-#include "core/draw_pass.h"
+#include "rend/core/draw_pass.h"
 
-#include "core/renderer.h"
-#include "core/render_pass.h"
-#include "core/sub_pass.h"
+#include "rend/core/renderer.h"
+#include "rend/core/render_pass.h"
+#include "rend/core/sub_pass.h"
 
-#include "core/logging/log_defs.h"
-#include "core/logging/log_helper_funcs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_helper_funcs.h"
+#include "rend/core/logging/log_manager.h"
 
 //#include <sstream>
 

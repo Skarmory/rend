@@ -1,9 +1,9 @@
-#include "core/gpu_buffer.h"
+#include "rend/core/gpu_buffer.h"
 
-#include "core/renderer.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_helper_funcs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/renderer.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_helper_funcs.h"
+#include "rend/core/logging/log_manager.h"
 
 #include <cassert>
 

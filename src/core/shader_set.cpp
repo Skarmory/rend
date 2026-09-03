@@ -1,4 +1,4 @@
-#include "core/shader_set.h"
+#include "rend/core/shader_set.h"
 
 using namespace rend;
 

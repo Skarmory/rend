@@ -1,7 +1,7 @@
-#include "core/pipeline_layout.h"
+#include "rend/core/pipeline_layout.h"
 
-#include "core/device_context.h"
-#include "core/rend_service.h"
+#include "rend/core/device_context.h"
+#include "rend/core/rend_service.h"
 
 using namespace rend;
 

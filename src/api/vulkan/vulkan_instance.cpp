@@ -1,8 +1,8 @@
-#include "api/vulkan/vulkan_instance.h"
+#include "rend/api/vulkan/vulkan_instance.h"
 
-#include "api/vulkan/extension_funcs.h"
+#include "rend/api/vulkan/extension_funcs.h"
 
-#include "core/window.h"
+#include "rend/core/window.h"
 
 #include <GLFW/glfw3.h>
 
@@ -67,7 +67,7 @@ void VulkanInstance::enumerate_physical_devices(std::vector<VkPhysicalDevice>& d
 
 void VulkanInstance::create_surface(const Window& window)
 {
-    glfwCreateWindowSurface(_vk_instance, window.get_handle(), nullptr, &_vk_surface);
+    glfwCreateWindowSurface(_vk_instance, (GLFWwindow*)window.get_handle(), nullptr, &_vk_surface);
 }
 
 VkDebugUtilsMessengerEXT VulkanInstance::create_debug_utils_messenger(const VkDebugUtilsMessengerCreateInfoEXT& create_info) const

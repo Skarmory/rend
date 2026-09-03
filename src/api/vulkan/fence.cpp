@@ -1,10 +1,10 @@
-#include "api/vulkan/fence.h"
+#include "rend/api/vulkan/fence.h"
 
-#include "api/vulkan/logical_device.h"
-#include "api/vulkan/vulkan_device_context.h"
-#include "api/vulkan/vulkan_helper_funcs.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
+#include "rend/api/vulkan/logical_device.h"
+#include "rend/api/vulkan/vulkan_device_context.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
 
 using namespace rend;
 

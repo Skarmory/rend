@@ -1,4 +1,4 @@
-#include "core/logging/log_manager.h"
+#include "rend/core/logging/log_manager.h"
 
 using namespace rend::core::logging;
 

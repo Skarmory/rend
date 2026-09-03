@@ -1,10 +1,10 @@
-#include "core/view.h"
+#include "rend/core/view.h"
 
 #include <sstream>
 #include <string>
 
-#include "core/descriptor_set.h"
-#include "core/renderer.h"
+#include "rend/core/descriptor_set.h"
+#include "rend/core/renderer.h"
 
 using namespace rend;
 

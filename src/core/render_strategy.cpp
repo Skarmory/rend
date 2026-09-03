@@ -1,8 +1,8 @@
-#include "core/render_strategy.h"
+#include "rend/core/render_strategy.h"
 
-#include "core/descriptor_set_layout.h"
-#include "core/pipeline.h"
-#include "core/renderer.h"
+#include "rend/core/descriptor_set_layout.h"
+#include "rend/core/pipeline.h"
+#include "rend/core/renderer.h"
 
 using namespace rend;
 

@@ -1,7 +1,7 @@
-#include "core/frame.h"
+#include "rend/core/frame.h"
 
-#include "core/framebuffer.h"
-#include "core/gpu_texture.h"
+#include "rend/core/framebuffer.h"
+#include "rend/core/gpu_texture.h"
 
 using namespace rend;
 

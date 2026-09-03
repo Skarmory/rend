@@ -1,34 +1,36 @@
-#include "api/vulkan/swapchain.h"
+#include "rend/api/vulkan/swapchain.h"
 
-#include "core/rend_defs.h"
-#include "core/texture_info.h"
-#include "api/vulkan/queue_family.h"
-#include "api/vulkan/vulkan_image_info.h"
-#include "api/vulkan/logical_device.h"
-#include "api/vulkan/physical_device.h"
-#include "api/vulkan/vulkan_device_context.h"
-#include "api/vulkan/vulkan_helper_funcs.h"
-#include "api/vulkan/vulkan_instance.h"
-#include "api/vulkan/vulkan_semaphore.h"
-#include "api/vulkan/vulkan_texture.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
+#include "rend/core/rend_defs.h"
+#include "rend/core/texture_info.h"
+#include "rend/api/vulkan/queue_family.h"
+#include "rend/api/vulkan/vulkan_image_info.h"
+#include "rend/api/vulkan/logical_device.h"
+#include "rend/api/vulkan/physical_device.h"
+#include "rend/api/vulkan/vulkan_device_context.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
+#include "rend/api/vulkan/vulkan_instance.h"
+#include "rend/api/vulkan/vulkan_semaphore.h"
+#include "rend/api/vulkan/vulkan_texture.h"
 
 #include <cstdint>
 #include <limits>
 #include <string>
 #include <vector>
-#include <vulkan.h>
+#include <vulkan/vulkan.h>
 
 using namespace rend;
 
 namespace
 {
-    //std::string swapchain_params_to_string(const VkSwapchainCreateInfoKHR& create_info)
-    //{
-    //    std::string s = "{ ";
-    //    s += "min image count: " + std::to_string(create_info.minImageCount);
-    //    s += " }";
-    //    return s;
-    //}
+    std::string swapchain_params_to_string(const VkSwapchainCreateInfoKHR& create_info)
+    {
+        std::string s = "{ ";
+        s += "min image count: " + std::to_string(create_info.minImageCount);
+        s += " }";
+        return s;
+    }
 }
 
 Swapchain::Swapchain(uint32_t desired_images, VulkanDeviceContext& ctx)

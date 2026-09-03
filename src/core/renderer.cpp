@@ -1,20 +1,20 @@
-#include "core/renderer.h"
+#include "rend/core/renderer.h"
 
-#include "api/vulkan/vulkan_renderer.h"
-#include "core/descriptor_set_layout.h"
-#include "core/descriptor_update_rate.h"
-#include "core/draw_item.h"
-#include "core/gpu_buffer.h"
-#include "core/material.h"
-#include "core/mesh.h"
-#include "core/pipeline_layout.h"
-#include "core/presentation_mode.h"
-#include "core/rend.h"
-#include "core/rend_object.h"
-#include "core/render_strategy.h"
-#include "core/shader_set.h"
-#include "core/view.h"
-#include "core/window.h"
+#include "rend/api/vulkan/vulkan_renderer.h"
+#include "rend/core/descriptor_set_layout.h"
+#include "rend/core/descriptor_update_rate.h"
+#include "rend/core/draw_item.h"
+#include "rend/core/gpu_buffer.h"
+#include "rend/core/material.h"
+#include "rend/core/mesh.h"
+#include "rend/core/pipeline_layout.h"
+#include "rend/core/presentation_mode.h"
+#include "rend/core/rend.h"
+#include "rend/core/rend_object.h"
+#include "rend/core/render_strategy.h"
+#include "rend/core/shader_set.h"
+#include "rend/core/view.h"
+#include "rend/core/window.h"
 
 #include <array>
 #include <cassert>
@@ -42,6 +42,7 @@ void Renderer::destroy(void)
 {
     _renderer->uninitialise();
     delete _renderer;
+    _renderer = nullptr;
 }
 
 Renderer& Renderer::get_instance(void)

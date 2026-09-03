@@ -1,8 +1,8 @@
-#include "api/vulkan/vulkan_render_pass.h"
+#include "rend/api/vulkan/vulkan_render_pass.h"
 
-#include "api/vulkan/vulkan_command_buffer.h"
-#include "core/draw_item.h"
-#include "core/renderer.h"
+#include "rend/api/vulkan/vulkan_command_buffer.h"
+#include "rend/core/draw_item.h"
+#include "rend/core/renderer.h"
 
 using namespace rend;
 

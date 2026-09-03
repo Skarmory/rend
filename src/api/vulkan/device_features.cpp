@@ -1,6 +1,6 @@
-#include "api/vulkan/device_features.h"
+#include "rend/api/vulkan/device_features.h"
 
-#include "api/vulkan/vulkan_helper_funcs.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
 
 using namespace rend;
 

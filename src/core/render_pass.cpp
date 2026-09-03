@@ -1,9 +1,9 @@
-#include "core/render_pass.h"
+#include "rend/core/render_pass.h"
 
-#include "core/rend_utils.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_helper_funcs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/rend_utils.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_helper_funcs.h"
+#include "rend/core/logging/log_manager.h"
 
 using namespace rend;
 
@@ -42,4 +42,16 @@ bool RenderPass::has_depth_target(void) const
 uint32_t RenderPass::colour_targets_count(void) const
 {
     return _colour_targets_count;
+}
+
+void RenderPass::begin(CommandBuffer& command_buffer, const PerPassData& per_pass)
+{
+}
+
+void RenderPass::next_subpass(CommandBuffer& command_buffer)
+{
+}
+
+void RenderPass::end(CommandBuffer& command_buffer)
+{
 }

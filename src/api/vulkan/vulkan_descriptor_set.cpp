@@ -1,6 +1,6 @@
-#include "api/vulkan/vulkan_descriptor_set.h"
+#include "rend/api/vulkan/vulkan_descriptor_set.h"
 
-#include "api/vulkan/vulkan_renderer.h"
+#include "rend/api/vulkan/vulkan_renderer.h"
 
 using namespace rend;
 

@@ -1,12 +1,12 @@
-#include "core/logging/log_helper_funcs.h"
+#include "rend/core/logging/log_helper_funcs.h"
 
-#include "core/draw_item.h"
-#include "core/framebuffer.h"
-#include "core/gpu_buffer.h"
-#include "core/gpu_texture.h"
-#include "core/rend_defs.h"
-#include "core/render_pass.h"
-#include "core/texture_info.h"
+#include "rend/core/draw_item.h"
+#include "rend/core/framebuffer.h"
+#include "rend/core/gpu_buffer.h"
+#include "rend/core/gpu_texture.h"
+#include "rend/core/rend_defs.h"
+#include "rend/core/render_pass.h"
+#include "rend/core/texture_info.h"
 
 #include <string>
 #include <cstdint>

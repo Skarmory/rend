@@ -1,6 +1,6 @@
-#include "core/mesh.h"
+#include "rend/core/mesh.h"
 
-#include "core/gpu_buffer.h"
+#include "rend/core/gpu_buffer.h"
 
 using namespace rend;
 

@@ -1,59 +1,60 @@
-#include "api/vulkan/vulkan_renderer.h"
+#include "rend/api/vulkan/vulkan_renderer.h"
 
-#include "core/command_buffer.h"
-#include "core/descriptor_set.h"
-#include "core/material.h"
-#include "core/rend.h"
-#include "core/rend_defs.h"
-#include "core/sub_pass.h"
-#include "core/window.h"
+#include "rend/core/command_buffer.h"
+#include "rend/core/descriptor_set.h"
+#include "rend/core/material.h"
+#include "rend/core/rend.h"
+#include "rend/core/rend_defs.h"
+#include "rend/core/sub_pass.h"
+#include "rend/core/window.h"
 
-#include "core/descriptor_set_layout.h"
-#include "core/draw_item.h"
-#include "core/frame.h"
-#include "core/framebuffer.h"
-#include "core/gpu_buffer.h"
-#include "core/gpu_texture.h"
-#include "core/mesh.h"
-#include "core/pipeline.h"
-#include "core/pipeline_layout.h"
-#include "core/renderer.h"
-#include "core/render_pass.h"
-#include "core/render_strategy.h"
-#include "core/rend_object.h"
-#include "core/shader.h"
-#include "core/texture_info.h"
-#include "core/view.h"
+#include "rend/core/descriptor_set_layout.h"
+#include "rend/core/draw_item.h"
+#include "rend/core/frame.h"
+#include "rend/core/framebuffer.h"
+#include "rend/core/gpu_buffer.h"
+#include "rend/core/gpu_texture.h"
+#include "rend/core/mesh.h"
+#include "rend/core/pipeline.h"
+#include "rend/core/pipeline_layout.h"
+#include "rend/core/renderer.h"
+#include "rend/core/render_pass.h"
+#include "rend/core/render_strategy.h"
+#include "rend/core/rend_object.h"
+#include "rend/core/shader.h"
+#include "rend/core/texture_info.h"
+#include "rend/core/view.h"
 
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
 
-#include "api/vulkan/fence.h"
-#include "api/vulkan/logical_device.h"
-#include "api/vulkan/swapchain.h"
-#include "api/vulkan/vulkan_command_buffer.h"
-#include "api/vulkan/vulkan_device_context.h"
-#include "api/vulkan/vulkan_semaphore.h"
-#include "api/vulkan/device_features.h"
-#include "api/vulkan/queue_family.h"
-#include "api/vulkan/vulkan_buffer.h"
-#include "api/vulkan/vulkan_buffer_info.h"
-#include "api/vulkan/vulkan_descriptor_set.h"
-#include "api/vulkan/vulkan_descriptor_set_layout.h"
-#include "api/vulkan/vulkan_framebuffer.h"
-#include "api/vulkan/vulkan_image_info.h"
-#include "api/vulkan/vulkan_pipeline.h"
-#include "api/vulkan/vulkan_pipeline_layout.h"
-#include "api/vulkan/vulkan_render_pass.h"
-#include "api/vulkan/vulkan_shader.h"
-#include "api/vulkan/vulkan_texture.h"
+#include "rend/api/vulkan/extensions.h"
+#include "rend/api/vulkan/fence.h"
+#include "rend/api/vulkan/layers.h"
+#include "rend/api/vulkan/logical_device.h"
+#include "rend/api/vulkan/swapchain.h"
+#include "rend/api/vulkan/device_features.h"
+#include "rend/api/vulkan/queue_family.h"
+#include "rend/api/vulkan/vulkan_command_buffer.h"
+#include "rend/api/vulkan/vulkan_device_context.h"
+#include "rend/api/vulkan/vulkan_semaphore.h"
+#include "rend/api/vulkan/vulkan_buffer.h"
+#include "rend/api/vulkan/vulkan_buffer_info.h"
+#include "rend/api/vulkan/vulkan_descriptor_set.h"
+#include "rend/api/vulkan/vulkan_descriptor_set_layout.h"
+#include "rend/api/vulkan/vulkan_framebuffer.h"
+#include "rend/api/vulkan/vulkan_image_info.h"
+#include "rend/api/vulkan/vulkan_pipeline.h"
+#include "rend/api/vulkan/vulkan_pipeline_layout.h"
+#include "rend/api/vulkan/vulkan_render_pass.h"
+#include "rend/api/vulkan/vulkan_shader.h"
+#include "rend/api/vulkan/vulkan_texture.h"
 
 #include <cstring>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include <__stddef_null.h>
 #include <cstdint>
 #include <functional>
 #include <queue>
@@ -108,8 +109,8 @@ void VulkanRenderer::initialise(const RendInitInfo& init_info)
 #endif
 
     _window = new Window(init_info.resolution_width, init_info.resolution_height, init_info.app_name);
-    glfwSetInputMode(_window->get_handle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetWindowSizeCallback(_window->get_handle(), ::glfw_window_resize_callback);
+    glfwSetInputMode((GLFWwindow*)_window->get_handle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetWindowSizeCallback((GLFWwindow*)_window->get_handle(), ::glfw_window_resize_callback);
     glfwSetErrorCallback(::glfw_error_callback);
 
     _device_context = new VulkanDeviceContext(*vk_init_info, *_window);
@@ -237,6 +238,8 @@ void VulkanRenderer::uninitialise(void)
     {
         delete _frame_datas[idx].submit_fen;
         delete _frame_datas[idx].load_sem;
+        delete _frame_datas[idx].acquire.acquire_semaphore;
+        delete _frame_datas[idx].acquire.acquire_fence;
     }
 
     _device_context->destroy_command_pool(_command_pool);

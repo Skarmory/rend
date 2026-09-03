@@ -1,35 +1,35 @@
-#include "api/vulkan/vulkan_device_context.h"
+#include "rend/api/vulkan/vulkan_device_context.h"
 
-#include "core/descriptor_set_binding.h"
-#include "core/descriptor_set_layout.h"
-#include "core/descriptor_update_rate.h"
-#include "core/framebuffer.h"
-#include "core/gpu_buffer.h"
-#include "core/gpu_texture.h"
-#include "core/pipeline_layout.h"
-#include "core/rend.h"
-#include "core/rend_constants.h"
-#include "core/render_pass.h"
-#include "core/shader_set.h"
-#include "core/window.h"
+#include "rend/core/descriptor_set_binding.h"
+#include "rend/core/descriptor_set_layout.h"
+#include "rend/core/descriptor_update_rate.h"
+#include "rend/core/framebuffer.h"
+#include "rend/core/gpu_buffer.h"
+#include "rend/core/gpu_texture.h"
+#include "rend/core/pipeline_layout.h"
+#include "rend/core/rend.h"
+#include "rend/core/rend_constants.h"
+#include "rend/core/render_pass.h"
+#include "rend/core/shader_set.h"
+#include "rend/core/window.h"
 
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
 
-#include "api/vulkan/fence.h"
-#include "api/vulkan/logical_device.h"
-#include "api/vulkan/physical_device.h"
-#include "api/vulkan/vulkan_buffer.h"
-#include "api/vulkan/vulkan_command_buffer.h"
-#include "api/vulkan/vulkan_descriptor_set_layout.h"
-#include "api/vulkan/vulkan_helper_funcs.h"
-#include "api/vulkan/vulkan_instance.h"
-#include "api/vulkan/vulkan_pipeline.h"
-#include "api/vulkan/vulkan_pipeline_layout.h"
-#include "api/vulkan/vulkan_render_pass.h"
-#include "api/vulkan/vulkan_semaphore.h"
-#include "api/vulkan/vulkan_shader.h"
-#include "api/vulkan/vulkan_texture.h"
+#include "rend/api/vulkan/fence.h"
+#include "rend/api/vulkan/logical_device.h"
+#include "rend/api/vulkan/physical_device.h"
+#include "rend/api/vulkan/vulkan_buffer.h"
+#include "rend/api/vulkan/vulkan_command_buffer.h"
+#include "rend/api/vulkan/vulkan_descriptor_set_layout.h"
+#include "rend/api/vulkan/vulkan_helper_funcs.h"
+#include "rend/api/vulkan/vulkan_instance.h"
+#include "rend/api/vulkan/vulkan_pipeline.h"
+#include "rend/api/vulkan/vulkan_pipeline_layout.h"
+#include "rend/api/vulkan/vulkan_render_pass.h"
+#include "rend/api/vulkan/vulkan_semaphore.h"
+#include "rend/api/vulkan/vulkan_shader.h"
+#include "rend/api/vulkan/vulkan_texture.h"
 
 #include <array>
 #include <cassert>
@@ -146,10 +146,12 @@ VulkanBufferInfo VulkanDeviceContext::create_buffer(const BufferInfo& info, VkMe
     _logical_device->bind_buffer_memory(buffer, memory);
 
     // Store related data in struct and return
+    // TODO: Once multiple buffers can bind to the same memory hunk, expand the data stored here.
+    //       We'll want a MemoryInfo and its size separate from the buffer info.
     VulkanBufferInfo buffer_info{};
     buffer_info.buffer = buffer;
     buffer_info.memory = memory;
-    buffer_info.bytes  = memory_reqs.size;
+    buffer_info.bytes = create_info.size; //memory_reqs.size;
 
     return buffer_info;
 }
@@ -1003,6 +1005,7 @@ VkBool32 VulkanDeviceContext::_validation_message_callback(VkDebugUtilsMessageSe
 {
     std::string msg = "VALIDATION | " + std::string(callback_data->pMessage);
     core::logging::LogManager::write(C_VALIDATION_LOG_CHANNEL_NAME, msg);
+    std::cerr << msg << std::endl;
     return VK_TRUE;
 }
 

@@ -1,4 +1,4 @@
-#include "core/window_base.h"
+#include "rend/core/window_base.h"
 
 using namespace rend;
 

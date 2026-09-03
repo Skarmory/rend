@@ -1,4 +1,4 @@
-#include "core/window.h"
+#include "rend/core/window.h"
 
 #include <GLFW/glfw3.h>
 
@@ -24,17 +24,17 @@ Window::Window(uint32_t width, uint32_t height, const char* title)
 
 Window::~Window(void)
 {
-    glfwDestroyWindow(_glfw_window);
+    glfwDestroyWindow((GLFWwindow*)_glfw_window);
 }
 
-GLFWwindow* Window::get_handle(void) const
+void* Window::get_handle(void) const
 {
     return _glfw_window;
 }
 
 bool Window::should_close(void) const
 {
-    return glfwWindowShouldClose(_glfw_window);
+    return glfwWindowShouldClose((GLFWwindow*)_glfw_window);
 }
 
 void Window::resize(uint32_t width, uint32_t height)

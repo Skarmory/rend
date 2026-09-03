@@ -1,8 +1,8 @@
-#include "core/sub_pass.h"
+#include "rend/core/sub_pass.h"
 
-#include "core/command_buffer.h"
-#include "core/logging/log_defs.h"
-#include "core/logging/log_manager.h"
+#include "rend/core/command_buffer.h"
+#include "rend/core/logging/log_defs.h"
+#include "rend/core/logging/log_manager.h"
 
 using namespace rend;
 

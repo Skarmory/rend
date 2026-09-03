@@ -1,7 +1,7 @@
-#include "core/material.h"
+#include "rend/core/material.h"
 
-#include "core/descriptor_set.h"
-#include "core/renderer.h"
+#include "rend/core/descriptor_set.h"
+#include "rend/core/renderer.h"
 
 #include <sstream>
 

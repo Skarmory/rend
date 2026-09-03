@@ -1,0 +1,26 @@
+#ifndef REND_API_VULKAN_VULKAN_DESCRIPTOR_SET_LAYOUT_H
+#define REND_API_VULKAN_VULKAN_DESCRIPTOR_SET_LAYOUT_H
+
+#include "rend/core/descriptor_set_layout.h"
+
+#include <string>
+#include <vulkan/vulkan.h>
+
+namespace rend
+{
+
+class VulkanDescriptorSetLayout : public DescriptorSetLayout
+{
+public:
+    VulkanDescriptorSetLayout(const std::string& name, VkDescriptorSetLayout vk_handle, const DescriptorSetLayoutInfo& info);
+    ~VulkanDescriptorSetLayout(void) = default;
+
+    VkDescriptorSetLayout vk_handle(void) const;
+
+private:
+    VkDescriptorSetLayout _vk_handle{ VK_NULL_HANDLE };
+};
+
+}
+
+#endif

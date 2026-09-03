@@ -1,4 +1,4 @@
-#include "core/gpu_resource.h"
+#include "rend/core/gpu_resource.h"
 
 #include <functional>
 #include <cstdint>

@@ -1,12 +1,12 @@
-#include "api/vulkan/physical_device.h"
+#include "rend/api/vulkan/physical_device.h"
 
-#include "core/device_context.h"
-#include "core/rend_service.h"
-#include "core/window.h"
+#include "rend/core/device_context.h"
+#include "rend/core/rend_service.h"
+#include "rend/core/window.h"
 
-#include "api/vulkan/logical_device.h"
-#include "api/vulkan/device_features.h"
-#include "api/vulkan/vulkan_instance.h"
+#include "rend/api/vulkan/logical_device.h"
+#include "rend/api/vulkan/device_features.h"
+#include "rend/api/vulkan/vulkan_instance.h"
 
 #include <cassert>
 

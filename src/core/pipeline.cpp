@@ -1,4 +1,4 @@
-#include "core/pipeline.h"
+#include "rend/core/pipeline.h"
 
 using namespace rend;
 
