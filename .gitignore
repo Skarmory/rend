@@ -7,3 +7,5 @@ rend/*
 *.sln
 /Win32/
 /x64/
+CMakeUserPresets.json
+build/*
